@@ -1,162 +1,6 @@
 <!doctype html>
 <html lang="en">
-<head>
-  <meta charset="utf-8">
-  <title>Colorway Editor</title>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { 
-      font-family: 'Inter', sans-serif; 
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      min-height: 100vh; 
-      padding: 20px; 
-    }
-    .container { 
-      max-width: 1200px; 
-      margin: 0 auto; 
-      background: rgba(255,255,255,0.95); 
-      border-radius: 20px; 
-      box-shadow: 0 20px 40px rgba(0,0,0,0.1); 
-      overflow: hidden;
-    }
-    .header { 
-      background: linear-gradient(135deg, #4f46e5, #7c3aed); 
-      color: white; 
-      padding: 30px; 
-      text-align: center; 
-    }
-    .header h1 { font-size: 2.5em; font-weight: 600; margin: 0; }
-    .tabs { 
-      display: flex; 
-      background: white; 
-      border-bottom: 1px solid #e5e7eb; 
-    }
-    .tab-btn { 
-      flex: 1; 
-      padding: 20px; 
-      background: none; 
-      border: none; 
-      font-size: 1.1em; 
-      font-weight: 500; 
-      cursor: pointer; 
-      transition: all 0.3s ease; 
-      position: relative; 
-    }
-    .tab-btn:hover { background: #f8fafc; }
-    .tab-btn.active { 
-      color: #4f46e5; 
-      background: linear-gradient(135deg, #eef2ff, #e0e7ff); 
-    }
-    .tab-btn.active::after { 
-      content: ''; 
-      position: absolute; 
-      bottom: 0; 
-      left: 0; 
-      right: 0; 
-      height: 3px; 
-      background: linear-gradient(90deg, #4f46e5, #7c3aed); 
-    }
-    .tab-content { 
-      display: none; 
-      padding: 40px; 
-      min-height: 500px; 
-    }
-    .tab-content.active { display: block; }
-    .content-header { 
-      display: flex; 
-      justify-content: space-between; 
-      align-items: center; 
-      margin-bottom: 30px; 
-    }
-    .content-title { 
-      font-size: 1.8em; 
-      font-weight: 600; 
-      background: linear-gradient(135deg, #4f46e5, #7c3aed); 
-      -webkit-background-clip: text; 
-      -webkit-text-fill-color: transparent; 
-    }
-    .save-btn { 
-      background: linear-gradient(135deg, #10b981, #059669); 
-      color: white; 
-      border: none; 
-      padding: 12px 32px; 
-      border-radius: 12px; 
-      font-size: 1.1em; 
-      font-weight: 500; 
-      cursor: pointer; 
-      transition: all 0.3s ease; 
-      box-shadow: 0 4px 14px rgba(16,185,129,0.3); 
-    }
-    .save-btn:hover { 
-      transform: translateY(-2px); 
-      box-shadow: 0 8px 25px rgba(16,185,129,0.4); 
-    }
-    .table-container { 
-      background: white; 
-      border-radius: 16px; 
-      box-shadow: 0 10px 30px rgba(0,0,0,0.1); 
-      overflow: hidden; 
-    }
-    table { 
-      width: 100%; 
-      border-collapse: collapse; 
-    }
-    th { 
-      background: linear-gradient(135deg, #f8fafc, #f1f5f9); 
-      font-weight: 600; 
-      color: #374151; 
-      padding: 20px 16px; 
-      text-align: left; 
-      font-size: 0.95em; 
-      letter-spacing: 0.5px; 
-    }
-    td { 
-      padding: 20px 16px; 
-      border-bottom: 1px solid #f3f4f6; 
-      vertical-align: middle; 
-    }
-    tr:hover { background: #fef7ff; }
-    input[type="text"] { 
-      width: 100%; 
-      border: 2px solid #e5e7eb; 
-      padding: 12px 14px; 
-      border-radius: 10px; 
-      font-size: 1em; 
-      transition: all 0.2s ease; 
-      background: white; 
-    }
-    input[type="text"]:focus { 
-      outline: none; 
-      border-color: #4f46e5; 
-      box-shadow: 0 0 0 3px rgba(79,70,229,0.1); 
-    }
-    input[type="color"] { 
-      width: 50px; 
-      height: 50px; 
-      border: none; 
-      border-radius: 12px; 
-      cursor: pointer; 
-      box-shadow: 0 4px 12px rgba(0,0,0,0.15); 
-      transition: transform 0.2s ease; 
-    }
-    input[type="color"]:hover { transform: scale(1.05); }
-    .color-preview { 
-      width: 40px; 
-      height: 40px; 
-      border-radius: 8px; 
-      margin-right: 12px; 
-      box-shadow: 0 2px 8px rgba(0,0,0,0.2); 
-      border: 2px solid rgba(255,255,255,0.8); 
-    }
-    @media (max-width: 768px) {
-      .tabs { flex-direction: column; }
-      .tab-btn { padding: 16px; }
-      .container { margin: 10px; }
-      .content-header { flex-direction: column; gap: 20px; text-align: center; }
-    }
-  </style>
-</head>
+{% include "header.html" %}
 <body>
   <div class="container">
     <div class="header">
@@ -182,25 +26,51 @@
         <table id="{{t}}-table">
           <thead>
             <tr>
-              <th>Tên Key</th>
-              
-              <th>Color Picker</th>
+              <th>Key</th>
+              <th>Fill</th>
+              <th>Text</th>
             </tr>
           </thead>
           <tbody>
             {% if t==tab %}
               {% for k,c in items %}
               <tr>
-                <td>
-                  <input type="text" class="key-input" value="{{k}}" data-old-key="{{k}}" placeholder="Nhập tên key">
-                </td>
-                <td>
-                  <div style="display: flex; align-items: center; gap: 12px;">
-                    
-                    <input type="text" class="color-text" value="{{c}}" placeholder="#rrggbb">
+                  <td>
+                    <input type="text"
+                          class="key-input"
+                          value="{{k}}"
+                          data-old-key="{{k}}">
                   </td>
-                <td><input type="color" class="color-picker" value="{{c}}"></td>
-              </tr>
+
+                  <!-- Background color -->
+                  <td>
+                    <div style="display:flex; gap:12px; align-items:center;">
+                      <input type="text"
+                            class="color-text bg-text"
+                            value="{{c.bg}}"
+                            placeholder="#rrggbb">
+
+                      <input type="color"
+                            class="color-picker bg-picker"
+                            value="{{c.bg}}">
+                    </div>
+                  </td>
+
+                  <!-- Text color -->
+                  <td>
+                    <div style="display:flex; gap:12px; align-items:center;">
+                      <input type="text"
+                            class="color-text text-text"
+                            value="{{c.text}}"
+                            placeholder="#rrggbb">
+
+                      <input type="color"
+                            class="color-picker text-picker"
+                            value="{{c.text}}">
+                    </div>
+                  </td>
+                </tr>
+
               {% endfor %}
             {% endif %}
           </tbody>
@@ -220,48 +90,44 @@
     
     function initColorSync(tableId) {
       const table = document.getElementById(tableId);
+
       table.querySelectorAll('.color-picker').forEach(picker => {
         picker.oninput = e => {
-          const row = e.target.closest('tr');
+          const row = e.target.closest('td');
           const text = row.querySelector('.color-text');
-          const preview = row.querySelector('.color-preview');
           text.value = e.target.value;
-          preview.style.backgroundColor = e.target.value;
         };
       });
-      
+
       table.querySelectorAll('.color-text').forEach(text => {
         text.onchange = e => {
           if (/^#[0-9a-fA-F]{6}$/.test(e.target.value)) {
-            const row = e.target.closest('tr');
+            const row = e.target.closest('td');
             const picker = row.querySelector('.color-picker');
-            const preview = row.querySelector('.color-preview');
             picker.value = e.target.value;
-            preview.style.backgroundColor = e.target.value;
           }
         };
       });
     }
+
     
     // Init sync cho tab hiện tại
     initColorSync('{{tab}}-table');
     
     function saveTable(tab) {
       const table = document.getElementById(tab+'-table');
-      const items = Array.from(table.querySelectorAll('tbody tr')).map(row => {
-        const keyInput = row.querySelector('.key-input');
-        const colorText = row.querySelector('.color-text');
-        return {
-          old_key: keyInput.dataset.oldKey,
-          new_key: keyInput.value.trim(),
-          color: colorText.value.trim()
-        };
-      });
-      
+
+      const items = Array.from(table.querySelectorAll('tbody tr')).map(row => ({
+        old_key: row.querySelector('.key-input').dataset.oldKey,
+        new_key: row.querySelector('.key-input').value.trim(),
+        bg_color: row.querySelector('.bg-text').value.trim(),
+        text_color: row.querySelector('.text-text').value.trim(),
+      }));
+
       fetch(`/api/${tab}/go`, {
         method: 'PUT',
         headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({items})
+        body: JSON.stringify({ items })
       })
       .then(r => r.json())
       .then(d => {
@@ -271,9 +137,9 @@
         } else {
           alert(`❌ Lỗi: ${d.error || 'Unknown error'}`);
         }
-      })
-      .catch(e => alert(`❌ Request error: ${e}`));
+      });
     }
+
   </script>
 </body>
 </html>

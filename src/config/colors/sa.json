@@ -1,148 +1,586 @@
 {
-  "RAC235": "#1a36a2",
-  "RA": "#ba1312",
-  "RAS": "#950013",
-  "RBC": "#733636",
-  "RCJ": "#a698c5",
-  "RCR": "#d37ba2",
-  "RCS": "#dca2c8",
-  "RCU": "#dd6151",
-  "RDA": "#6c3b7b",
-  "RDD": "#a40214",
-  "RDE": "#592254",
-  "RN": "#a51b1b",
-  "BBI": "#0a2040",
-  "BBJ": "#008fb0",
-  "BBQ": "#00a6b4",
-  "BDG": "#3690a1",
-  "BDH": "#005699",
-  "BED": "#003649",
-  "BE": "#006f9a",
-  "BEY": "#4d8b92",
-  "BFJ": "#5991ae",
-  "BFK": "#005190",
-  "BFL": "#579bad",
-  "BFM": "#abc6dc",
-  "BFN": "#1a8ab7",
-  "BFO": "#9dc3cb",
-  "BFP": "#0073a2",
-  "BFQ": "#66d0d0",
-  "BFR": "#293649",
-  "BFT": "#4b8599",
-  "BFU": "#00234e",
-  "BGA": "#00466d",
-  "BO": "#004c7f",
-  "BX": "#37879d",
-  "OAS": "#ff6800",
-  "OAV": "#ea4221",
-  "OBC": "#e86700",
-  "OB": "#d83712",
-  "ON": "#e54e00",
-  "TAA": "#29211c",
-  "TBN": "#483527",
-  "TBT": "#beb098",
-  "TEA": "#ccb18c",
-  "TGG": "#95866f",
-  "TGH": "#5b3314",
-  "TM": "#d9c9a8",
-  "TN": "#cab698",
-  "TU": "#c8b290",
-  "NN": "#212224",
-  "YBP": "#ffac00",
-  "YCB": "#e1ba44",
-  "YCC": "#f5d793",
-  "YCE": "#ffdb58",
-  "YCF": "#f7b03c",
-  "YCH": "#f2c700",
-  "YG": "#c09541",
-  "YL": "#d48600",
-  "YW": "#c4852c",
-  "YY": "#f8cc2a",
-  "GAA": "#b3aea1",
-  "GAL": "#c8c3b8",
-  "GA": "#94938f",
-  "GAW": "#aea38e",
-  "GAY": "#c9c5ba",
-  "GBA": "#a8a8a1",
-  "GB": "#30312e",
-  "GCF": "#beb6a7",
-  "GC": "#555657",
-  "GCS": "#8a806f",
-  "GDC": "#6d6a64",
-  "GD": "#63696a",
-  "GDV": "#938c83",
-  "GDX": "#c3b39c",
-  "GEA": "#b0aea6",
-  "GE": "#5f5c52",
-  "GEQ": "#9d9682",
-  "GER": "#c7c3b5",
-  "GEV": "#938778",
-  "GEW": "#3c4041",
-  "GEZ": "#a19d93",
-  "GFD": "#ccc4b3",
-  "GFE": "#9f9685",
-  "GFW": "#968e85",
-  "GGK": "#c0b5aa",
-  "GGM": "#a7a7a2",
-  "GG": "#7b7873",
-  "GGT": "#c2c1b9",
-  "GJV": "#887f77",
-  "GKH": "#a8a8a6",
-  "GLK": "#bdbfb8",
-  "GLY": "#c5bdb2",
-  "GN": "#a8a6a0",
-  "GO": "#75746e",
-  "GPA": "#5d6060",
-  "GPR": "#c6c0b8",
-  "GQM": "#464746",
-  "GRX": "#cecabc",
-  "GRY": "#979590",
-  "GSC": "#8b8e8e",
-  "GSL": "#c0c1bd",
-  "GSM": "#455460",
-  "GSP": "#7d8181",
-  "GSU": "#a39c94",
-  "GSX": "#a9abaa",
-  "GSY": "#817c74",
-  "GSZ": "#373738",
-  "GTA": "#4e5156",
-  "GTB": "#b9b8ae",
-  "GTC": "#95968d",
-  "GTD": "#7d7c78",
-  "GTF": "#c4bdac",
-  "GTG": "#929289",
-  "GTH": "#989997",
-  "GTL": "#afb0b1",
-  "GTM": "#959083",
-  "GTQ": "#d7d1c1",
-  "GTR": "#c7c7bf",
-  "GTT": "#a89f8d",
-  "GTV": "#888477",
-  "GX": "#333430",
-  "GY": "#6e6d6b",
-  "VAF": "#629990",
-  "VAG": "#249c78",
-  "VAT": "#93c247",
-  "VAV": "#7b9b48",
-  "VBQ": "#618a40",
-  "VBV": "#5dceba",
-  "VCJ": "#007b45",
-  "VCK": "#008d52",
-  "VCM": "#008e43",
-  "VCO": "#69d0a5",
-  "VCS": "#00792c",
-  "VF": "#5b7c5b",
-  "VH": "#7c947d",
-  "VV": "#005d35",
-  "WA": "#e4dedd",
-  "WAR": "#aba18b",
-  "WBO": "#e3d5b9",
-  "WCK": "#eee2d0",
-  "WEA": "#ddd3c0",
-  "WFK": "#e5e4df",
-  "WFM": "#e1d8cd",
-  "WFO": "#e4dbcc",
-  "WQ": "#dcd8cc",
-  "WV": "#dad4c4",
-  "WW": "#e0d6c6"
+  "RAC235": {
+    "bg": "#1a36a2",
+    "text": "#ffffff"
+  },
+  "RA": {
+    "bg": "#ba1312",
+    "text": "#ffffff"
+  },
+  "RAS": {
+    "bg": "#950013",
+    "text": "#ffffff"
+  },
+  "RBC": {
+    "bg": "#733636",
+    "text": "#ffffff"
+  },
+  "RCJ": {
+    "bg": "#a698c5",
+    "text": "#ffffff"
+  },
+  "RCR": {
+    "bg": "#d37ba2",
+    "text": "#ffffff"
+  },
+  "RCS": {
+    "bg": "#dca2c8",
+    "text": "#ffffff"
+  },
+  "RCU": {
+    "bg": "#dd6151",
+    "text": "#ffffff"
+  },
+  "RDA": {
+    "bg": "#6c3b7b",
+    "text": "#ffffff"
+  },
+  "RDD": {
+    "bg": "#a40214",
+    "text": "#ffffff"
+  },
+  "RDE": {
+    "bg": "#592254",
+    "text": "#ffffff"
+  },
+  "RN": {
+    "bg": "#a51b1b",
+    "text": "#ffffff"
+  },
+  "BBI": {
+    "bg": "#0a2040",
+    "text": "#ffea00"
+  },
+  "BBJ": {
+    "bg": "#008fb0",
+    "text": "#ffffff"
+  },
+  "BBQ": {
+    "bg": "#00a6b4",
+    "text": "#ffffff"
+  },
+  "BDG": {
+    "bg": "#3690a1",
+    "text": "#ffffff"
+  },
+  "BDH": {
+    "bg": "#005699",
+    "text": "#ffffff"
+  },
+  "BED": {
+    "bg": "#003649",
+    "text": "#ffffff"
+  },
+  "BE": {
+    "bg": "#006f9a",
+    "text": "#ffffff"
+  },
+  "BEY": {
+    "bg": "#4d8b92",
+    "text": "#ffffff"
+  },
+  "BFJ": {
+    "bg": "#5991ae",
+    "text": "#ffffff"
+  },
+  "BFK": {
+    "bg": "#005190",
+    "text": "#ffffff"
+  },
+  "BFL": {
+    "bg": "#579bad",
+    "text": "#ffffff"
+  },
+  "BFM": {
+    "bg": "#abc6dc",
+    "text": "#ffffff"
+  },
+  "BFN": {
+    "bg": "#1a8ab7",
+    "text": "#ffffff"
+  },
+  "BFO": {
+    "bg": "#9dc3cb",
+    "text": "#ffffff"
+  },
+  "BFP": {
+    "bg": "#0073a2",
+    "text": "#ffffff"
+  },
+  "BFQ": {
+    "bg": "#66d0d0",
+    "text": "#ffffff"
+  },
+  "BFR": {
+    "bg": "#293649",
+    "text": "#ffffff"
+  },
+  "BFT": {
+    "bg": "#4b8599",
+    "text": "#ffffff"
+  },
+  "BFU": {
+    "bg": "#00234e",
+    "text": "#ffffff"
+  },
+  "BGA": {
+    "bg": "#00466d",
+    "text": "#ffffff"
+  },
+  "BO": {
+    "bg": "#004c7f",
+    "text": "#ffffff"
+  },
+  "BX": {
+    "bg": "#37879d",
+    "text": "#ffffff"
+  },
+  "OAS": {
+    "bg": "#ff6800",
+    "text": "#ffffff"
+  },
+  "OAV": {
+    "bg": "#ea4221",
+    "text": "#ffffff"
+  },
+  "OBC": {
+    "bg": "#e86700",
+    "text": "#ffffff"
+  },
+  "OB": {
+    "bg": "#d83712",
+    "text": "#ffffff"
+  },
+  "ON": {
+    "bg": "#e54e00",
+    "text": "#ffffff"
+  },
+  "TAA": {
+    "bg": "#29211c",
+    "text": "#ffffff"
+  },
+  "TBN": {
+    "bg": "#483527",
+    "text": "#ffffff"
+  },
+  "TBT": {
+    "bg": "#beb098",
+    "text": "#ffffff"
+  },
+  "TEA": {
+    "bg": "#ccb18c",
+    "text": "#ffffff"
+  },
+  "TGG": {
+    "bg": "#95866f",
+    "text": "#ffffff"
+  },
+  "TGH": {
+    "bg": "#5b3314",
+    "text": "#ffffff"
+  },
+  "TM": {
+    "bg": "#d9c9a8",
+    "text": "#ffffff"
+  },
+  "TN": {
+    "bg": "#cab698",
+    "text": "#ffffff"
+  },
+  "TU": {
+    "bg": "#c8b290",
+    "text": "#ffffff"
+  },
+  "NN": {
+    "bg": "#212224",
+    "text": "#ffffff"
+  },
+  "YBP": {
+    "bg": "#ffac00",
+    "text": "#ffffff"
+  },
+  "YCB": {
+    "bg": "#e1ba44",
+    "text": "#ffffff"
+  },
+  "YCC": {
+    "bg": "#f5d793",
+    "text": "#ffffff"
+  },
+  "YCE": {
+    "bg": "#ffdb58",
+    "text": "#ffffff"
+  },
+  "YCF": {
+    "bg": "#f7b03c",
+    "text": "#ffffff"
+  },
+  "YCH": {
+    "bg": "#f2c700",
+    "text": "#ffffff"
+  },
+  "YG": {
+    "bg": "#c09541",
+    "text": "#ffffff"
+  },
+  "YL": {
+    "bg": "#d48600",
+    "text": "#ffffff"
+  },
+  "YW": {
+    "bg": "#c4852c",
+    "text": "#ffffff"
+  },
+  "YY": {
+    "bg": "#f8cc2a",
+    "text": "#ffffff"
+  },
+  "GAA": {
+    "bg": "#b3aea1",
+    "text": "#ffffff"
+  },
+  "GAL": {
+    "bg": "#c8c3b8",
+    "text": "#ffffff"
+  },
+  "GA": {
+    "bg": "#94938f",
+    "text": "#ffffff"
+  },
+  "GAW": {
+    "bg": "#aea38e",
+    "text": "#ffffff"
+  },
+  "GAY": {
+    "bg": "#c9c5ba",
+    "text": "#ffffff"
+  },
+  "GBA": {
+    "bg": "#a8a8a1",
+    "text": "#ffffff"
+  },
+  "GB": {
+    "bg": "#30312e",
+    "text": "#ffffff"
+  },
+  "GCF": {
+    "bg": "#beb6a7",
+    "text": "#ffffff"
+  },
+  "GC": {
+    "bg": "#555657",
+    "text": "#ffffff"
+  },
+  "GCS": {
+    "bg": "#8a806f",
+    "text": "#ffffff"
+  },
+  "GDC": {
+    "bg": "#6d6a64",
+    "text": "#ffffff"
+  },
+  "GD": {
+    "bg": "#63696a",
+    "text": "#ffffff"
+  },
+  "GDV": {
+    "bg": "#938c83",
+    "text": "#ffffff"
+  },
+  "GDX": {
+    "bg": "#c3b39c",
+    "text": "#ffffff"
+  },
+  "GEA": {
+    "bg": "#b0aea6",
+    "text": "#ffffff"
+  },
+  "GE": {
+    "bg": "#5f5c52",
+    "text": "#ffffff"
+  },
+  "GEQ": {
+    "bg": "#9d9682",
+    "text": "#ffffff"
+  },
+  "GER": {
+    "bg": "#c7c3b5",
+    "text": "#ffffff"
+  },
+  "GEV": {
+    "bg": "#938778",
+    "text": "#ffffff"
+  },
+  "GEW": {
+    "bg": "#3c4041",
+    "text": "#ffffff"
+  },
+  "GEZ": {
+    "bg": "#a19d93",
+    "text": "#ffffff"
+  },
+  "GFD": {
+    "bg": "#ccc4b3",
+    "text": "#ffffff"
+  },
+  "GFE": {
+    "bg": "#9f9685",
+    "text": "#ffffff"
+  },
+  "GFW": {
+    "bg": "#968e85",
+    "text": "#ffffff"
+  },
+  "GGK": {
+    "bg": "#c0b5aa",
+    "text": "#ffffff"
+  },
+  "GGM": {
+    "bg": "#a7a7a2",
+    "text": "#ffffff"
+  },
+  "GG": {
+    "bg": "#7b7873",
+    "text": "#ffffff"
+  },
+  "GGT": {
+    "bg": "#c2c1b9",
+    "text": "#ffffff"
+  },
+  "GJV": {
+    "bg": "#887f77",
+    "text": "#ffffff"
+  },
+  "GKH": {
+    "bg": "#a8a8a6",
+    "text": "#ffffff"
+  },
+  "GLK": {
+    "bg": "#bdbfb8",
+    "text": "#ffffff"
+  },
+  "GLY": {
+    "bg": "#c5bdb2",
+    "text": "#ffffff"
+  },
+  "GN": {
+    "bg": "#a8a6a0",
+    "text": "#ffffff"
+  },
+  "GO": {
+    "bg": "#75746e",
+    "text": "#ffffff"
+  },
+  "GPA": {
+    "bg": "#5d6060",
+    "text": "#ffffff"
+  },
+  "GPR": {
+    "bg": "#c6c0b8",
+    "text": "#ffffff"
+  },
+  "GQM": {
+    "bg": "#464746",
+    "text": "#ffffff"
+  },
+  "GRX": {
+    "bg": "#cecabc",
+    "text": "#ffffff"
+  },
+  "GRY": {
+    "bg": "#979590",
+    "text": "#ffffff"
+  },
+  "GSC": {
+    "bg": "#8b8e8e",
+    "text": "#ffffff"
+  },
+  "GSL": {
+    "bg": "#c0c1bd",
+    "text": "#ffffff"
+  },
+  "GSM": {
+    "bg": "#455460",
+    "text": "#ffffff"
+  },
+  "GSP": {
+    "bg": "#7d8181",
+    "text": "#ffffff"
+  },
+  "GSU": {
+    "bg": "#a39c94",
+    "text": "#ffffff"
+  },
+  "GSX": {
+    "bg": "#a9abaa",
+    "text": "#ffffff"
+  },
+  "GSY": {
+    "bg": "#817c74",
+    "text": "#ffffff"
+  },
+  "GSZ": {
+    "bg": "#373738",
+    "text": "#ffffff"
+  },
+  "GTA": {
+    "bg": "#4e5156",
+    "text": "#ffffff"
+  },
+  "GTB": {
+    "bg": "#b9b8ae",
+    "text": "#ffffff"
+  },
+  "GTC": {
+    "bg": "#95968d",
+    "text": "#ffffff"
+  },
+  "GTD": {
+    "bg": "#7d7c78",
+    "text": "#ffffff"
+  },
+  "GTF": {
+    "bg": "#c4bdac",
+    "text": "#ffffff"
+  },
+  "GTG": {
+    "bg": "#929289",
+    "text": "#ffffff"
+  },
+  "GTH": {
+    "bg": "#989997",
+    "text": "#ffffff"
+  },
+  "GTL": {
+    "bg": "#afb0b1",
+    "text": "#ffffff"
+  },
+  "GTM": {
+    "bg": "#959083",
+    "text": "#ffffff"
+  },
+  "GTQ": {
+    "bg": "#d7d1c1",
+    "text": "#ffffff"
+  },
+  "GTR": {
+    "bg": "#c7c7bf",
+    "text": "#ffffff"
+  },
+  "GTT": {
+    "bg": "#a89f8d",
+    "text": "#ffffff"
+  },
+  "GTV": {
+    "bg": "#888477",
+    "text": "#ffffff"
+  },
+  "GX": {
+    "bg": "#333430",
+    "text": "#ffffff"
+  },
+  "GY": {
+    "bg": "#6e6d6b",
+    "text": "#ffffff"
+  },
+  "VAF": {
+    "bg": "#629990",
+    "text": "#ffffff"
+  },
+  "VAG": {
+    "bg": "#249c78",
+    "text": "#ffffff"
+  },
+  "VAT": {
+    "bg": "#93c247",
+    "text": "#ffffff"
+  },
+  "VAV": {
+    "bg": "#7b9b48",
+    "text": "#ffffff"
+  },
+  "VBQ": {
+    "bg": "#618a40",
+    "text": "#ffffff"
+  },
+  "VBV": {
+    "bg": "#5dceba",
+    "text": "#ffffff"
+  },
+  "VCJ": {
+    "bg": "#007b45",
+    "text": "#ffffff"
+  },
+  "VCK": {
+    "bg": "#008d52",
+    "text": "#ffffff"
+  },
+  "VCM": {
+    "bg": "#008e43",
+    "text": "#ffffff"
+  },
+  "VCO": {
+    "bg": "#69d0a5",
+    "text": "#ffffff"
+  },
+  "VCS": {
+    "bg": "#00792c",
+    "text": "#ffffff"
+  },
+  "VF": {
+    "bg": "#5b7c5b",
+    "text": "#ffffff"
+  },
+  "VH": {
+    "bg": "#7c947d",
+    "text": "#ffffff"
+  },
+  "VV": {
+    "bg": "#005d35",
+    "text": "#ffffff"
+  },
+  "WA": {
+    "bg": "#e4dedd",
+    "text": "#ffffff"
+  },
+  "WAR": {
+    "bg": "#aba18b",
+    "text": "#ffffff"
+  },
+  "WBO": {
+    "bg": "#e3d5b9",
+    "text": "#ffffff"
+  },
+  "WCK": {
+    "bg": "#eee2d0",
+    "text": "#ffffff"
+  },
+  "WEA": {
+    "bg": "#ddd3c0",
+    "text": "#ffffff"
+  },
+  "WFK": {
+    "bg": "#e5e4df",
+    "text": "#ffffff"
+  },
+  "WFM": {
+    "bg": "#e1d8cd",
+    "text": "#ffffff"
+  },
+  "WFO": {
+    "bg": "#e4dbcc",
+    "text": "#ffffff"
+  },
+  "WQ": {
+    "bg": "#dcd8cc",
+    "text": "#ffffff"
+  },
+  "WV": {
+    "bg": "#dad4c4",
+    "text": "#ffffff"
+  },
+  "WW": {
+    "bg": "#e0d6c6",
+    "text": "#ffffff"
+  }
 }

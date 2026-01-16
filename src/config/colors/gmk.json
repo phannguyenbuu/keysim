@@ -1,37 +1,142 @@
 {
-  "GE1": "#59584f",
-  "CV": "#f8c200",
-  "N6": "#e5a100",
-  "V2": "#ee6900",
-  "MG1": "#cb3d6e",
-  "3C": "#c87e74",
-  "RO2": "#dd1126",
-  "V1": "#d02f1c",
-  "P3": "#bc251e",
-  "RO1": "#8d242f",
-  "DY": "#5d437e",
-  "TU2": "#00a4a9",
-  "TU1": "#00627a",
-  "N5": "#0084c2",
-  "V4": "#00589f",
-  "3A": "#7fa580",
-  "3B": "#768e72",
-  "AE": "#689b34",
-  "N7": "#00773a",
-  "BR1": "#653c25",
-  "WS4": "#eee2d0",
-  "WS1": "#f7f2ea",
-  "CP": "#e1dbd1",
-  "GR1": "#c5c7ca",
-  "2M": "#c6c9c7",
-  "3K": "#ccc6c0",
-  "T9": "#c3c3ba",
-  "L9": "#d8d2c3",
-  "U9": "#aca693",
-  "CB": "#9b9284",
-  "BJ": "#91867a",
-  "2B": "#727474",
-  "CC": "#67635b",
-  "N9": "#393b3b",
-  "CR": "#171718"
+  "GE1": {
+    "bg": "#59584f",
+    "text": "#a6ff00"
+  },
+  "CV": {
+    "bg": "#f8c200",
+    "text": "#ff0000"
+  },
+  "N6": {
+    "bg": "#e5a100",
+    "text": "#ffffff"
+  },
+  "V2": {
+    "bg": "#ee6900",
+    "text": "#ffffff"
+  },
+  "MG1": {
+    "bg": "#cb3d6e",
+    "text": "#ffffff"
+  },
+  "3C": {
+    "bg": "#c87e74",
+    "text": "#ffffff"
+  },
+  "RO2": {
+    "bg": "#dd1126",
+    "text": "#ffffff"
+  },
+  "V1": {
+    "bg": "#d02f1c",
+    "text": "#ffffff"
+  },
+  "P3": {
+    "bg": "#bc251e",
+    "text": "#ffffff"
+  },
+  "RO1": {
+    "bg": "#8d242f",
+    "text": "#ffffff"
+  },
+  "DY": {
+    "bg": "#5d437e",
+    "text": "#ffffff"
+  },
+  "TU2": {
+    "bg": "#00a4a9",
+    "text": "#ffffff"
+  },
+  "TU1": {
+    "bg": "#00627a",
+    "text": "#ffffff"
+  },
+  "N5": {
+    "bg": "#0084c2",
+    "text": "#ffffff"
+  },
+  "V4": {
+    "bg": "#00589f",
+    "text": "#ffffff"
+  },
+  "3A": {
+    "bg": "#7fa580",
+    "text": "#ffffff"
+  },
+  "3B": {
+    "bg": "#768e72",
+    "text": "#ffffff"
+  },
+  "AE": {
+    "bg": "#689b34",
+    "text": "#ffffff"
+  },
+  "N7": {
+    "bg": "#00773a",
+    "text": "#ffffff"
+  },
+  "BR1": {
+    "bg": "#653c25",
+    "text": "#ffffff"
+  },
+  "WS4": {
+    "bg": "#eee2d0",
+    "text": "#ffffff"
+  },
+  "WS1": {
+    "bg": "#f7f2ea",
+    "text": "#ffffff"
+  },
+  "CP": {
+    "bg": "#e1dbd1",
+    "text": "#ffffff"
+  },
+  "GR1": {
+    "bg": "#c5c7ca",
+    "text": "#ffffff"
+  },
+  "2M": {
+    "bg": "#c6c9c7",
+    "text": "#ffffff"
+  },
+  "3K": {
+    "bg": "#ccc6c0",
+    "text": "#ffffff"
+  },
+  "T9": {
+    "bg": "#c3c3ba",
+    "text": "#ffffff"
+  },
+  "L9": {
+    "bg": "#d8d2c3",
+    "text": "#ffffff"
+  },
+  "U9": {
+    "bg": "#aca693",
+    "text": "#ffffff"
+  },
+  "CB": {
+    "bg": "#9b9284",
+    "text": "#ffffff"
+  },
+  "BJ": {
+    "bg": "#91867a",
+    "text": "#ffffff"
+  },
+  "2B": {
+    "bg": "#727474",
+    "text": "#ffffff"
+  },
+  "CC": {
+    "bg": "#67635b",
+    "text": "#ffffff"
+  },
+  "N9": {
+    "bg": "#393b3b",
+    "text": "#ffffff"
+  },
+  "CR": {
+    "bg": "#171718",
+    "text": "#ffffff"
+  }
 }
