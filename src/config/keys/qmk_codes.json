@@ -113,6 +113,7 @@
   "ArrowDown": "KC_DOWN",
   "PageDown": "KC_PGDN",
   "Insert": "KC_INS",
+  "Fn": "KC_FN",
   "Delete": "KC_DEL",
   "OSLeft": "KC_LGUI",
   "OSRight": "KC_RGUI",

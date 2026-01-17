@@ -272,6 +272,8 @@ export default class CaseManager {
     this.group.add(this.case);
     // this.escPos = caseData.escPosition;
     this.keyPositions = caseData.keyPositions;
+
+    this.keySet = caseData.keySet;
     
     // if (this.keys?.getKey) {
     //   const escKey = this.keys.getKey('KC_F1');

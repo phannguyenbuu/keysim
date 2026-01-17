@@ -7,13 +7,22 @@ const MIP_COUNT = 0;
 
 //genertates a texture with canvas for top of key
 export const keyTexture = (opts) => {
-  // console.log('code', opts);
 
+  if (!opts || !opts.code) {
+    console.warn('❌ keyTexture: opts or opts.code missing!', opts);
+    // return new THREE.CanvasTexture(document.createElement('canvas'));  // Blank texture
+  }
+    
   let w = opts.w;
   let h = opts.h;
   let legend = opts.legend;
   let sublegend = opts.sub;
   let key = opts.code;
+
+  if(key && key.includes("HOME"))
+    console.log('code', opts);
+
+
   var texture;
   let pxPerU = 128;
   let subColor = opts.subColor || opts.color;
@@ -207,7 +216,7 @@ export const keyTexture = (opts) => {
   texture.minFilter = THREE.NearestMipmapNearestFilter;
 
   sendCanvasToBackend(canvas, opts.code);
-  
+
   return texture;
 };
 

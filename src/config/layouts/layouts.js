@@ -35,3 +35,14 @@ const LAYOUTS = {
 export default LAYOUTS;
 
 export const layoutOptions = Object.keys(LAYOUTS);
+
+// Cuối file, sau export
+console.log('📂 LAYOUTS LOADED:', Object.keys(LAYOUTS));
+console.log('Current layout example (75):', {
+  totalKeys: LAYOUTS['75']?.layouts?.LAYOUT?.layout?.length,
+  lastKeys: LAYOUTS['75']?.layouts?.LAYOUT.layout?.slice(-4),
+  hasNewKeys: LAYOUTS['75']?.layouts?.LAYOUT.layout?.some(p => 
+    p.code?.includes('HOME') || p.code?.includes('END') || p.code?.includes('FN')
+  )
+});
+

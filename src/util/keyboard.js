@@ -33,23 +33,35 @@ export default class KeyUtil {
   // static getKeyCode(code) {
   //   return qmk_codes[code];
   // }
+static specialKeyMap = {
+  'Tab': 'Tab',
 
-  static specialKeyMap = {
-    'Tab': 'Tab',
-    'KeyF1': 'F1', 'KeyF2': 'F2', 'KeyF3': 'F3', 'KeyF4': 'F4',
-    'KeyF5': 'F5', 'KeyF6': 'F6', 'KeyF7': 'F7', 'KeyF8': 'F8',
-    'KeyF9': 'F9', 'KeyF10': 'F10', 'KeyF11': 'F11', 'KeyF12': 'F12',
-    'MetaLeft': 'LGUI', 'MetaRight': 'RGUI',      // Win key
-    'OSLeft': 'LGUI', 'OSRight': 'RGUI',          // Win key (Mac)
-    'ControlLeft': 'LCTL', 'ControlRight': 'RCTL',
-    'ShiftLeft': 'LSFT', 'ShiftRight': 'RSFT',
-    'AltLeft': 'LALT', 'AltRight': 'RALT',
-    'CapsLock': 'Caps Lock',
-    'Escape': 'Esc',
-    'Enter': 'Enter',
-    'Backspace': 'Backspace',
-    'Space': 'Space'
-  };
+  // Home / End / Fn: để đúng text muốn thấy
+  'KeyHome': 'Home',
+  'KeyEnd': 'End',
+  'FnKey': 'Fn',
+
+  'KeyF1': 'F1', 'KeyF2': 'F2', 'KeyF3': 'F3', 'KeyF4': 'F4',
+  'KeyF5': 'F5', 'KeyF6': 'F6', 'KeyF7': 'F7', 'KeyF8': 'F8',
+  'KeyF9': 'F9', 'KeyF10': 'F10', 'KeyF11': 'F11', 'KeyF12': 'F12',
+
+  // Window
+  'MetaLeft': 'Win',
+  'MetaRight': 'Win',
+  'OSLeft': 'Win',
+  'OSRight': 'Win',
+
+  'ControlLeft': 'Ctrl', 'ControlRight': 'Ctrl',
+  'ShiftLeft': 'Shift', 'ShiftRight': 'Shift',
+  'AltLeft': 'Alt', 'AltRight': 'Alt',
+
+  'CapsLock': 'Caps Lock',
+  'Escape': 'Esc',
+  'Enter': 'Enter',
+  'Backspace': 'Backspace',
+  'Space': 'Space'
+};
+
 
   static getKeyCode(code) {
     // ✅ Ưu tiên 1: special keys

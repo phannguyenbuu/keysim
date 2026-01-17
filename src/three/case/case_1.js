@@ -50,8 +50,11 @@ export default async (layout, color, size) => {
       .add(offset);
   });
 
+  const keySet = new Set(Object.keys(keyPositions));
+
   return {
-    mesh: scene,          // 👉 vẫn render bình thường
-    keyPositions          // 👉 toàn bộ KC_*
+    mesh: scene,
+    keyPositions,
+    keySet
   };
 }

@@ -84,7 +84,10 @@
       "KC_RCTL",
       "KC_LEFT",
       "KC_DOWN",
-      "KC_RGHT"
+      "KC_RGHT",
+      "KC_HOME",
+      "KC_END",
+      "KC_FN"
     ]
   ]
 }
