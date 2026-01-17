@@ -4,12 +4,12 @@
   "manufacturer": "",
   "swatches": {
     "base": {
-      "background": "#e5a100",
+      "background": "#00773a",
       "subColor": "#fb7279",
-      "color": "#367f9a"
+      "color": "#bc251e"
     },
     "mods": {
-      "background": "#00627a",
+      "background": "#768e72",
       "color": "#fb7279"
     },
     "accent": {
@@ -28,6 +28,13 @@
     "KC_Q": "base",
     "KC_E": "mods",
     "KC_D": "mods",
-    "KC_SPC": "mods"
+    "KC_SPC": "mods",
+    "KC_F6": "base",
+    "KC_U": "base",
+    "KC_8": "base",
+    "KC_4": {
+      "background": "#e5a100",
+      "color": "#bc251e"
+    }
   }
 }

@@ -145,6 +145,39 @@ export default class KeyManager extends Collection {
     });
   }
 
+  // createKeys() {
+  //   let seen = []; //for boards with multiple keys of same code
+  //   this.removeAllOldKeys();
+  //   console.log('🔑 KeyManager createKeys layout:', this.layout.length);
+
+  //   for (let i = 0; i < this.layout.length; i++) {
+  //     let code = this.keymap[i];
+  //     let dimensions = this.layout[i];
+  //     dimensions.row = KeyUtil.getKeyProfile(
+  //       i,
+  //       this.layout,
+  //       this.layoutFull.height
+  //     );
+  //     let existingKey = this.getKey(code);
+  //     if (existingKey && !seen.includes(code)) {
+  //       if (this.matchesSize(existingKey, dimensions)) {
+  //         existingKey.move(dimensions);
+  //         seen.push(code);
+  //         continue;
+  //       }
+  //       this.removeKey(existingKey);
+  //     }
+  //     let K = new Key({
+  //       dimensions: dimensions,
+  //       container: this.group,
+  //       isIso: this.layoutFull?.is_iso,
+  //       colorway: this.colorway,
+  //       code: code,
+  //     });
+  //     this.add(K);
+  //     seen.push(code);
+  //   }
+  // }
 
   createKeys() {
   let seen = [];
@@ -152,7 +185,7 @@ export default class KeyManager extends Collection {
   
   for (let i = 0; i < this.layout.length; i++) {
     // ✅ PRIORITY: layout.code > keymap
-    let code = this.keymap[i];
+    let code = this.layout[i].code || this.keymap[i] || 'BLANK';
     
     let dimensions = this.layout[i];
     dimensions.row = KeyUtil.getKeyProfile(i, this.layout, this.layoutFull.height);
@@ -172,9 +205,6 @@ export default class KeyManager extends Collection {
       }
       this.removeKey(existingKey);
     }
-
-    if(legend === 'sa')
-      console.log('legend', legend, code);
     
     let K = new Key({
       dimensions: dimensions,

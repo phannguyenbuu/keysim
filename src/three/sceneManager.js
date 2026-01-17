@@ -103,7 +103,7 @@ export default class SceneManager extends Collection {
     this.camera = new THREE.PerspectiveCamera(60, this.w / this.h, 1, 1000);
     this.camera.position.y = 15;
     this.camera.position.z = 15;
-    this.camera.position.x = 0;
+    this.camera.position.x = -8;
   }
   setupControls() {
     this.controls = new OrbitControls(this.camera, this.renderer.domElement);
@@ -112,7 +112,7 @@ export default class SceneManager extends Collection {
     this.controls.dampingFactor = 0.25;
     this.controls.enableKeys = false;
     this.controls.maxDistance = 40;
-    this.controls.target = new THREE.Vector3(0, 0, 0);
+    this.controls.target = new THREE.Vector3(-8, 0, 0);
   }
   setupLights() {
     let ambiant = new THREE.AmbientLight("#ffffff", 0.5);

@@ -274,16 +274,18 @@ export default class CaseManager {
     this.keyPositions = caseData.keyPositions;
 
     this.keySet = caseData.keySet;
+
+    const validKeys = this.keySet instanceof Set
+    ? this.keySet
+    : new Set(this.keySet);
+
+    // console.log("Keys", validKeys, this.keys.components.length);
+
+    this.keys.components.forEach(obj => {
+      if(!validKeys.has(obj.code))
+        obj.cap.visible = false;
+    })
     
-    // if (this.keys?.getKey) {
-    //   const escKey = this.keys.getKey('KC_F1');
-    //   console.log(escKey,);
-
-    //   if (escKey && caseData.escPosition) {
-    //     escKey.cap.position.copy(caseData.escPosition);
-    //   }
-    // }
-
     Object.entries(this.keyPositions).forEach(([code, pos]) => {
       const key = this.keys.getKey(code);
       if (key) {

@@ -10,7 +10,7 @@ export const keyTexture = (opts) => {
 
   if (!opts || !opts.code) {
     console.warn('❌ keyTexture: opts or opts.code missing!', opts);
-    // return new THREE.CanvasTexture(document.createElement('canvas'));  // Blank texture
+    return new THREE.CanvasTexture(document.createElement('canvas'));  // Blank texture
   }
     
   let w = opts.w;

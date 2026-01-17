@@ -1,56 +1,25 @@
-import React from "react";
+import React, {useState, useEffect} from "react";
 import Button from "../elements/Button";
 import styles from "./Swatch.module.scss";
 import ColorPicker from "../elements/ColorPicker";
-// import { useApiHost } from "../../store/useApiHost";
+import store from "../../store/store";
 
 export default function Swatch(props) {
-  // const handleChange = (value, key) => {
-  //   // if(!value) return;
-  //   // let newSwatch = { ...props.swatch };
-  //   // console.log("Val",value);
-  //   // newSwatch[key] = value.hex;
-  //   // props.handler(props.name, newSwatch);
+  const [localSwatch, setLocalSwatch] = useState(props.swatch);
 
-  //   if(!value) return;
-  //   // ✅ DEEP CLONE để tránh mutate
-  //   let newSwatch = JSON.parse(JSON.stringify(props.swatch));
-  //   newSwatch[key] = value.hex;
-  //   props.handler(props.name, newSwatch);
-  // };
+useEffect(() => {
+  console.log('Swatch useEffect active:', props.active, 'localSwatch:', localSwatch);  
+  if (props.active) setLocalSwatch(props.swatch);
+}, [props.active, props.swatch]);
 
-  // const { host } = useApiHost();
-  
   const handleChange = async (value, key) => {
-  if (!value) return;
+    if (!value) return;
 
-  let newSwatch = JSON.parse(JSON.stringify(props.swatch));
-  newSwatch[key] = value.hex;
+    let newSwatch = JSON.parse(JSON.stringify(props.swatch));
+    newSwatch[key] = value.hex;
 
-  // const updatedColorway = JSON.parse(JSON.stringify(props));
-  
-  // // Khởi tạo nếu chưa tồn tại
-  // if (!updatedColorway.swatches) {
-  //   updatedColorway.swatches = {};
-  // }
-  
-  // updatedColorway.swatches[props.name] = newSwatch;
-
-  props.handler(props.name, newSwatch);
-
-  
-
-  // try {
-  //   const response = await fetch(`${host}/api/colorways/0_${props.name}`, {
-  //     method: 'PUT',
-  //     headers: { 'Content-Type': 'application/json' },
-  //     body: JSON.stringify(updatedColorway),
-  //   });
-  //   if (!response.ok) throw new Error('Failed to update backend colorway');
-  // } catch (error) {
-  //   console.error(error);
-  // }
-};
+    props.handler(props.name, newSwatch);
+  };
 
   const selectSwatchKeyboard = (e) => {
     if (e.key === "Enter" || e.key === " ") {
@@ -63,28 +32,35 @@ export default function Swatch(props) {
     props.name === "base" || props.name === "mods" || props.name === "accent";
 
   const isActive = props.name === props.active;
-  console.log('label', props);
 
   return (
     <li
       className={`${styles.swatch} ${isActive ? styles.active : ""}`}
       tabIndex="0"
       onKeyDown={selectSwatchKeyboard}
-      onClick={() => {
+      // onClick={() => {
+      //   props.setSwatch(props.name);
+      //   console.log('Pick', props.name);
+      // }}
+     onClick={() => {
+        // ✅ 1. Set active NAME
         props.setSwatch(props.name);
-        console.log('Pick', props.name);
-        // const color=props.swatch.background;
-        // handleChange(color, "background");
+        setLocalSwatch(props.swatch);
+        // ✅ 2. Set activeSwatch = FULL OBJECT {bg, text}
+        const fullSwatch = {
+          background: props.swatch.background,  // bg
+          color: props.swatch.color
+        };
+
+        console.log("COLOR", fullSwatch);
+        
+        window.activeSwatch = fullSwatch;  // Cho ColorUtil đọc
+  
+        console.log('Set window.activeSwatch:', fullSwatch);
       }}
+
+
     >
-      {/* <ColorPicker
-            isSwatch={true}
-            label="Swatch/Background"
-            color={props.swatch.color}
-            handler={(color) => {
-              handleChange(color, "background");
-            }}
-      /> */}
       <p style={{paddingLeft: 20, fontSize:14, textTransform:'capitalize'}}>{props.name}</p>
 
       <div className={styles.info}>
@@ -113,14 +89,13 @@ export default function Swatch(props) {
         </div>
 
         <div className={styles.color}>
-          <ColorPicker
-            isSwatch={true}
-            label="Legend"
-            color={props.swatch.color}
-            handler={(color) => {
-              handleChange(color, "color");
-            }}
-          />
+          {/* ✅ Legend: DIV preview thay ColorPicker */}
+          <div className={styles.legendPreview}>
+            <div 
+              className={styles.colorPreview}
+              style={{ backgroundColor: localSwatch.color}}
+            />
+          </div>
         </div>
       </div>
     </li>

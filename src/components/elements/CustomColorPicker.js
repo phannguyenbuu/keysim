@@ -60,17 +60,16 @@ export const MyPicker = ({ hex, hsl, hsv, onChange, onClose }) => {
         aria-label={"color " + code}
         className={pickerStyes.colorSwatch}
         onClick={() => {
-          onChange(colorCodes[code].bg);
+          onChange(colorCodes[code]);
         }}
         onKeyDown={(e) => {
           if (e.key === "Enter" || e.key === " ") {
             e.preventDefault();
-            onChange(colorCodes[code].bg);
+            onChange(colorCodes[code]);
           }
         }}
         style={{
-          background: colorCodes[code].bg,
-          color: colorCodes[code].text,
+          background: `${colorCodes[code]}`,
         }}
       >
         {code}

@@ -48,3 +48,16 @@
   display: flex;
   flex-direction: column;
 }
+
+
+.legendPreview {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  
+  .colorPreview {
+    width: 20px;
+    height: 50px;
+    cursor: default;  // Không editable
+  }
+}
