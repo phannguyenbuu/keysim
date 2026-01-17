@@ -9,44 +9,6 @@ const it = 0.05; // inset top edge
 //stores geometry for each possible size
 var computed_geometries = {};
 
-// const lowerCapFace = (geometry, dist, distFront, offset) => {
-//   distFront = distFront || dist;
-//   offset = offset || 0;
-//   geometry.vertices[4].y -= dist;
-//   geometry.vertices[5].y -= dist + offset;
-//   geometry.vertices[6].y -= dist + offset;
-//   geometry.vertices[7].y -= dist;
-//   geometry.vertices[8].y -= distFront;
-//   geometry.vertices[9].y -= distFront - offset;
-//   geometry.vertices[10].y -= distFront - offset;
-//   geometry.vertices[11].y -= distFront;
-//   return geometry;
-// };
-
-
-const lowerCapFace = (geometry, dist, distFront, offset) => {
-  distFront = distFront || dist;
-  offset = offset || 0;
-
-  const positionAttr = geometry.attributes.position;
-
-  // Thay đổi giá trị y cho các đỉnh tương ứng index 4 đến 11
-  positionAttr.setY(4, positionAttr.getY(4) - dist);
-  positionAttr.setY(5, positionAttr.getY(5) - dist - offset);
-  positionAttr.setY(6, positionAttr.getY(6) - dist - offset);
-  positionAttr.setY(7, positionAttr.getY(7) - dist);
-  positionAttr.setY(8, positionAttr.getY(8) - distFront);
-  positionAttr.setY(9, positionAttr.getY(9) - distFront + offset);
-  positionAttr.setY(10, positionAttr.getY(10) - distFront + offset);
-  positionAttr.setY(11, positionAttr.getY(11) - distFront);
-
-  positionAttr.needsUpdate = true;
-
-  return geometry;
-};
-
-
-
 //geometry for rectangle key
 export const keyGeometry = (opts) => {
   let key = `test${opts.w}${opts.h}${opts.row}`;
@@ -58,8 +20,7 @@ export const keyGeometry = (opts) => {
   let d = opts.h - GUTTER;
   let h = 0.5;
 
-
-  
+ 
 
 
   const vs = [
@@ -124,61 +85,11 @@ export const keyGeometry = (opts) => {
     [3, 9, 10]
   ];
   
-  // geometry.faceVertexUvs.push(geometry.faceVertexUvs[0]);
-
-  // geometry.faceVertexUvs[1][16] = [ [0, 0], [0, 0], [0, 0] ]
-  // geometry.faceVertexUvs[1][16] = [ [0, 0), [0, 0), [0, 0) ]
-
-  // angle top faces for profile
-  // if (opts.row === 1) {
-  //   geometry = lowerCapFace(geometry, -0.05);
-  // }
-  // if (opts.row === 2) {
-  //   geometry = lowerCapFace(geometry, 0.1);
-  // }
-  // if (opts.row === 3) {
-  //   geometry = lowerCapFace(geometry, 0.2, 0.1, 0.007);
-  // }
-  // if (opts.row === 4) {
-  //   geometry = lowerCapFace(geometry, 0.15, 0.01, 0.01);
-  // }
-
-  // angle top faces for profile
-  // if (opts.h === 2 && opts.w < 1.25) {
-  //   geometry = lowerCapFace(geometry, 0.1);
-  // }
-  // if (opts.row === 1) {
-  //   geometry = lowerCapFace(geometry, -0.05);
-  // }
-  // if (opts.row === 2 && opts.h !== 2) {
-  //   geometry = lowerCapFace(geometry, 0.1);
-  // }
-  // if (opts.row === 3 && opts.h !== 2) {
-  //   geometry = lowerCapFace(geometry, 0.1);
-  //   geometry.rotateX(-0.1);
-  //   geometry.translate(0, -0.1, 0);
-  // }
-  // if (opts.row === 4 && opts.h !== 2) {
-  //   geometry.rotateX(-0.2);
-  //   geometry.translate(0, -0.19, 0);
-  // }
-  // geometry.computeFaceNormals();
-  // computed_geometries[key] = geometry;
-
   const uvs = new Array(108).fill(0);
   [25,28,29,30,32,33].forEach((i) => uvs[i] = 1);
 
   return geometryToBufferGeometry(vs,fs, uvs);
 };
-
-
-
-
-
-
-
-
-
 
 
 
@@ -335,60 +246,11 @@ export const keyGeometryISOEnter = (opts) => {
 
   const uvs = new Array(84 * 2).fill(0);
   
-  // _setUV(uvs, 2,[[1.0, 0],[0.545455, 0.173913],[0.575758, 0]])
-  // _setUV(uvs, 4,[[1.0, 0],[1.0, 1.0],[0.545455, 0.173913]])
-  // _setUV(uvs, 5,[[1.0, 1.0],[0.545455, 0.217391],[0.545455, 0.173913]])
-  // _setUV(uvs, 6,[[1.0, 1.0],[0, 1.0],[0.545455, 0.217391]])
-  // _setUV(uvs, 7,[[0, 1.0],[0, 0.217391],[0.545455, 0.217391]])
-
-
-  // _setUV(uvs, 2,[[1.0, 0],[0.545455, 0.173913],[0.575758, 0]])
-  // _setUV(uvs, 4,[[1.0, 0],[1.0, 1.0],[0.545455, 0.173913]])
-  // _setUV(uvs, 5,[[1.0, 1.0],[0.545455, 0.217391],[0.545455, 0.173913]])
-  // _setUV(uvs, 6, _uvs[4]) //4
-  // _setUV(uvs, 7,[[0, 1.0],[0, 0.217391],[0.545455, 0.217391]])
-
-  
-
-  // console.log('H',flipUVsX(rotateUVs180([[0, 0],[0, 1.0],[0.454545, 0.173913]])));
-
-  
-  
-//   geometry.faceVertexUvs.push(geometry.faceVertexUvs[0]);
-  // geometry.computeFaceNormals();
-//   computed_geometries["isoent"] = geometry;
   const geometry = geometryToBufferGeometry(_vs,_fs,uvs);
-  // geometry.computeFaceNormals();
+  
 
   return geometry;
 };
-
-function rotateUVs90CCW(uvs) {
-  return uvs.map(([u, v]) => [v, 1 - u]);
-}
-
-function rotateUVs90CW(uvs) {
-  return uvs.map(([u, v]) => [1 - v, u]);
-}
-
-function rotateUVs180(uvs) {
-  return uvs.map(([u, v]) => [1 - u, 1 - v]);
-}
-
-function flipUVsX(uvs) {
-  return uvs.map(([u, v]) => [1 - u, v]);
-}
-
-function _setUV(uvs, n, val) {
-  uvs[n * 6 + 0] = val[0][0]
-  uvs[n * 6 + 1] = val[0][1]
-  uvs[n * 6 + 2] = val[1][0]
-  uvs[n * 6 + 3] = val[1][1]
-  uvs[n * 6 + 4] = val[2][0]
-  uvs[n * 6 + 5] = val[2][1]
-}
-
-
 
 
 

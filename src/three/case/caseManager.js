@@ -82,6 +82,7 @@ const MATERIAL_OPTIONS = {
 export default class CaseManager {
   constructor(opts) {
     this.scene = opts.scene;
+    this.keys = opts.keys;
     this.layoutName = initial_settings.case.layout;
     this.style = initial_settings.case.style;
     this.color = initial_settings.case.primaryColor;
@@ -90,7 +91,7 @@ export default class CaseManager {
     this.texScale = 0.1;
     this.bezel = 0.5;
     this.height = 1;
-    this.angle = 6;
+    this.angle = 0;
     this.r = 0.5;
     this.setup();
   }
@@ -112,8 +113,8 @@ export default class CaseManager {
     this.loadTextures();
     this.createEnvCubeMap();
     // this.createCaseShadow();
-    this.createBadge();
-    this.createPlate();
+    // this.createBadge();
+    // this.createPlate();
     this.createCase();
 
     //case global position (shadow is out side this.group)
@@ -254,18 +255,39 @@ export default class CaseManager {
 
   getCaseMesh(layout = this.layout, style = this.style) {
     let mesh;
+    console.log("Style",style);
     if (style === "CASE_1") {
       mesh = case_1(layout, this.color);
     } else {
-      mesh = case_2(layout, this.color);
+      // mesh = case_2(layout, this.color);
     }
     return mesh;
   }
 
-  createCase() {
-    this.case = this.getCaseMesh();
-    this.updateCaseMaterial();
+  async createCase() {
+    // this.case = this.getCaseMesh();
+    const caseData = await case_1(this.layout, this.color, this.layoutName);
+    // this.updateCaseMaterial();
+    this.case = caseData.mesh;
     this.group.add(this.case);
+    // this.escPos = caseData.escPosition;
+    this.keyPositions = caseData.keyPositions;
+    
+    // if (this.keys?.getKey) {
+    //   const escKey = this.keys.getKey('KC_F1');
+    //   console.log(escKey,);
+
+    //   if (escKey && caseData.escPosition) {
+    //     escKey.cap.position.copy(caseData.escPosition);
+    //   }
+    // }
+
+    Object.entries(this.keyPositions).forEach(([code, pos]) => {
+      const key = this.keys.getKey(code);
+      if (key) {
+        key.cap.position.copy(pos);
+      }
+    });
   }
 
   updateCaseGeometry() {

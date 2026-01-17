@@ -9,6 +9,29 @@ app = Flask(__name__)
 CORS(app)
 COLORWAY_PATH = os.path.join(os.path.dirname(__file__), '../src/config/colorways/')
 
+
+@app.route("/api/textures/<key>", methods=["POST"])
+def upload_texture(key):
+    try:
+        file = request.files.get("file")
+        if not file:
+            return jsonify({"error": "No file"}), 400
+
+        save_dir = os.path.join(os.path.dirname(__file__), "textures")
+        os.makedirs(save_dir, exist_ok=True)
+
+        filepath = os.path.join(save_dir, f"{key}.png")
+        file.save(filepath)
+
+        return jsonify({
+            "status": "ok",
+            "key": key,
+            "path": filepath
+        }), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 @app.route('/api/colorways/<string:json_name>', methods=['PUT'])
 def update_colorway(json_name):
     try:

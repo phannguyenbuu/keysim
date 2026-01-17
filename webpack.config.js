@@ -49,6 +49,14 @@ module.exports = {
           },
         ],
       },
+
+      {
+        test: /\.(glb|gltf)$/,
+        type: 'asset/resource',  // Webpack 5
+        generator: {
+          filename: 'assets/[name][ext][query]'
+        }
+      }
     ],
 
   },

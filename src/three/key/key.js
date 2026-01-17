@@ -56,25 +56,9 @@ export class Key {
       ? keyGeometryISOEnter(this.geometryOptions)
       : keyGeometry(this.geometryOptions);
 
-    // console.log('geometry', geometry);
-
-    // const positions = geometry.attributes.position.array;
-
-    // In ra từng đỉnh (mỗi 3 giá trị tương ứng x, y, z)
-    // for (let i = 0; i < positions.length; i += 3) {
-    //   const x = positions[i];
-    //   const y = positions[i + 1];
-    //   const z = positions[i + 2];
-    //   // console.log(`Vertex ${i/3}: x=${x}, y=${y}, z=${z}`);
-    // }
 
 
     let materials = keyMaterials(this.materialOptions);
-
-    // let materials = [new THREE.MeshBasicMaterial({ color: 0x00ff00 }), 
-    //     new THREE.MeshBasicMaterial({ color: 0x333333 }),
-    //   new THREE.MeshBasicMaterial({ color: 0xCCCCCC })];
-
 
 
 

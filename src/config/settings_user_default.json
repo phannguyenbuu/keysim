@@ -12,8 +12,8 @@
   },
   "case": {
     "autoColor": true,
-    "primaryColor": "#eeeeee",
-    "colorSecondary": "#eeeeee",
+    "primaryColor": "#ffffff",
+    "colorSecondary": "#fffff",
     "style": "CASE_1",
     "bezel": 1,
     "layout": "75",

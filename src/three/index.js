@@ -20,22 +20,16 @@ export default (element) => {
         el: element,
       });
 
+       const CASE = new CaseManager({
+        scene: ThreeApp.scene
+      });
+
       const KEYS = new KeyManager({
-        scene: ThreeApp.scene,
+        scene: ThreeApp.scene, caseManager: CASE
       });
 
-      new CaseManager({
-        scene: ThreeApp.scene,
-      });
-
-      // console.log('KEYS', KEYS.components.length, KEYS);
-
-      setTimeout(() => {
-        // loadFBX(ThreeApp.scene, './rfs.fbx');
-        // exportFBX(ThreeApp.scene);
-        // listObjs(ThreeApp.scene);
-      }, 1000);
-
+     
+      CASE.keys = KEYS; 
         
 
       //start render loop
