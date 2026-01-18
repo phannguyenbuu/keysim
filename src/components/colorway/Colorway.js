@@ -12,7 +12,7 @@ export default function Colorway(props) {
   const dispatch = useDispatch();
   console.log("All colors",  props.colorway?.swatches);
   const base_bg = props.colorway?.swatches?.base?.background || "#ffffff";
-  const base_fg = props.colorway?.swatches?.base?.color || "#000000";
+  const base_fg = props.colorway?.swatches?.base?.color || "#00ff00";
   const mods_bg = props.colorway?.swatches?.mods?.background || base_bg;
   const mods_fg = props.colorway?.swatches?.mods?.color || base_fg;
   const accent_bg = props.colorway?.swatches?.accent?.background || mods_bg;
@@ -53,7 +53,7 @@ export default function Colorway(props) {
         className={styles.swatch}
         style={{
           background: swatch?.background || "#ffffff",
-          color: swatch?.color || "#000000",
+          color: swatch?.color || "#ff0000",
         }}
         title={`${key}: ${swatch?.background}`}
       >

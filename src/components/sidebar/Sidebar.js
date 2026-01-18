@@ -9,7 +9,7 @@ import { ReactComponent as Name } from "../../assets/logo_text.svg";
 import "./tabs.scss";
 
 export default function Sidebar() {
-  const [tabIndex, setTabIndex] = useState(0);
+  const [tabIndex, setTabIndex] = useState(1);
 
   return (
     <div id="sidebar" className={styles.sidebar}>

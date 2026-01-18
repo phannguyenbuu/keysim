@@ -5,21 +5,50 @@ import ColorPicker from "../elements/ColorPicker";
 import store from "../../store/store";
 
 export default function Swatch(props) {
-  const [localSwatch, setLocalSwatch] = useState(props.swatch);
+  const [localSwatch, setLocalSwatch] = useState("#fffff");
 
 useEffect(() => {
   console.log('Swatch useEffect active:', props.active, 'localSwatch:', localSwatch);  
   if (props.active) setLocalSwatch(props.swatch);
 }, [props.active, props.swatch]);
 
-  const handleChange = async (value, key) => {
+  // const handleChange = async (value, key) => {
+  //   console.log("NWV", value);
+  //   if (!value) return;
+
+  //   let newSwatch = JSON.parse(JSON.stringify(props.swatch));
+  //   newSwatch[key] = value.hex;
+
+  //   console.log("NW", props.name, newSwatch);
+
+  //   props.handler(props.name, newSwatch);
+  // };
+
+  useEffect(()=>{
+    console.log("localSwatch",localSwatch);
+  },[localSwatch]);
+
+
+  const handleChange = (value, key) => {
     if (!value) return;
 
-    let newSwatch = JSON.parse(JSON.stringify(props.swatch));
-    newSwatch[key] = value.hex;
+    let newSwatch = structuredClone(props.swatch);
+
+    if (typeof value === "string") {
+      newSwatch[key] = value;
+    } else {
+      newSwatch[key] = value.hex;
+
+      if (value.text) {
+        newSwatch.color = value.text;
+        setLocalSwatch(value.text);
+      }
+    }
 
     props.handler(props.name, newSwatch);
   };
+
+
 
   const selectSwatchKeyboard = (e) => {
     if (e.key === "Enter" || e.key === " ") {
@@ -93,7 +122,7 @@ useEffect(() => {
           <div className={styles.legendPreview}>
             <div 
               className={styles.colorPreview}
-              style={{ backgroundColor: localSwatch.color}}
+              style={{ backgroundColor: localSwatch}}
             />
           </div>
         </div>

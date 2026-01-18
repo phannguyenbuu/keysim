@@ -60,12 +60,20 @@ export const MyPicker = ({ hex, hsl, hsv, onChange, onClose }) => {
         aria-label={"color " + code}
         className={pickerStyes.colorSwatch}
         onClick={() => {
-          onChange(colorCodes[code].bg);
+          // onChange(colorCodes[code]);
+          onChange({
+            hex: colorCodes[code].bg,   // react-color cần
+            text: colorCodes[code].text // custom của bạn
+          });
         }}
         onKeyDown={(e) => {
           if (e.key === "Enter" || e.key === " ") {
             e.preventDefault();
-            onChange(colorCodes[code].bg);
+            // onChange(colorCodes[code]);
+            onChange({
+              hex: colorCodes[code].bg,   // react-color cần
+              text: colorCodes[code].text // custom của bạn
+            });
           }
         }}
         style={{

@@ -82,6 +82,7 @@ export default function ColorwayEditor() {
   };
 
   const handleSwatchChange = (swatch, val) => {
+    console.log('>>>>',colorway,val);
     let updatedColorway = JSON.parse(JSON.stringify(colorway));
     updatedColorway.swatches[swatch] = val;
     dispatch(updateCustomColorway(updatedColorway));
@@ -125,6 +126,9 @@ export default function ColorwayEditor() {
 
   const editableSwatchElements = swatches.map((s) => {
     let swatch = colorway.swatches[s];
+
+    console.log("GH", swatch);
+    
     return (
       <Swatch
         key={s}
