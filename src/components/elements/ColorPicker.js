@@ -77,9 +77,11 @@ export default function ColorPicker(props) {
             }
           >
             <MyPicker
-              pos={pos}
-              color={props.color}
-              onChangeComplete={props.handler}
+              onChange={(el) => {
+                // ✅ Truyền full object {hex, textcolor/text}
+                console.log("ColorPicker.js_OnChange",el);
+                props.handler(el);  // color = {hex: '#59584f', text: '#a6ff00'}
+              }}
               onClose={() => {
                 trigger.current.focus();
               }}

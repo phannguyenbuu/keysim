@@ -19,10 +19,6 @@ export const keyTexture = (opts) => {
   let sublegend = opts.sub;
   let key = opts.code;
 
-  if(key && key.includes("HOME"))
-    console.log('code', opts);
-
-
   var texture;
   let pxPerU = 128;
   let subColor = opts.subColor || opts.color;

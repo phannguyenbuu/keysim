@@ -86,11 +86,7 @@ export default function ColorwayEditor() {
     let updatedColorway = JSON.parse(JSON.stringify(colorway));
     updatedColorway.swatches[swatch] = val;
     dispatch(updateCustomColorway(updatedColorway));
-    let event = new CustomEvent("force_key_material_update");
-    document.dispatchEvent(event);
-
-
-    
+    document.dispatchEvent(new CustomEvent("force_key_material_update"));
   };
 
   const removeSwatch = (name) => {
@@ -102,8 +98,7 @@ export default function ColorwayEditor() {
     });
     delete updatedColorway.swatches[name];
     dispatch(updateCustomColorway(updatedColorway));
-    let event = new CustomEvent("force_key_material_update");
-    document.dispatchEvent(event);
+    document.dispatchEvent(new CustomEvent("force_key_material_update"));
   };
 
   const addSwatch = () => {
@@ -127,7 +122,7 @@ export default function ColorwayEditor() {
   const editableSwatchElements = swatches.map((s) => {
     let swatch = colorway.swatches[s];
 
-    console.log("GH", swatch);
+    // console.log("GH", swatch);
     
     return (
       <Swatch
@@ -138,6 +133,7 @@ export default function ColorwayEditor() {
         handler={handleSwatchChange}
         remove={removeSwatch}
         setSwatch={(name) => {
+          // console.log("LGG", name);
           dispatch(setActiveSwatch(name));
         }}
       />

@@ -1,0 +1,55 @@
+{
+  "id": "cw_ouydv",
+  "label": "My Colorway 6",
+  "manufacturer": "",
+  "designer": "",
+  "swatches": {
+    "base": {
+      "background": "#f8c200",
+      "foreground": "#ff0000"
+    },
+    "mods": {
+      "background": "#00589f",
+      "foreground": "#ffffff"
+    },
+    "accent": {
+      "background": "#59584f",
+      "foreground": "#a6ff00"
+    },
+    "swatch-1": {
+      "background": "#f8c200",
+      "color": "#eeeeee"
+    },
+    "swatch-2": {
+      "background": "#dd1126",
+      "color": "#eeeeee"
+    }
+  },
+  "override": {
+    "KC_ENT": "accent",
+    "KC_ESC": "accent",
+    "KC_GESC": "accent",
+    "KC_U": "base",
+    "KC_X": "base",
+    "KC_V": "mods",
+    "KC_C": "base",
+    "KC_B": "base",
+    "KC_MINS": "base",
+    "KC_COMM": "swatch-1",
+    "KC_SPC": "base",
+    "KC_T": "base",
+    "KC_F": "base",
+    "KC_F7": "swatch-1",
+    "KC_END": "swatch-1",
+    "KC_4": "swatch-2",
+    "KC_F6": "swatch-2",
+    "KC_F9": "swatch-1",
+    "KC_SCLN": "swatch-2",
+    "KC_RSFT": "swatch-2",
+    "KC_Z": "mods",
+    "KC_DOT": "mods",
+    "KC_0": "mods",
+    "KC_EQL": "mods",
+    "KC_I": "mods"
+  }
+}

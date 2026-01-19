@@ -6,7 +6,7 @@ import About from "./About";
 export default function OptionsPane(props) {
   return (
     <>
-      <BoardOptions />
+      {/* <BoardOptions /> */}
       <ColorwayList setTab={props.setTab} />
       {/* <About /> */}
     </>

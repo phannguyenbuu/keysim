@@ -7,45 +7,19 @@ import store from "../../store/store";
 export default function Swatch(props) {
   const [localSwatch, setLocalSwatch] = useState("#fffff");
 
-useEffect(() => {
-  console.log('Swatch useEffect active:', props.active, 'localSwatch:', localSwatch);  
-  if (props.active) setLocalSwatch(props.swatch);
-}, [props.active, props.swatch]);
+  // console.log('props:',props);
 
-  // const handleChange = async (value, key) => {
-  //   console.log("NWV", value);
-  //   if (!value) return;
-
-  //   let newSwatch = JSON.parse(JSON.stringify(props.swatch));
-  //   newSwatch[key] = value.hex;
-
-  //   console.log("NW", props.name, newSwatch);
-
-  //   props.handler(props.name, newSwatch);
-  // };
-
-  useEffect(()=>{
-    console.log("localSwatch",localSwatch);
-  },[localSwatch]);
+// useEffect(() => {
+//   console.log('Swatch useEffect active:', props.active, 'localSwatch:', localSwatch);  
+//   if (props.active) setLocalSwatch(props.swatch);
+// }, [props.active, props.swatch]);
 
 
-  const handleChange = (value, key) => {
+
+  const handleChange = (value) => {
+    // console.log("localSwatch",value,key);
     if (!value) return;
-
-    let newSwatch = structuredClone(props.swatch);
-
-    if (typeof value === "string") {
-      newSwatch[key] = value;
-    } else {
-      newSwatch[key] = value.hex;
-
-      if (value.text) {
-        newSwatch.color = value.text;
-        setLocalSwatch(value.text);
-      }
-    }
-
-    props.handler(props.name, newSwatch);
+    props.handler(props.name, value);
   };
 
 
@@ -81,11 +55,11 @@ useEffect(() => {
           color: props.swatch.color
         };
 
-        console.log("COLOR", fullSwatch);
+        // console.log("COLOR", fullSwatch);
         
         window.activeSwatch = fullSwatch;  // Cho ColorUtil đọc
   
-        console.log('Set window.activeSwatch:', fullSwatch);
+        // console.log('Set window.activeSwatch:', fullSwatch);
       }}
 
 
@@ -112,7 +86,9 @@ useEffect(() => {
             label="Background"
             color={props.swatch.background}
             handler={(color) => {
+              console.log("LEGEND___", color);
               handleChange(color, "background");
+              // handleChange(color, "legend");
             }}
           />
         </div>
@@ -122,7 +98,7 @@ useEffect(() => {
           <div className={styles.legendPreview}>
             <div 
               className={styles.colorPreview}
-              style={{ backgroundColor: localSwatch}}
+              style={{ backgroundColor: props.swatch.foreground}}
             />
           </div>
         </div>

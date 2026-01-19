@@ -124,7 +124,7 @@ export class Key {
   }
   // color of legend on cap
   get foregroundColor() {
-    return this.swatch.color;
+    return this.swatch.foreground;
   }
   // get the color group for this key (base, mods, accent, etc)
   get swatch() {

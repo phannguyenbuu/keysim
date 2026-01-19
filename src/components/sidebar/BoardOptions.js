@@ -28,9 +28,7 @@ export default function BoardOptions() {
 
   const layout = useSelector(caseActions.selectLayout);
   const legendPrimaryStyle = useSelector(keyActions.selectLegendPrimaryStyle);
-  const legendSecondaryStyle = useSelector(
-    keyActions.selectLegendSecondaryStyle
-  );
+  const legendSecondaryStyle = useSelector(keyActions.selectLegendSecondaryStyle);
   const primaryColor = useSelector(caseActions.selectPrimaryColor);
   const style = useSelector(caseActions.selectStyle);
   const material = useSelector(caseActions.selectMaterial);
