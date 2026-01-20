@@ -11,9 +11,10 @@ CORS(app)
 # COLORWAYS_CONFIG_DIR = os.path.join(os.path.dirname(__file__), '../src/config/colorways/')
 
 
-BASE_DIR = Path(__file__).parent.parent  # 2 parent
-COLORS_CONFIG_DIR = BASE_DIR / "src" / "config" / "colors"
-COLORWAYS_CONFIG_DIR = BASE_DIR / "src" / "config" / "colorways"
+BASE_DIR = Path(__file__).parent
+COLORS_CONFIG_DIR = BASE_DIR / "colors"
+COLORWAYS_CONFIG_DIR = BASE_DIR / "colorways"
+COLORWAYS_CONFIG_DIR.mkdir(parents=True, exist_ok=True)
 
 
 @app.route("/api/textures/<key>", methods=["POST"])
@@ -62,8 +63,6 @@ def list_colorways():
                     'override': colorway_data.get('override', {})    # ✅ VÀ NÀY
                 })
 
-                
-        print(">>>>>>>>>>>>",colorways)
         return jsonify(colorways), 200
         
     except Exception as e:
@@ -75,19 +74,19 @@ def list_colorways():
 @app.route('/api/colorways/<string:json_name>', methods=['PUT'])
 def update_colorway(json_name):
     try:
-        data = request.get_json()
+        data = request.get_json(silent=True)
         if not data:
             return jsonify({"error": "Invalid JSON"}), 400
 
         # ✅ SANITIZE TÊN FILE - Loại bỏ/khắc phục ký tự đặc biệt
         safe_name = re.sub(r'[^\w\-_.]', '_', json_name)  # Thay space bằng _
-        json_path = os.path.join(COLORWAYS_CONFIG_DIR, safe_name + '.json')
+        json_path = COLORWAYS_CONFIG_DIR / f"{safe_name}.json"
         
         print(f"Original: {json_name} → Safe: {safe_name}")
         print(f"Writing to: {json_path}")
         
         # Kiểm tra thư mục tồn tại
-        os.makedirs(os.path.dirname(json_path), exist_ok=True)
+        json_path.parent.mkdir(parents=True, exist_ok=True)
         
         # Ghi file
         with open(json_path, 'w', encoding='utf-8') as f:
@@ -99,7 +98,7 @@ def update_colorway(json_name):
         }), 200
 
     except FileNotFoundError:
-        return jsonify({"error": f"File path không tồn tại: {json_path}"}), 404
+        return jsonify({"error": "File path not found"}), 404
     except PermissionError:
         return jsonify({"error": "Không có quyền ghi file"}), 403
     except Exception as e:
@@ -154,6 +153,16 @@ def colorway_view(tab):
         files=FILES
     )
 
+@app.route("/api/colors/<tab>", methods=["GET"])
+def get_color_codes(tab):
+    if tab not in FILES:
+        return jsonify({"error": "Invalid tab"}), 404
+    try:
+        data = load_json(FILES[tab])
+        return jsonify(data), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 
 @app.route("/api/<tab>/go", methods=["PUT"])
 def update_go_colorway(tab):
@@ -196,5 +205,5 @@ def update_go_colorway(tab):
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5050, debug=True)
+    app.run(host='0.0.0.0', port=5000, debug=True)
 

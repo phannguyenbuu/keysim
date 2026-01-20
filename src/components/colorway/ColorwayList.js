@@ -22,12 +22,18 @@ export default function ColorwayList(props) {
   const filteredColorways = useMemo(() => {
     const list = customColorways || [];
     const query = filter.trim().toLowerCase();
-    if (!query) return list;
-    return list.filter((cw) => {
-      const label = (cw.label || "").toLowerCase();
-      const id = (cw.id || "").toLowerCase();
-      return label.includes(query) || id.includes(query);
-    });
+    const filtered = query
+      ? list.filter((cw) => {
+          const label = (cw.label || "").toLowerCase();
+          const id = (cw.id || "").toLowerCase();
+          return label.includes(query) || id.includes(query);
+        })
+      : list;
+    return [...filtered].sort((a, b) =>
+      (a.label || "").localeCompare(b.label || "", undefined, {
+        sensitivity: "base",
+      })
+    );
   }, [customColorways, filter]);
 
   const addColorway = (e) => {

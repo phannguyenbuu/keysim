@@ -1,48 +1,28 @@
-import layout_40 from "./layout_40_default.json";
-import layout_60 from "./layout_60_default.json";
-import layout_60_iso from "./layout_60_ISO.json";
-import layout_60_hhkb from "./layout_60_hhkb.json";
-import layout_60_tsangan from "./layout_60_tsangan.json";
-import layout_60_wkl from "./layout_60_wkl.json";
-import layout_65 from "./layout_65_default.json";
-import layout_75 from "./layout_75_default.json";
-import layout_80 from "./layout_80_default.json";
-import layout_numpad from "./layout_numpad.json";
-import layout_40_ortho from "./layout_40_ortho.json";
-import layout_50_ortho from "./layout_50_ortho.json";
-import layout_40_leftnum from "./layout_40_leftnum.json";
-import layout_95 from "./layout_95_default.json";
-import layout_100 from "./layout_100_default.json";
-
 const LAYOUTS = {
-  40: layout_40,
-  60: layout_60,
-  65: layout_65,
-  75: layout_75,
-  80: layout_80,
-  95: layout_95,
-  100: layout_100,
-  "60iso": layout_60_iso,
-  "60wkl": layout_60_wkl,
-  "60hhkb": layout_60_hhkb,
-  "60tsangan": layout_60_tsangan,
-  numpad: layout_numpad,
-  "40ortho": layout_40_ortho,
-  "50ortho": layout_50_ortho,
-  leftnum: layout_40_leftnum,
+  75: {
+    width: 16,
+    height: 6,
+    keymaps: [],
+    layouts: {
+      LAYOUT: {
+        key_count: 86,
+        layout: [
+          { i: 29, w: 2 },
+          { i: 31, w: 1.5 },
+          { i: 44, w: 1.5 },
+          { i: 46, w: 1.75 },
+          { i: 58, w: 2.25 },
+          { i: 60, w: 2.25 },
+          { i: 71, w: 1.75 },
+          { i: 74, w: 1.25 },
+          { i: 75, w: 1.25 },
+          { i: 76, w: 1.25 },
+          { i: 77, w: 6 }
+        ]
+      }
+    }
+  },
 };
 
 export default LAYOUTS;
-
 export const layoutOptions = Object.keys(LAYOUTS);
-
-// Cuối file, sau export
-console.log('📂 LAYOUTS LOADED:', Object.keys(LAYOUTS));
-console.log('Current layout example (75):', {
-  totalKeys: LAYOUTS['75']?.layouts?.LAYOUT?.layout?.length,
-  lastKeys: LAYOUTS['75']?.layouts?.LAYOUT.layout?.slice(-4),
-  hasNewKeys: LAYOUTS['75']?.layouts?.LAYOUT.layout?.some(p => 
-    p.code?.includes('HOME') || p.code?.includes('END') || p.code?.includes('FN')
-  )
-});
-

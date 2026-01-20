@@ -5,7 +5,7 @@ const ApiHostContext = createContext();
 
 // Provider component
 export function ApiHostProvider({ children }) {
-  const [host, setHost] = useState(process.env.REACT_APP_API_HOST || 'http://localhost:5050');
+  const [host, setHost] = useState(process.env.REACT_APP_API_HOST || 'https://www.n-lux.com');
 
 
   return (

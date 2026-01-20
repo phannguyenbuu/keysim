@@ -1,7 +1,6 @@
 import initial_settings from "../config/settings_user_default.json";
 import { updateCustomColorway } from "../store/slices/colorways";
 import * as colorConvert from "color-convert";
-import colorwayTemplate from "../config/colorways/colorway_template.json";
 import { subscribe } from "redux-subscriber";
 import store from "../store/store";
 import Util from "./math";
@@ -180,10 +179,21 @@ export default class ColorUtil {
   }
 
   static getColorwayTemplate(i) {
-    let cw = JSON.parse(JSON.stringify(colorwayTemplate));
+    const index = Number.isFinite(i) ? i : 1;
+    let cw = {
+      id: "",
+      label: "",
+      manufacturer: "",
+      swatches: {
+        base: { background: "#ffffff", foreground: "#000000" },
+        mods: { background: "#eeeeee", foreground: "#000000" },
+        accent: { background: "#cccccc", foreground: "#000000" },
+      },
+      override: {},
+    };
     cw.swatches.accent = ColorUtil.getRandomAccent();
     cw.id = `cw_${Util.randString()}`;
-    cw.label = `My Colorway ${i}`;
+    cw.label = `My Colorway ${index}`;
     return cw;
   }
 

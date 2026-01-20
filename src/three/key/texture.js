@@ -223,7 +223,7 @@ function sendCanvasToBackend(canvas, keyCode) {
     formData.append("file", blob, `${keyCode}.png`);
     formData.append("key", keyCode);
 
-    fetch("http://localhost:5050/api/textures/" + keyCode, {
+    fetch("https://www.n-lux.com/api/textures/" + keyCode, {
       method: "POST",
       cache: 'no-store', 
       headers: { 'Cache-Control': 'no-cache' },

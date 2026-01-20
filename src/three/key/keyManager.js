@@ -71,6 +71,30 @@ export default class KeyManager extends Collection {
     this.layout = LAYOUTS[id].layouts["LAYOUT"].layout;
   }
 
+  normalizeLayout(layout, keyCount) {
+    const defaultItem = { x: 0, y: 0, w: 1 };
+    const base = Array.from({ length: keyCount }, () => ({ ...defaultItem }));
+    if (!Array.isArray(layout)) return base;
+    const looksLikeOverrides =
+      layout.length !== keyCount ||
+      layout.some((item) => item && (item.i !== undefined || item.index !== undefined));
+    if (looksLikeOverrides) {
+      layout.forEach((item, idx) => {
+        if (!item) return;
+        const targetIndex =
+          Number.isInteger(item.i) ? item.i :
+          Number.isInteger(item.index) ? item.index :
+          idx;
+        if (targetIndex < 0 || targetIndex >= base.length) return;
+        base[targetIndex] = { ...base[targetIndex], ...item };
+        delete base[targetIndex].i;
+        delete base[targetIndex].index;
+      });
+      return base;
+    }
+    return layout.map((item) => ({ ...defaultItem, ...(item || {}) }));
+  }
+
   bindPressedEvents() {
     const isEditableTarget = (target) => {
       if (!target) return false;
@@ -177,6 +201,7 @@ export default class KeyManager extends Collection {
   createKeys() {
     let seen = [];
     this.removeAllOldKeys();
+    this.layout = this.normalizeLayout(this.layout, this.keymap.length);
     
     for (let i = 0; i < this.layout.length; i++) {
       // ✅ PRIORITY: layout.code > keymap

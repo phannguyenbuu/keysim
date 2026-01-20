@@ -6,7 +6,6 @@ import Swatch from "./Swatch";
 import ColorUtil from "../../util/color";
 import ToggleField from "../elements/ToggleField";
 import CollapsibleSection from "../containers/CollapsibleSection";
-import Util from "../../util/math";
 import { useApiHost } from "../../store/useApiHost";
 import {
   selectColorway,
@@ -14,9 +13,7 @@ import {
   selectActiveSwatch,
   selectAvailableColorways,
   updateCustomColorway,
-  addCustomColorway,
   toggleEditing,
-  setColorway,
 } from "../../store/slices/colorways";
 import {
   togglePaintWithKeys,
@@ -41,17 +38,7 @@ export default function ColorwayEditor() {
   );
 
   // ✅ FIX 2: TẠO COLORWAY MỚI TRONG useEffect
-  useEffect(() => {
-    if (!colorway && colorwayId && ColorUtil.getColorway) {
-      const newColorway = JSON.parse(JSON.stringify(ColorUtil.getColorway(colorwayId)));
-      if (newColorway && typeof newColorway === 'object') {
-        newColorway.label = newColorway.label || 'New Colorway';
-        newColorway.id = `cw_${Util.randString()}`;
-        dispatch(addCustomColorway(newColorway));
-        dispatch(setColorway(newColorway.id));
-      }
-    }
-  }, [colorway, colorwayId, dispatch]);
+  // Không tự động tạo colorway mới khi không tìm thấy
 
 
   
@@ -86,7 +73,7 @@ export default function ColorwayEditor() {
       await fetch(`${apiHost}/api/colorways/${colorwayData.label}`, {
         method: 'PUT',
         cache: 'no-store',
-        headers: { 'Cache-Control': 'no-cache' },
+        headers: { 'Cache-Control': 'no-cache', 'Content-Type': 'application/json' },
         body: JSON.stringify(colorwayData),  // ✅ Toàn bộ colorway object
       });
     } catch (error) {
@@ -96,7 +83,7 @@ export default function ColorwayEditor() {
 
   const activeSwatch = useSelector(selectActiveSwatch);
 
-  console.log('CLW', colorway);
+  // console.log('CLW', colorway);
   const swatches = colorway ? Object.keys(colorway.swatches) : [];
 
   const handleBlur = (e) => {

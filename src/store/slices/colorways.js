@@ -5,7 +5,7 @@ export const fetchColorways = createAsyncThunk(
   'colorways/fetchAll',
   async (_, { rejectWithValue }) => {
     try {
-      const res = await fetch('http://localhost:5050/api/colorways');
+      const res = await fetch('https://www.n-lux.com/api/colorways');
       
       // Kiểm tra HTTP error (400, 500...)
       if (!res.ok) {
@@ -20,7 +20,7 @@ export const fetchColorways = createAsyncThunk(
         return rejectWithValue('API trả về dữ liệu không đúng định dạng');
       }
 
-      console.log("DATA", data);
+      // console.log("DATA", data);
       
       return data;  // [{id: "aurora_polaris", label: "Aurora Polaris"}, ...]
       
@@ -70,12 +70,27 @@ export const colorwaysSlice = createSlice({
       state.available = state.available.filter((c) => c.id !== action.payload);
     },
     updateCustomColorway: (state, action) => {
-      state.custom = state.custom.map(item => 
-        item.id === action.payload.id ? action.payload : item
-      );
-      state.available = state.available.map(item =>
-        item.id === action.payload.id ? action.payload : item
-      );
+      const updateList = (list) => {
+        const safeList = Array.isArray(list) ? list : [];
+        const idx = safeList.findIndex(
+          (item) =>
+            item.id === action.payload.id ||
+            item.label === action.payload.label
+        );
+        if (idx === -1) return [...safeList, action.payload];
+        const next = [...safeList];
+        next[idx] = action.payload;
+        return next;
+      };
+      state.custom = updateList(state.custom);
+      state.available = updateList(state.available);
+      if (
+        state.current &&
+        (state.current.id === action.payload.id ||
+          state.current.label === action.payload.label)
+      ) {
+        state.current = action.payload;
+      }
     },
     toggleEditing: (state) => {
       state.editing = !state.editing;
