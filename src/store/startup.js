@@ -1,7 +1,6 @@
 import { get_qs_values } from "./qs";
 import { loadState } from "./localStorage";
 import { subOptions } from "../config/legends/subs/subs";
-import COLORWAYS from "../config/colorways/colorways";
 import settings from "../config/settings_user_default.json";
 
 const starting_colorway_options = [
@@ -86,8 +85,8 @@ const getInitialState = () => {
   if (qs && typeof qs["colorway"] === "object") {
     accent = qs["colorway"].swatches.accent.background;
   } else {
-    accent =
-      COLORWAYS[initial?.colorways?.active]?.swatches?.accent?.background;
+    accent = "#ffffff";
+      // COLORWAYS[initial?.colorways?.active]?.swatches?.accent?.background;
   }
   initial.settings.sceneColor = accent;
   return initial;

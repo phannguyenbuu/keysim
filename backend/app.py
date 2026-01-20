@@ -4,10 +4,16 @@ import os
 import json
 from flask_cors import CORS
 from pathlib import Path
+import re
 
 app = Flask(__name__)
 CORS(app)
-COLORWAY_PATH = os.path.join(os.path.dirname(__file__), '../src/config/colorways/')
+# COLORWAYS_CONFIG_DIR = os.path.join(os.path.dirname(__file__), '../src/config/colorways/')
+
+
+BASE_DIR = Path(__file__).parent.parent  # 2 parent
+COLORS_CONFIG_DIR = BASE_DIR / "src" / "config" / "colors"
+COLORWAYS_CONFIG_DIR = BASE_DIR / "src" / "config" / "colorways"
 
 
 @app.route("/api/textures/<key>", methods=["POST"])
@@ -31,6 +37,40 @@ def upload_texture(key):
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+    
+    
+@app.route('/api/colorways', methods=['GET'])
+def list_colorways():
+    try:
+        colorways = []
+        if not os.path.exists(COLORWAYS_CONFIG_DIR):
+            return jsonify([]), 200
+            
+        for filename in os.listdir(COLORWAYS_CONFIG_DIR):
+            if filename.endswith('.json'):
+                file_path = os.path.join(COLORWAYS_CONFIG_DIR, filename)
+                
+                # ✅ ĐỌC NỘI DUNG JSON FILE
+                with open(file_path, 'r', encoding='utf-8') as f:
+                    colorway_data = json.load(f)
+                
+                name = filename[:-5]
+                colorways.append({
+                    'id': name,
+                    'label': name,
+                    'swatches': colorway_data.get('swatches', {}),  # ✅ THÊM NÀY
+                    'override': colorway_data.get('override', {})    # ✅ VÀ NÀY
+                })
+
+                
+        print(">>>>>>>>>>>>",colorways)
+        return jsonify(colorways), 200
+        
+    except Exception as e:
+        print(f"❌ GET ERROR: {e}")
+        return jsonify([]), 200
+
+
 
 @app.route('/api/colorways/<string:json_name>', methods=['PUT'])
 def update_colorway(json_name):
@@ -39,21 +79,36 @@ def update_colorway(json_name):
         if not data:
             return jsonify({"error": "Invalid JSON"}), 400
 
-        json_path = os.path.join(COLORWAY_PATH, json_name + '.json')
-        print(json_path)
-        # Ghi đè file json
+        # ✅ SANITIZE TÊN FILE - Loại bỏ/khắc phục ký tự đặc biệt
+        safe_name = re.sub(r'[^\w\-_.]', '_', json_name)  # Thay space bằng _
+        json_path = os.path.join(COLORWAYS_CONFIG_DIR, safe_name + '.json')
+        
+        print(f"Original: {json_name} → Safe: {safe_name}")
+        print(f"Writing to: {json_path}")
+        
+        # Kiểm tra thư mục tồn tại
+        os.makedirs(os.path.dirname(json_path), exist_ok=True)
+        
+        # Ghi file
         with open(json_path, 'w', encoding='utf-8') as f:
-            json.dump(data, f, indent=2)
+            json.dump(data, f, indent=2, ensure_ascii=False)
 
-        return jsonify({"message": "Colorway updated successfully"}), 200
+        return jsonify({
+            "message": "Colorway updated successfully",
+            "file": safe_name + '.json'
+        }), 200
 
+    except FileNotFoundError:
+        return jsonify({"error": f"File path không tồn tại: {json_path}"}), 404
+    except PermissionError:
+        return jsonify({"error": "Không có quyền ghi file"}), 403
     except Exception as e:
+        print(f"ERROR: {str(e)}")  # Log chi tiết
         return jsonify({"error": str(e)}), 500
+
     
 
 
-BASE_DIR = Path(__file__).parent.parent  # 2 parent
-CONFIG_DIR = BASE_DIR / "src" / "config" / "colors"
 
 FILES = {
     "gmk": "gmk.json",
@@ -62,12 +117,12 @@ FILES = {
 
 
 def load_json(filename):
-    path = CONFIG_DIR / filename
+    path = COLORS_CONFIG_DIR / filename
     with open(path, "r", encoding="utf-8") as f:
         return json.load(f, object_pairs_hook=OrderedDict)
 
 def save_json(filename, data):
-    path = CONFIG_DIR / filename
+    path = COLORS_CONFIG_DIR / filename
     with open(path, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
 

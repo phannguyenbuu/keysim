@@ -1,26 +1,24 @@
 {
-  "id": "botanical",
-  "label": "Botanical",
+  "id": "cw_u3yu6",
+  "label": "8008",
   "manufacturer": "",
-  "designer": "",
   "swatches": {
     "base": {
-      "background": "#d7dce0",
-      "color": "#536361"
+      "background": "#f8c200",
+      "foreground": "#0e1415"
     },
     "mods": {
-      "background": "#536361",
-      "color": "#93b1b1"
+      "background": "#d02f1c",
+      "foreground": "#e5a100"
     },
     "accent": {
-      "background": "#93b1b1",
-      "color": "#536361"
+      "background": "#da526e",
+      "foreground": "#0e1415"
     }
   },
   "override": {
     "KC_SPC": "base",
     "KC_ENT": "accent",
-    "KC_PENT": "accent",
     "KC_ESC": "accent",
     "KC_GESC": "accent",
     "KC_F5": "mods",

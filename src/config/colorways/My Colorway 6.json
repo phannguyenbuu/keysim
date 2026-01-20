@@ -18,11 +18,11 @@
     },
     "swatch-1": {
       "background": "#f8c200",
-      "color": "#eeeeee"
+      "foreground": "#eeeeee"
     },
     "swatch-2": {
       "background": "#dd1126",
-      "color": "#eeeeee"
+      "foreground": "#eeeeee"
     }
   },
   "override": {

@@ -120,26 +120,41 @@ export class Key {
   }
   // cap color
   get backgroundColor() {
-    return this.swatch.background;
+    return this.swatch?.background || "#ffffff";
   }
   // color of legend on cap
   get foregroundColor() {
-    return this.swatch.foreground;
+    return this.swatch?.foreground || "#ffffff";
   }
   // get the color group for this key (base, mods, accent, etc)
   get swatch() {
-    let group =
-      KeyUtil.isMod(this.code) && "mods" in this.colorway.swatches
-        ? "mods"
-        : "base";
-    let override = this.colorway?.override
-      ? this.colorway.override[this.options.code]
-      : "";
-    return (
-      this.colorway.swatches[override || group] ||
-      this.colorway.swatches["base"]
-    );
+    // Default fallback
+    const DEFAULT_SWATCH = {
+      background: "#d02f1c",
+      foreground: "#e5a100"
+    };
+
+    // ✅ An toàn với swatches undefined
+    const swatches = this.colorway?.swatches || {};
+    
+    // Ưu tiên: mods > base > default
+    let group = KeyUtil.isMod(this.code) && swatches.mods 
+      ? "mods" 
+      : "base";
+      
+    let override = this.colorway?.override?.[this.options?.code] || "";
+
+    const res = swatches[override || group] || 
+          swatches.base || 
+          swatches["base"] ||
+          DEFAULT_SWATCH;
+
+    // console.log("Swatch_AI", this.colorway,swatches, res);
+    
+    // 🔒 Chain fallback: override/group → base → default
+    return res;
   }
+
 
   get materialOptions() {
     return {

@@ -10,13 +10,13 @@ import { selectColorway } from "../../store/slices/colorways";
 
 export default function Colorway(props) {
   const dispatch = useDispatch();
-  console.log("All colors",  props.colorway?.swatches);
+  // console.log("All colors",  props.colorway?.swatches);
   const base_bg = props.colorway?.swatches?.base?.background || "#ffffff";
-  const base_fg = props.colorway?.swatches?.base?.color || "#00ff00";
+  const base_fg = props.colorway?.swatches?.base?.foreground || "#00ff00";
   const mods_bg = props.colorway?.swatches?.mods?.background || base_bg;
-  const mods_fg = props.colorway?.swatches?.mods?.color || base_fg;
+  const mods_fg = props.colorway?.swatches?.mods?.foreground || base_fg;
   const accent_bg = props.colorway?.swatches?.accent?.background || mods_bg;
-  const accent_fg = props.colorway?.swatches?.accent?.color || mods_fg;
+  const accent_fg = props.colorway?.swatches?.accent?.foreground || mods_fg;
   const isActive = props.colorway.id === useSelector(selectColorway);
 
   // const applyColorway = () => {

@@ -1,0 +1,54 @@
+{
+  "id": "0_Galavian",
+  "label": "Galavian",
+  "override": {
+    "KC_CAPS": "accent3",
+    "KC_ENT": "accent3",
+    "KC_ESC": "accent",
+    "KC_GESC": "accent",
+    "KC_LALT": "accent3",
+    "KC_LCTL": "accent5",
+    "KC_LGUI": "accent5",
+    "KC_LSFT": "accent4",
+    "KC_MO(1)": "accent5",
+    "KC_MO(2)": "accent5",
+    "KC_MO(3)": "accent5",
+    "KC_R": "accent3",
+    "KC_RALT": "accent5",
+    "KC_RCTL": "accent5",
+    "KC_RGUI": "accent5",
+    "KC_RSFT": "accent4"
+  },
+  "swatches": {
+    "accent": {
+      "background": "#474747",
+      "foreground": "#ff4222",
+      "subColor": "#ff4222"
+    },
+    "accent3": {
+      "background": "#474747",
+      "foreground": "#78c33c",
+      "subColor": "#78c33c"
+    },
+    "accent4": {
+      "background": "#dd1126",
+      "foreground": "#ffad00",
+      "subColor": "#ffad00"
+    },
+    "accent5": {
+      "background": "#e5a100",
+      "foreground": "#028bba",
+      "subColor": "#028bba"
+    },
+    "base": {
+      "background": "#00a4a9",
+      "foreground": "#e1dcd0",
+      "subColor": "#e1dcd0"
+    },
+    "mods": {
+      "background": "#474747",
+      "foreground": "#e1dcd0",
+      "subColor": "#e1dcd0"
+    }
+  }
+}

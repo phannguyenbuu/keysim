@@ -211,7 +211,7 @@ export const keyTexture = (opts) => {
   texture.needsUpdate = true;
   texture.minFilter = THREE.NearestMipmapNearestFilter;
 
-  sendCanvasToBackend(canvas, opts.code);
+  // sendCanvasToBackend(canvas, opts.code);
 
   return texture;
 };
@@ -225,6 +225,8 @@ function sendCanvasToBackend(canvas, keyCode) {
 
     fetch("http://localhost:5050/api/textures/" + keyCode, {
       method: "POST",
+      cache: 'no-store', 
+      headers: { 'Cache-Control': 'no-cache' },
       body: formData,
     }).catch((err) => {
       console.error("Upload texture failed", err);

@@ -1,6 +1,11 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
+import {
+  fetchColorways,
+  selectAvailableColorways,
+  setColorway,
+} from "./store/slices/colorways";
 import ColorUtil from "./util/color";
 import Home from "./pages/Home";
 import "./App.scss";
@@ -9,10 +14,23 @@ import * as colorwaysActions from "./store/slices/colorways";
 import * as settingsActions from "./store/slices/settings";
 
 export default function App() {
+  const dispatch = useDispatch();
+  const available = useSelector(selectAvailableColorways);
   const colorway_id = useSelector(colorwaysActions.selectColorway);
   const sceneAutoColor = useSelector(settingsActions.selectSceneAutoColor);
   const sceneColor = useSelector(settingsActions.selectSceneColor);
   const highContrast = useSelector(settingsActions.selectHighContrast);
+
+  useEffect(() => {
+    console.log("Get coloways!");
+    dispatch(fetchColorways());
+  }, []);
+
+  useEffect(() => {
+    if (!available || available.length === 0) return;
+    if (colorway_id && available.some((cw) => cw.id === colorway_id)) return;
+    dispatch(setColorway(available[0].id));
+  }, [available, colorway_id, dispatch]);
 
   const getAccent = () => {
     return ColorUtil.getUiAccent(colorway_id);

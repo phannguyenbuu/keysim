@@ -9,6 +9,19 @@ export default function Home() {
 
   useEffect(() => {
     threeApp(rootEl.current);
+    if (rootEl.current) {
+      rootEl.current.focus();
+    }
+  }, []);
+
+  useEffect(() => {
+    const handleBlur = () => {
+      if (rootEl.current) {
+        rootEl.current.focus();
+      }
+    };
+    window.addEventListener("blur", handleBlur);
+    return () => window.removeEventListener("blur", handleBlur);
   }, []);
 
   return (
@@ -18,6 +31,7 @@ export default function Home() {
       <div
         id="canvas-wrapper"
         ref={rootEl}
+        tabIndex={0}
         role="region"
         aria-label="3d scene of keyboard"
       ></div>

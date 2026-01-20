@@ -146,9 +146,9 @@ export default class CaseManager {
       this.createPlate();
     });
 
-    subscribe("colorways.active", () => {
-      this.updateLightMap();
-    });
+    // subscribe("colorways.active", () => {
+    //   this.updateLightMap();
+    // });
   }
 
   position() {
@@ -301,10 +301,10 @@ export default class CaseManager {
     this.position();
   }
 
-  updateLightMap() {
-    this.lightTexture = lightTexture(ColorUtil.getAccent());
-    this.case.material[1].lightMap = this.lightTexture;
-  }
+  // updateLightMap() {
+  //   this.lightTexture = lightTexture(ColorUtil.getAccent());
+  //   this.case.material[1].lightMap = this.lightTexture;
+  // }
 
   updateCaseMaterial(color = this.color, finish = this.finish) {
     let materials = [];

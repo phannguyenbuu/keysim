@@ -52,7 +52,7 @@ export default function Swatch(props) {
         // ✅ 2. Set activeSwatch = FULL OBJECT {bg, text}
         const fullSwatch = {
           background: props.swatch.background,  // bg
-          color: props.swatch.color
+          color: props.swatch.foreground
         };
 
         // console.log("COLOR", fullSwatch);
@@ -83,7 +83,7 @@ export default function Swatch(props) {
         <div className={styles.color}>
           <ColorPicker
             isSwatch={true}
-            label="Background"
+            label="Background / Legend"
             color={props.swatch.background}
             handler={(color) => {
               console.log("LEGEND___", color);

@@ -1,0 +1,33 @@
+{
+  "id": "cw_4wwch",
+  "label": "My Colorway 7",
+  "manufacturer": "",
+  "designer": "",
+  "swatches": {
+    "base": {
+      "background": "#00627a",
+      "foreground": "#ffffff"
+    },
+    "mods": {
+      "background": "#59584f",
+      "foreground": "#a6ff00"
+    },
+    "accent": {
+      "background": "#ee6900",
+      "foreground": "#ffffff"
+    }
+  },
+  "override": {
+    "KC_ENT": "accent",
+    "KC_ESC": "accent",
+    "KC_GESC": "accent",
+    "KC_F": "accent",
+    "KC_U": "accent",
+    "KC_Y": "mods",
+    "KC_D": "mods",
+    "KC_6": "mods",
+    "KC_F7": "mods",
+    "KC_K": "mods",
+    "KC_F5": "mods"
+  }
+}

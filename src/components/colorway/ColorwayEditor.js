@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import styles from "./ColorwayEditor.module.scss";
 import Button from "../elements/Button";
@@ -12,7 +12,7 @@ import {
   selectColorway,
   setActiveSwatch,
   selectActiveSwatch,
-  selectColorways,
+  selectAvailableColorways,
   updateCustomColorway,
   addCustomColorway,
   toggleEditing,
@@ -27,20 +27,40 @@ export default function ColorwayEditor() {
   const dispatch = useDispatch();
   const { host } = useApiHost();
   const colorwayId = useSelector(selectColorway);
-  const colorwayList = useSelector(selectColorways);
   const paintWithKeys = useSelector(selectPaintWithKeys);
-  var colorway = colorwayList.find((x) => x.id === colorwayId);
-  if (!colorway) {
-    colorway = JSON.parse(JSON.stringify(ColorUtil.getColorway(colorwayId)));
-    colorway.label += " modified";
-    colorway.id = `cw_${Util.randString()}`;
+  const [inputValue, setInputValue] = useState("");
 
-    dispatch(addCustomColorway(colorway));
-    dispatch(setColorway(colorway.id));
-  }
+  const available = useSelector(selectAvailableColorways);
+  
+  const [isDirty, setIsDirty] = useState(false);
+  const saveTimeoutRef = useRef(null);
+
+  const colorway = useMemo(
+    () => (available || []).find(x => x.id === colorwayId),
+    [available, colorwayId]
+  );
+
+  // ✅ FIX 2: TẠO COLORWAY MỚI TRONG useEffect
+  useEffect(() => {
+    if (!colorway && colorwayId && ColorUtil.getColorway) {
+      const newColorway = JSON.parse(JSON.stringify(ColorUtil.getColorway(colorwayId)));
+      if (newColorway && typeof newColorway === 'object') {
+        newColorway.label = newColorway.label || 'New Colorway';
+        newColorway.id = `cw_${Util.randString()}`;
+        dispatch(addCustomColorway(newColorway));
+        dispatch(setColorway(newColorway.id));
+      }
+    }
+  }, [colorway, colorwayId, dispatch]);
 
 
-  const [inputValue, setInputValue] = useState(colorway.label);
+  
+  
+  useEffect(() => {
+    if (colorway?.label) {
+      setInputValue(colorway.label);
+    }
+  }, [colorway]);
 
   const handleChange = (e) => {
     setInputValue(e.target.value);  // lưu local realtime khi gõ
@@ -54,17 +74,19 @@ export default function ColorwayEditor() {
   });
 
   useEffect(() => {
-    if (colorway && host) {
-      saveToBackend(colorway, host);
+    if (host && isDirty) {
+      if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
+      saveTimeoutRef.current = setTimeout(() => saveToBackend(colorway, host), 1000);
     }
-  }, [colorway, host]);
+  }, [colorway, host, isDirty]);
 
   const saveToBackend = async (colorwayData, apiHost) => {
     console.log(colorwayData);
     try {
-      await fetch(`${apiHost}/api/colorways/0_${colorwayData.label}`, {
+      await fetch(`${apiHost}/api/colorways/${colorwayData.label}`, {
         method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
+        cache: 'no-store',
+        headers: { 'Cache-Control': 'no-cache' },
         body: JSON.stringify(colorwayData),  // ✅ Toàn bộ colorway object
       });
     } catch (error) {
@@ -73,6 +95,8 @@ export default function ColorwayEditor() {
   };
 
   const activeSwatch = useSelector(selectActiveSwatch);
+
+  console.log('CLW', colorway);
   const swatches = colorway ? Object.keys(colorway.swatches) : [];
 
   const handleBlur = (e) => {
@@ -81,13 +105,23 @@ export default function ColorwayEditor() {
     dispatch(updateCustomColorway(updatedColorway));
   };
 
+  // const handleSwatchChange = (swatch, val) => {
+  //   console.log('>>>>',colorway,val);
+  //   let updatedColorway = JSON.parse(JSON.stringify(colorway));
+  //   updatedColorway.swatches[swatch] = val;
+  //   dispatch(updateCustomColorway(updatedColorway));
+  //   document.dispatchEvent(new CustomEvent("force_key_material_update"));
+  // };
+
+
   const handleSwatchChange = (swatch, val) => {
-    console.log('>>>>',colorway,val);
+    setIsDirty(true);  // ✅
     let updatedColorway = JSON.parse(JSON.stringify(colorway));
     updatedColorway.swatches[swatch] = val;
     dispatch(updateCustomColorway(updatedColorway));
     document.dispatchEvent(new CustomEvent("force_key_material_update"));
   };
+  
 
   const removeSwatch = (name) => {
     let updatedColorway = JSON.parse(JSON.stringify(colorway));
@@ -146,6 +180,15 @@ export default function ColorwayEditor() {
       document.body.classList.remove("editing");
     };
   });
+
+  if (!colorway || typeof colorway !== 'object') {
+    return (
+      <CollapsibleSection title="" open={true}>
+        <div>Loading..</div>
+      </CollapsibleSection>
+    );
+  }else
+
 
   return (
     <>

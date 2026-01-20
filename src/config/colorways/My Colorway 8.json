@@ -1,20 +1,20 @@
 {
-  "id": "COLORWAY_NAME",
-  "label": "COLORWAY_LABEL",
+  "id": "cw_36f3e",
+  "label": "My Colorway 8",
   "manufacturer": "",
   "designer": "",
   "swatches": {
     "base": {
       "background": "#bbbbbb",
-      "color": "#333333"
+      "foreground": "#333333"
     },
     "mods": {
       "background": "#666666",
-      "color": "#cccccc"
+      "foreground": "#cccccc"
     },
     "accent": {
-      "background": "#49c5b1",
-      "color": "#eeeeee"
+      "background": "#e3229f",
+      "foreground": "#ffe600"
     }
   },
   "override": {

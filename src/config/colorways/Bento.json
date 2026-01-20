@@ -1,20 +1,20 @@
 {
   "id": "cw_wrtsf",
-  "label": "Bento modified",
+  "label": "Bento",
   "manufacturer": "",
   "swatches": {
     "base": {
       "background": "#00773a",
       "subColor": "#fb7279",
-      "color": "#bc251e"
+      "foreground": "#bc251e"
     },
     "mods": {
       "background": "#768e72",
-      "color": "#fb7279"
+      "foreground": "#fb7279"
     },
     "accent": {
       "background": "#ee6900",
-      "color": "#eee2d0"
+      "foreground": "#eee2d0"
     }
   },
   "override": {
@@ -34,7 +34,7 @@
     "KC_8": "base",
     "KC_4": {
       "background": "#e5a100",
-      "color": "#bc251e"
+      "foreground": "#bc251e"
     }
   }
 }

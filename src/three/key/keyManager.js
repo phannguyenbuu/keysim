@@ -4,6 +4,7 @@ import KeyUtil from "../../util/keyboard";
 import ColorUtil from "../../util/color";
 import KEYMAPS from "../../config/keymaps/keymaps";
 import LAYOUTS from "../../config/layouts/layouts";
+import qmkCodes from "../../config/keys/qmk_codes.json";
 import { subscribe } from "redux-subscriber";
 import { initial_settings } from "../../store/startup";
 import { Key, KEYSTATES } from "./key";
@@ -70,51 +71,45 @@ export default class KeyManager extends Collection {
     this.layout = LAYOUTS[id].layouts["LAYOUT"].layout;
   }
 
-  // bindPressedEvents() {
-  //   document.addEventListener("keydown", (e) => {
-  //     let code = KeyUtil.getKeyCode(e.code);
-  //     let key = this.getKey(code);
-  //     if (!key) return;
-  //     if (this.editing && this.paintWithKeys) {
-  //       this.paintKey(code);
-  //     }
-  //     key.setState(KEYSTATES.MOVING_DOWN);
-  //   });
-  //   document.addEventListener("keyup", (e) => {
-  //     let code = KeyUtil.getKeyCode(e.code);
-  //     let key = this.getKey(code);
-  //     if (!key) return;
-  //     key.setState(KEYSTATES.MOVING_UP);
-  //   });
-  // }
-
   bindPressedEvents() {
+    const isEditableTarget = (target) => {
+      if (!target) return false;
+      const tag = (target.tagName || "").toLowerCase();
+      if (tag === "input" || tag === "textarea" || tag === "select") return true;
+      return target.isContentEditable === true;
+    };
     // ✅ FIX: preventDefault cho special keys
     document.addEventListener("keydown", (e) => {
-      // Block browser shortcuts
-      if (['Tab', 'F1', 'F2', 'F3', 'F4', 'F5', 'F6', 'F7', 'F8', 'F9', 'F10', 'F11', 'F12', 
-          'Meta', 'OS', 'Fn'].includes(e.key)) {
+      const resolvedCode = qmkCodes[e.code] || qmkCodes[e.key] || KeyUtil.getKeyCode(e.code) || KeyUtil.getKeyCode(e.key) || e.code || e.key;
+      // Block browser shortcuts (skip when typing)
+      if (!isEditableTarget(e.target) && ['Tab', 'Escape', 'Enter', ' ', 'Spacebar', 'F1', 'F2', 'F3', 'F4', 'F5', 'F6', 'F7', 'F8', 'F9', 'F10', 'F11', 'F12', 
+          'Meta', 'OS', 'Fn', 'Alt', 'AltGraph'].includes(e.key)) {
         e.preventDefault();
         e.stopPropagation();
       }
       
       let code = KeyUtil.getKeyCode(e.code) || e.code || e.key; // ✅ Fallback
-      let key = this.getKey(code);
+      let key = this.getKey(resolvedCode);
       
       if (!key) {
-        console.log("Key not found:", code, e.code, e.key); // Debug
+        console.log("Key not found:", resolvedCode, e.code, e.key); // Debug
         return;
       }
       
       if (this.editing && this.paintWithKeys) {
-        this.paintKey(code);
+        this.paintKey(resolvedCode);
       }
       key.setState(KEYSTATES.MOVING_DOWN);
     });
 
     document.addEventListener("keyup", (e) => {
+      if (!isEditableTarget(e.target) && ['Alt', 'AltGraph'].includes(e.key)) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+      const resolvedCode = qmkCodes[e.code] || qmkCodes[e.key] || KeyUtil.getKeyCode(e.code) || KeyUtil.getKeyCode(e.key) || e.code || e.key;
       let code = KeyUtil.getKeyCode(e.code) || e.code || e.key;
-      let key = this.getKey(code);
+      let key = this.getKey(resolvedCode);
       if (!key) return;
       key.setState(KEYSTATES.MOVING_UP);
     });
@@ -180,44 +175,44 @@ export default class KeyManager extends Collection {
   // }
 
   createKeys() {
-  let seen = [];
-  this.removeAllOldKeys();
-  
-  for (let i = 0; i < this.layout.length; i++) {
-    // ✅ PRIORITY: layout.code > keymap
-    let code = this.layout[i].code || this.keymap[i] || 'BLANK';
+    let seen = [];
+    this.removeAllOldKeys();
     
-    let dimensions = this.layout[i];
-    dimensions.row = KeyUtil.getKeyProfile(i, this.layout, this.layoutFull.height);
-    
-    // 🔥 LEGEND cho Win/Fn = "sa" text
-    let legend = 'cherry';
-    if (code.includes('GUI')) {
-      legend = 'sa';  // Text "Win"/"Fn"/"HOME"
-    }
-    
-    let existingKey = this.getKey(code);
-    if (existingKey && !seen.includes(code)) {
-      if (this.matchesSize(existingKey, dimensions)) {
-        existingKey.move(dimensions);
-        seen.push(code);
-        continue;
+    for (let i = 0; i < this.layout.length; i++) {
+      // ✅ PRIORITY: layout.code > keymap
+      let code = this.layout[i].code || this.keymap[i] || 'BLANK';
+      
+      let dimensions = this.layout[i];
+      dimensions.row = KeyUtil.getKeyProfile(i, this.layout, this.layoutFull.height);
+      
+      // 🔥 LEGEND cho Win/Fn = "sa" text
+      let legend = 'cherry';
+      if (code.includes('GUI')) {
+        legend = 'sa';  // Text "Win"/"Fn"/"HOME"
       }
-      this.removeKey(existingKey);
+      
+      let existingKey = this.getKey(code);
+      if (existingKey && !seen.includes(code)) {
+        if (this.matchesSize(existingKey, dimensions)) {
+          existingKey.move(dimensions);
+          seen.push(code);
+          continue;
+        }
+        this.removeKey(existingKey);
+      }
+      
+      let K = new Key({
+        dimensions: dimensions,
+        container: this.group,
+        isIso: this.layoutFull?.is_iso,
+        colorway: this.colorway,
+        code: code,
+        legend: legend  // ← THÊM NÀY!
+      });
+      this.add(K);
+      seen.push(code);
     }
-    
-    let K = new Key({
-      dimensions: dimensions,
-      container: this.group,
-      isIso: this.layoutFull?.is_iso,
-      colorway: this.colorway,
-      code: code,
-      legend: legend  // ← THÊM NÀY!
-    });
-    this.add(K);
-    seen.push(code);
   }
-}
 
 
   getKey(code) {

@@ -46,7 +46,7 @@
   "ControlLeft": "KC_LCTL",
   "Semicolon": "KC_SCLN",
   "Quote": "KC_QUOT",
-  "Backquote": "KC_GRAVE",
+  "Backquote": "KC_GRV",
   "ShiftLeft": "KC_LSFT",
   "Backslash": "KC_BSLS",
   "Comma": "KC_COMM",

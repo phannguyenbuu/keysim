@@ -1,4 +1,3 @@
-import COLORWAYS from "../config/colorways/colorways";
 import initial_settings from "../config/settings_user_default.json";
 import { updateCustomColorway } from "../store/slices/colorways";
 import * as colorConvert from "color-convert";
@@ -10,23 +9,23 @@ import Util from "./math";
 const accentOptions = [
   {
     background: "#49c5b1",
-    color: "#eeeeee",
+    foreground: "#eeeeee",
   },
   {
     background: "#5eaeff",
-    color: "#ff26ff",
+    foreground: "#ff26ff",
   },
   {
     background: "#e3229f",
-    color: "#ffe600",
+    foreground: "#ffe600",
   },
   {
     background: "#81b595",
-    color: "#094a21",
+    foreground: "#094a21",
   },
   {
     background: "#c78bd6",
-    color: "#0590a6",
+    foreground: "#0590a6",
   },
 ];
 
@@ -41,11 +40,30 @@ subscribe("colorways.custom", (state) => {
 export default class ColorUtil {
   static cachedColorway;
 
-  static get colorway() {
-    return (
-      this.cachedColorway ?? this.getColorway(initial_settings.colorways.active)
-    );
+  static getAllColorways() {
+    return store.getState().colorways.available || [];
   }
+
+  static get colorway() {
+    const state = store.getState();
+    const activeId = state.colorways?.active || null;
+    
+    // 🔒 Ưu tiên: current > custom > available.data > template
+    const current = state.colorways?.current;
+    if (current) return current;
+    
+    const custom = state.colorways?.custom || [];
+    const foundCustom = custom.find(c => c.id === activeId);
+    if (foundCustom) return foundCustom;
+    
+    const available = state.colorways?.available || [];
+    const foundAvailable = available.find(c => c.id === activeId);
+    if (foundAvailable) return foundAvailable;  // ✅ Backend data
+    
+    return initial_settings.colorways || null;
+  }
+
+
 
   static get changedOverrides() {
     return this.changedOverridesArr.length > 0
@@ -60,10 +78,22 @@ export default class ColorUtil {
   }
 
   static getColorway(cw_name) {
-    cw_name = cw_name || initial_settings.colorways.active;
-    let cw = COLORWAYS[cw_name];
-    return cw || this.getUserColorway(cw_name) || "";
+    cw_name = cw_name || store.getState().colorways.active;
+    
+    // 1️⃣ TÌM TRONG available (backend data)
+    const available = store.getState().colorways.available || [];
+    let cw = available.find(c => c.id === cw_name);
+    if (cw) return cw;  // Backend data FULL swatches + override
+    
+    // 2️⃣ TÌM TRONG custom
+    const custom = store.getState().colorways.custom || [];
+    cw = custom.find(c => c.id === cw_name);
+    if (cw) return cw;
+    
+    // 3️⃣ Fallback template
+    return ColorUtil.getColorwayTemplate();
   }
+
 
   static getAccent(cw_name) {
     cw_name = cw_name || store.getState().colorways.active;
@@ -88,8 +118,15 @@ export default class ColorUtil {
 
   static addCodeToOverride(key_code, swatch) {
     swatch = swatch || store.getState().colorways.activeSwatch;
-    let cw = JSON.parse(JSON.stringify(this.getUserColorway()));
-    if (!cw || !swatch) return;
+    const base = this.getUserColorway() || this.getColorway();
+    if (!base || typeof base !== "object" || !swatch) return;
+    let cw;
+    try {
+      cw = JSON.parse(JSON.stringify(base));
+    } catch (e) {
+      return;
+    }
+    cw.override = cw.override || {};
     cw.override[key_code] = swatch;
     store.dispatch(updateCustomColorway(cw));
   }
@@ -124,9 +161,18 @@ export default class ColorUtil {
     return isLight ? "black" : "white";
   }
 
+  // static getRandomAccent() {
+  //   return accentOptions[Math.floor(Math.random() * accentOptions.length)];
+  // }
+
   static getRandomAccent() {
-    return accentOptions[Math.floor(Math.random() * accentOptions.length)];
+    const option = accentOptions[Math.floor(Math.random() * accentOptions.length)];
+    return {
+      background: option.background,
+      foreground: option.foreground  // ✅ Return foreground thay vì color
+    };
   }
+
 
   static getCaseColor(cw_name) {
     let cw = this.getColorway(cw_name);

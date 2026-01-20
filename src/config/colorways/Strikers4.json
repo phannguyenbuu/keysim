@@ -1,28 +1,28 @@
 {
   "id": "cw_nez5l",
-  "label": "Strikers3",
+  "label": "Strikers4",
   "manufacturer": "",
   "designer": "",
   "swatches": {
     "base": {
-      "background": "#ebd400",
-      "color": "#f7f2ea"
+      "background": "#0084c2",
+      "foreground": "#f7f2ea"
     },
     "mods": {
       "background": "#dd1126",
-      "color": "#f7f2ea"
+      "foreground": "#f7f2ea"
     },
     "accent": {
       "background": "#768e72",
-      "color": "#f7f2ea"
+      "foreground": "#f7f2ea"
     },
     "swatch-1": {
       "background": "#e3229f",
-      "color": "#ffe600"
+      "foreground": "#ffe600"
     },
     "swatch-2": {
       "background": "#81b595",
-      "color": "#094a21"
+      "foreground": "#094a21"
     }
   },
   "override": {
