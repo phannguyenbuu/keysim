@@ -3,17 +3,23 @@ import React, { useRef, useEffect, useState } from "react";
 import { EditableInput } from "react-color/lib/components/common";
 import { Hue, Saturation } from "react-color/lib/components/common";
 import pickerStyes from "./ColorPicker.module.scss";
-import ColorUtil from "../../util/color";
 import { useApiHost } from "../../store/useApiHost";
+import { apiFetch } from "../../api/client";
 
 export const MyPicker = ({ onChange }) => {
   const node = useRef();
   const { host } = useApiHost();
   const [colorCodes, setColorCodes] = useState({});
+  const [palette, setPalette] = useState(() => {
+    try {
+      return localStorage.getItem("colorPickerPalette") || "gmk";
+    } catch (e) {
+      return "gmk";
+    }
+  });
 
   useEffect(() => {
-    const base = host || "";
-    fetch(`${base}/api/colors/gmk`)
+    apiFetch(`/api/colors/${palette}`, {}, host)
       .then((res) => res.json())
       .then((data) => {
         const normalized = {};
@@ -32,7 +38,15 @@ export const MyPicker = ({ onChange }) => {
       .catch(() => {
         setColorCodes({});
       });
-  }, [host]);
+  }, [host, palette]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem("colorPickerPalette", palette);
+    } catch (e) {
+      // ignore storage errors
+    }
+  }, [palette]);
  
   const swatches = Object.keys(colorCodes).map((code) => {
     return (
@@ -72,6 +86,34 @@ export const MyPicker = ({ onChange }) => {
 
   return (
     <div className={pickerStyes.dialogContainer} ref={node}>
+      <div className={pickerStyes.paletteRow}>
+        <button
+          type="button"
+          className={pickerStyes.paletteToggle}
+          aria-label="Toggle palette"
+          onClick={() => setPalette(palette === "gmk" ? "sa" : "gmk")}
+        >
+          <span
+            className={`${pickerStyes.paletteSwitch} ${
+              palette === "sa" ? pickerStyes.paletteSwitchSa : ""
+            }`}
+          />
+          <span
+            className={`${pickerStyes.paletteOption} ${
+              palette === "gmk" ? pickerStyes.paletteOptionActive : ""
+            }`}
+          >
+            GMK
+          </span>
+          <span
+            className={`${pickerStyes.paletteOption} ${
+              palette === "sa" ? pickerStyes.paletteOptionActive : ""
+            }`}
+          >
+            SA
+          </span>
+        </button>
+      </div>
       <div style={{ display: "flex" }}>
         <ul aria-label="list of gmk colors" style={{display: "flex",flexWrap: "wrap"}}>
           {swatches}

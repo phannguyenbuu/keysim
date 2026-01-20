@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import ColorUtil from "../../util/color";
+import { getTransparentColor } from "../../util/color";
 
 export const lightTexture = (accent) => {
   let size = 64;
@@ -11,7 +11,7 @@ export const lightTexture = (accent) => {
 
   ctx.fillStyle = "#ffffff";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
-  ctx.fillStyle = ColorUtil.getTransparentColor(accent, 0.5);
+  ctx.fillStyle = getTransparentColor(accent, 0.5);
   ctx.fillRect(0, 0, canvas.width, canvas.height);
   //document.body.appendChild(canvas);
   texture = new THREE.CanvasTexture(canvas);

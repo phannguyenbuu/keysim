@@ -85,7 +85,7 @@
       document.querySelectorAll('.tab-content, .tab-btn').forEach(el=>el.classList.remove('active'));
       document.getElementById(tab+'-tab').classList.add('active');
       event.target.classList.add('active');
-      window.location.href = '/' + tab;
+      window.location.href = '/admin/' + tab;
     }
     
     function initColorSync(tableId) {

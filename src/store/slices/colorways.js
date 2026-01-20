@@ -1,11 +1,12 @@
-import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
+import { createSlice, createAsyncThunk, createSelector } from "@reduxjs/toolkit";
+import { apiFetch } from "../../api/client";
 import initial_settings from "../../config/settings_user_default.json";
 
 export const fetchColorways = createAsyncThunk(
   'colorways/fetchAll',
   async (_, { rejectWithValue }) => {
     try {
-      const res = await fetch('https://www.n-lux.com/api/colorways');
+      const res = await apiFetch("/api/colorways");
       
       // Kiểm tra HTTP error (400, 500...)
       if (!res.ok) {
@@ -35,7 +36,7 @@ export const fetchColorways = createAsyncThunk(
 export const fetchColorway = createAsyncThunk(
   'colorways/fetchOne',
   async (id) => {
-    const res = await fetch(`/api/colorways/${id}`);
+    const res = await apiFetch(`/api/colorways/${id}`);
     const data = await res.json();
     return data;  // {id, label, data: {...}}
   }
@@ -44,52 +45,36 @@ export const fetchColorway = createAsyncThunk(
 export const colorwaysSlice = createSlice({
   name: "colorways",
   initialState: {
-    ...initial_settings.colorways,  // {active, custom}
-    available: [],     // ✅ Load từ /api/colorways
-    current: null,     // ✅ Colorway hiện tại đang dùng
-    loading: false
+    ...initial_settings.colorways,
+    loading: false,
   },
   reducers: {
     setColorway: (state, action) => {
-      state.active = action.payload;
+      state.activeId = action.payload;
     },
     addCustomColorway: (state, action) => {
-      const customList = Array.isArray(state.custom) ? state.custom : [];
-      const availableList = Array.isArray(state.available) ? state.available : [];
-      const existsCustom = customList.some((c) => c.id === action.payload.id);
-      if (!existsCustom) {
-        state.custom = [...customList, action.payload];
-      }
-      const existsAvailable = availableList.some((c) => c.id === action.payload.id);
-      if (!existsAvailable) {
-        state.available = [...availableList, action.payload];
+      const id = action.payload?.id;
+      if (!id) return;
+      state.byId[id] = action.payload;
+      if (!state.order.includes(id)) {
+        state.order.push(id);
       }
     },
     removeCustomColorway: (state, action) => {
-      state.custom = state.custom.filter((c) => c.id !== action.payload);
-      state.available = state.available.filter((c) => c.id !== action.payload);
+      const id = action.payload;
+      if (!id) return;
+      delete state.byId[id];
+      state.order = state.order.filter((cid) => cid !== id);
+      if (state.activeId === id) {
+        state.activeId = state.order[0] || null;
+      }
     },
     updateCustomColorway: (state, action) => {
-      const updateList = (list) => {
-        const safeList = Array.isArray(list) ? list : [];
-        const idx = safeList.findIndex(
-          (item) =>
-            item.id === action.payload.id ||
-            item.label === action.payload.label
-        );
-        if (idx === -1) return [...safeList, action.payload];
-        const next = [...safeList];
-        next[idx] = action.payload;
-        return next;
-      };
-      state.custom = updateList(state.custom);
-      state.available = updateList(state.available);
-      if (
-        state.current &&
-        (state.current.id === action.payload.id ||
-          state.current.label === action.payload.label)
-      ) {
-        state.current = action.payload;
+      const id = action.payload?.id;
+      if (!id) return;
+      state.byId[id] = action.payload;
+      if (!state.order.includes(id)) {
+        state.order.push(id);
       }
     },
     toggleEditing: (state) => {
@@ -106,12 +91,26 @@ export const colorwaysSlice = createSlice({
         state.loading = true;
       })
       .addCase(fetchColorways.fulfilled, (state, action) => {
-        state.available = action.payload;  // Danh sách từ backend
+        const list = Array.isArray(action.payload) ? action.payload : [];
+        list.forEach((cw) => {
+          if (!cw?.id) return;
+          state.byId[cw.id] = cw;
+          if (!state.order.includes(cw.id)) {
+            state.order.push(cw.id);
+          }
+        });
         state.loading = false;
       })
       .addCase(fetchColorway.fulfilled, (state, action) => {
-        state.current = action.payload.data;  // Data chi tiết
-        state.active = action.payload.id;
+        const id = action.payload?.id;
+        const data = action.payload?.data;
+        if (id && data) {
+          state.byId[id] = data;
+          if (!state.order.includes(id)) {
+            state.order.push(id);
+          }
+          state.activeId = id;
+        }
       });
   }
 });
@@ -127,11 +126,16 @@ export const {
 
 
 // store/slices/colorways.js - THÊM dòng này vào cuối file
-export const selectAvailableColorways = (state) => state.colorways.available;  // ✅ THÊM
-export const selectColorway = (state) => state.colorways.active;  // ✅ THÊM
+const selectColorwaysOrder = (state) => state.colorways.order;
+const selectColorwaysById = (state) => state.colorways.byId;
 
-export const selectActiveColorway = (state) => state.colorways.current || 
-  state.colorways.custom.find(c => c.id === state.colorways.active);
+export const selectAvailableColorways = createSelector(
+  [selectColorwaysOrder, selectColorwaysById],
+  (order, byId) => order.map((id) => byId[id]).filter(Boolean)
+);
+export const selectColorway = (state) => state.colorways.activeId;
+export const selectActiveColorway = (state) =>
+  state.colorways.byId[state.colorways.activeId] || null;
 export const selectActiveSwatch = (state) => state.colorways.activeSwatch;
 
 export default colorwaysSlice.reducer;

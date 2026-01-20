@@ -78,12 +78,17 @@ def update_colorway(json_name):
         if not data:
             return jsonify({"error": "Invalid JSON"}), 400
 
-        # ✅ SANITIZE TÊN FILE - Loại bỏ/khắc phục ký tự đặc biệt
-        safe_name = re.sub(r'[^\w\-_.]', '_', json_name)  # Thay space bằng _
+        # ?o. SANITIZE TASN FILE - Lo??i b??/kh?_c ph??c kA? t?? ?`??c bi??t
+        safe_prev = re.sub(r'[^\w\-_.]', '_', json_name)  # Thay space b??ng _
+        new_name = data.get("id") or data.get("label") or json_name
+        safe_name = re.sub(r'[^\w\-_.]', '_', new_name)
         json_path = COLORWAYS_CONFIG_DIR / f"{safe_name}.json"
+        prev_path = COLORWAYS_CONFIG_DIR / f"{safe_prev}.json"
         
-        print(f"Original: {json_name} → Safe: {safe_name}")
+        print(f"Original: {json_name} ?+' Safe: {safe_name}")
         print(f"Writing to: {json_path}")
+        if safe_prev != safe_name and prev_path.exists():
+            prev_path.replace(json_path)
         
         # Kiểm tra thư mục tồn tại
         json_path.parent.mkdir(parents=True, exist_ok=True)
@@ -125,7 +130,7 @@ def save_json(filename, data):
     with open(path, "w", encoding="utf-8") as f:
         json.dump(data, f, ensure_ascii=False, indent=2)
 
-@app.route("/<tab>", methods=["GET"])
+@app.route("/admin/<tab>", methods=["GET"])
 def colorway_view(tab):
     if tab not in FILES:
         return "Invalid tab", 404

@@ -6,7 +6,8 @@ const caseCache = {}; // Cache theo layout
 
 export default async (layout, color, size) => {
   const loader = new GLTFLoader();
-  const gltf = await loader.loadAsync('/case.glb');
+  const baseUrl = process.env.PUBLIC_URL || "";
+  const gltf = await loader.loadAsync(`${baseUrl}/case.glb`);
   const scene = gltf.scene.clone();
   scene.name = "CASE";
 

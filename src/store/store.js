@@ -25,8 +25,12 @@ if (ENABLE_LOCAL_STORAGE) {
   store.subscribe(() => {
     let state = store.getState();
     saveState({
-      settings: state.colorways.custom,
-      active: state.colorways.active,
+      colorways: {
+        byId: state.colorways.byId,
+        order: state.colorways.order,
+        activeId: state.colorways.activeId,
+        activeSwatch: state.colorways.activeSwatch,
+      },
     });
   });
 }

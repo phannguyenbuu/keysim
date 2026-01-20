@@ -3,15 +3,19 @@ import { useDispatch, useSelector } from "react-redux";
 import styles from "./ColorwayEditor.module.scss";
 import Button from "../elements/Button";
 import Swatch from "./Swatch";
-import ColorUtil from "../../util/color";
+import { getRandomAccent } from "../../util/color";
 import ToggleField from "../elements/ToggleField";
 import CollapsibleSection from "../containers/CollapsibleSection";
+import jsQR from "jsqr";
 import { useApiHost } from "../../store/useApiHost";
+import { apiFetch } from "../../api/client";
 import {
   selectColorway,
   setActiveSwatch,
   selectActiveSwatch,
   selectAvailableColorways,
+  addCustomColorway,
+  removeCustomColorway,
   updateCustomColorway,
   toggleEditing,
 } from "../../store/slices/colorways";
@@ -26,6 +30,10 @@ export default function ColorwayEditor() {
   const colorwayId = useSelector(selectColorway);
   const paintWithKeys = useSelector(selectPaintWithKeys);
   const [inputValue, setInputValue] = useState("");
+  const [renameFromId, setRenameFromId] = useState(null);
+  const [advancedCode, setAdvancedCode] = useState("");
+  const [codeStatus, setCodeStatus] = useState("");
+  const qrInputRef = useRef(null);
 
   const available = useSelector(selectAvailableColorways);
   
@@ -49,8 +57,103 @@ export default function ColorwayEditor() {
     }
   }, [colorway]);
 
+  useEffect(() => {
+    if (colorway) {
+      setAdvancedCode(JSON.stringify(colorway, null, 1));
+      setCodeStatus("");
+    }
+  }, [colorway]);
+
   const handleChange = (e) => {
     setInputValue(e.target.value);  // lưu local realtime khi gõ
+  };
+
+  const isValidColorwayCode = (payload) => {
+    if (!payload || typeof payload !== "object") return false;
+    if (!payload.swatches || typeof payload.swatches !== "object") return false;
+    if (!payload.override || typeof payload.override !== "object") return false;
+    const swatches = Object.values(payload.swatches);
+    if (!swatches.length) return false;
+    return swatches.every(
+      (swatch) =>
+        swatch &&
+        typeof swatch === "object" &&
+        typeof swatch.background === "string" &&
+        typeof swatch.foreground === "string"
+    );
+  };
+
+  const handleAdvancedCodeChange = (e) => {
+    setAdvancedCode(e.target.value);
+    setCodeStatus("");
+  };
+
+  const applyAdvancedCodeText = (text) => {
+    try {
+      const parsed = JSON.parse(text);
+      if (!isValidColorwayCode(parsed)) {
+        setCodeStatus("No valid code");
+        return;
+      }
+      const normalized = {
+        ...parsed,
+        id: colorway.id,
+        label: colorway.label,
+      };
+      dispatch(updateCustomColorway(normalized));
+      setAdvancedCode(JSON.stringify(normalized, null, 1));
+      setIsDirty(true);
+      setCodeStatus("");
+    } catch (error) {
+      setCodeStatus("No valid code");
+    }
+  };
+
+  const applyAdvancedCode = () => {
+    applyAdvancedCodeText(advancedCode);
+  };
+
+  const handleQrClick = () => {
+    if (qrInputRef.current) {
+      qrInputRef.current.value = "";
+      qrInputRef.current.click();
+    }
+  };
+
+  const handleQrUpload = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement("canvas");
+        canvas.width = img.width;
+        canvas.height = img.height;
+        const ctx = canvas.getContext("2d");
+        if (!ctx) {
+          setCodeStatus("No valid code");
+          return;
+        }
+        ctx.drawImage(img, 0, 0);
+        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const result = jsQR(imageData.data, canvas.width, canvas.height);
+        if (!result?.data) {
+          setCodeStatus("No valid code");
+          return;
+        }
+        setAdvancedCode(result.data);
+        applyAdvancedCodeText(result.data);
+      };
+      img.onerror = () => {
+        setCodeStatus("No valid code");
+      };
+      img.src = reader.result;
+    };
+    reader.onerror = () => {
+      setCodeStatus("No valid code");
+    };
+    reader.readAsDataURL(file);
   };
 
   useEffect(() => {
@@ -58,24 +161,34 @@ export default function ColorwayEditor() {
     return () => {
       dispatch(toggleEditing());
     };
-  });
+  }, [dispatch]);
 
   useEffect(() => {
-    if (host && isDirty) {
+    if (host && isDirty && colorway) {
       if (saveTimeoutRef.current) clearTimeout(saveTimeoutRef.current);
-      saveTimeoutRef.current = setTimeout(() => saveToBackend(colorway, host), 1000);
+      saveTimeoutRef.current = setTimeout(
+        () => saveToBackend(colorway, host, renameFromId),
+        1000
+      );
     }
-  }, [colorway, host, isDirty]);
+  }, [colorway, host, isDirty, renameFromId]);
 
-  const saveToBackend = async (colorwayData, apiHost) => {
+  const saveToBackend = async (colorwayData, apiHost, previousId) => {
     console.log(colorwayData);
     try {
-      await fetch(`${apiHost}/api/colorways/${colorwayData.label}`, {
+      const targetId = previousId || colorwayData.id;
+      await apiFetch(`/api/colorways/${targetId}`, {
         method: 'PUT',
         cache: 'no-store',
         headers: { 'Cache-Control': 'no-cache', 'Content-Type': 'application/json' },
-        body: JSON.stringify(colorwayData),  // ✅ Toàn bộ colorway object
-      });
+        body: JSON.stringify({
+          ...colorwayData,
+          previousId: previousId || undefined,
+        }),
+      }, apiHost);
+      if (previousId) {
+        setRenameFromId(null);
+      }
     } catch (error) {
       console.error('Backend save failed:', error);
     }
@@ -87,9 +200,25 @@ export default function ColorwayEditor() {
   const swatches = colorway ? Object.keys(colorway.swatches) : [];
 
   const handleBlur = (e) => {
+    const nextLabelRaw = e.target.value.trim();
+    if (!nextLabelRaw) {
+      setInputValue(colorway.label);
+      return;
+    }
+    const nextId = nextLabelRaw.replace(/[^\w\-_.]/g, "_");
     let updatedColorway = JSON.parse(JSON.stringify(colorway));
-    updatedColorway.label = e.target.value;
-    dispatch(updateCustomColorway(updatedColorway));
+    updatedColorway.id = nextId;
+    updatedColorway.label = nextId;
+    if (nextId !== colorway.id) {
+      dispatch(removeCustomColorway(colorway.id));
+      dispatch(addCustomColorway(updatedColorway));
+      dispatch(setColorway(updatedColorway.id));
+      setRenameFromId(colorway.id);
+    } else {
+      dispatch(updateCustomColorway(updatedColorway));
+    }
+    setInputValue(updatedColorway.label);
+    setIsDirty(true);
   };
 
   // const handleSwatchChange = (swatch, val) => {
@@ -111,6 +240,7 @@ export default function ColorwayEditor() {
   
 
   const removeSwatch = (name) => {
+    setIsDirty(true);
     let updatedColorway = JSON.parse(JSON.stringify(colorway));
     if (!updatedColorway.swatches[name]) return;
     Object.keys(updatedColorway.override).forEach((key) => {
@@ -123,9 +253,10 @@ export default function ColorwayEditor() {
   };
 
   const addSwatch = () => {
+    setIsDirty(true);
     let updatedColorway = JSON.parse(JSON.stringify(colorway));
     let new_swatch_id = "swatch-" + (Object.keys(colorway.swatches).length - 2);
-    updatedColorway.swatches[new_swatch_id] = ColorUtil.getRandomAccent();
+    updatedColorway.swatches[new_swatch_id] = getRandomAccent();
     dispatch(updateCustomColorway(updatedColorway));
     dispatch(setActiveSwatch(new_swatch_id));
   };
@@ -166,7 +297,7 @@ export default function ColorwayEditor() {
     return () => {
       document.body.classList.remove("editing");
     };
-  });
+  }, []);
 
   if (!colorway || typeof colorway !== 'object') {
     return (
@@ -181,17 +312,17 @@ export default function ColorwayEditor() {
     <>
       <CollapsibleSection title="Colorway Editor" open={true}>
         <div className={styles.editor}>
-          <ToggleField
+          {/* <ToggleField
             value={paintWithKeys}
             label={"Apply swatches on keypress"}
             help={"Apply the selected swatch to a each key pressed."}
             handler={() => dispatch(togglePaintWithKeys())}
-          />
+          /> */}
 
           <div className={styles.name}>
-            <label htmlFor="colorway_name" className={styles.label}>
+            {/* <label htmlFor="colorway_name" className={styles.label}>
               Name
-            </label>
+            </label> */}
             <input
               type="text"
               id="colorway_name"
@@ -202,11 +333,11 @@ export default function ColorwayEditor() {
             />
           </div>
 
-          <fieldset>
-            <legend className={styles.label}>Swatches</legend>
-            <p className={styles.description}>
+          <fieldset style={{marginTop:20}}>
+            {/* <legend className={styles.label}>Swatches</legend> */}
+            {/* <p className={styles.description}>
               A swatch consists of a background color and a legend color.
-            </p>
+            </p> */}
 
             <ul>{editableSwatchElements}</ul>
             <Button isText={false} title="Add Swatch" handler={addSwatch} />
@@ -216,13 +347,20 @@ export default function ColorwayEditor() {
 
       <CollapsibleSection title="Advanced">
         <div className={styles.json}>
-          <label htmlFor="colorway_json">Colorway JSON (readonly)</label>
+          {/* <label htmlFor="colorway_json">Advanced Code</label> */}
+          <span
+            className={
+              codeStatus ? styles.codeStatusInvalid : styles.codeStatus
+            }
+          >
+            {codeStatus || " "}
+          </span>
           <textarea
             readOnly
             id="colorway_json"
             name="colorway_json"
             spellCheck="false"
-            value={JSON.stringify(colorway, null, 1)}
+            value={advancedCode}
           />
         </div>
       </CollapsibleSection>

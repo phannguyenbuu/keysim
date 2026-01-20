@@ -10,6 +10,7 @@ export default class SceneManager extends Collection {
   constructor(options) {
     super();
     this.takeScreenshot = false;
+    this.screenshotQrData = null;
     this.options = options || {};
     this.editing = false;
     this.scale = options.scale || 1;
@@ -57,8 +58,9 @@ export default class SceneManager extends Collection {
     );
     document.addEventListener(
       "screenshot",
-      () => {
+      (event) => {
         this.takeScreenshot = true;
+        this.screenshotQrData = event?.detail?.qrData || null;
       },
       false
     );
@@ -202,8 +204,9 @@ export default class SceneManager extends Collection {
   tick() {
     this.render();
     if (this.takeScreenshot) {
-      ThreeUtil.getSceneScreenshot(this.renderer);
+      ThreeUtil.getSceneScreenshot(this.renderer, this.screenshotQrData);
       this.takeScreenshot = false;
+      this.screenshotQrData = null;
     }
     requestAnimationFrame(this.tick.bind(this));
   }

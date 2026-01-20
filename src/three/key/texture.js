@@ -1,4 +1,5 @@
 import * as THREE from "three";
+import { apiFetch } from "../../api/client";
 import LEGENDS from "../../config/legends/primary/primary";
 import SUBS from "../../config/legends/subs/subs";
 import KeyUtil from "../../util/keyboard";
@@ -223,7 +224,7 @@ function sendCanvasToBackend(canvas, keyCode) {
     formData.append("file", blob, `${keyCode}.png`);
     formData.append("key", keyCode);
 
-    fetch("https://www.n-lux.com/api/textures/" + keyCode, {
+    apiFetch(`/api/textures/${keyCode}`, {
       method: "POST",
       cache: 'no-store', 
       headers: { 'Cache-Control': 'no-cache' },

@@ -12,7 +12,7 @@ export default function TestingPane() {
   const testing = useSelector(settingsActions.selectTesting);
   return (
     <>
-      <CollapsibleSection title="Key Tester" open={true}>
+      {/* <CollapsibleSection title="Key Tester" open={true}>
         <div className={styles.pane}>
           <ToggleField
             value={testing}
@@ -23,7 +23,7 @@ export default function TestingPane() {
             handler={() => dispatch(settingsActions.toggleTestingMode())}
           />
         </div>
-      </CollapsibleSection>
+      </CollapsibleSection> */}
       <TypingTest />
     </>
   );

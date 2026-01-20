@@ -51,8 +51,20 @@ server {
         proxy_set_header X-Real-IP $remote_addr;
     }
 
+    location /gmk {
+        proxy_pass http://127.0.0.1:5000/gmk;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+    }
+
+    location /sa {
+        proxy_pass http://127.0.0.1:5000/sa;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+    }
+
     location /admin/ {
-        proxy_pass http://31.97.76.62:5000/;  # ✅ Dùng IP public thay 127.0.0.1
+        proxy_pass http://31.97.76.62:5000;  # ✅ Dùng IP public thay 127.0.0.1
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -106,11 +118,13 @@ server {
     location /keysim/ {
         alias /var/www/keysim/;
         index index.html index.htm;
-        try_files $uri $uri/ /keysim/index.html;
+        try_files $uri $uri/ /index.html;
     }
+
 
     location /models/ { alias /var/www/creative/models/; }
     location /images/ { alias /var/www/creative/images/; }
     location /preview/ { alias /var/www/creative/preview/; }
     
 }
+

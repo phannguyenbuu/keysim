@@ -6,7 +6,7 @@ import {
   selectAvailableColorways,
   setColorway,
 } from "./store/slices/colorways";
-import ColorUtil from "./util/color";
+import ColorUtil, { getTransparentColor } from "./util/color";
 import Home from "./pages/Home";
 import "./App.scss";
 
@@ -49,7 +49,7 @@ export default function App() {
     "--light-3": "#e0e0e3",
     "--accent": getAccent(),
     "--sceneColor": getSceneColor(),
-    "--accent-transparent": ColorUtil.getTransparentColor(getAccent()),
+    "--accent-transparent": getTransparentColor(getAccent()),
     "--compliment": ColorUtil.getUiCompliment(colorway_id),
     "--accent-text": ColorUtil.getUiAccentText(colorway_id),
   };
@@ -63,17 +63,17 @@ export default function App() {
     "--light-3": "#ffffff",
     "--accent": getAccent(),
     "--sceneColor": getSceneColor(),
-    "--accent-transparent": ColorUtil.getTransparentColor(getAccent()),
+    "--accent-transparent": getTransparentColor(getAccent()),
     "--compliment": ColorUtil.getUiCompliment(colorway_id),
     "--accent-text": "#000000",
   };
 
   return (
     <div className="App" style={highContrast ? uiColorsHC : uiColors}>
-      <Router>
+      <Router basename="/keysim">
         <Home />
         <Routes>
-          <Route path="/"></Route>
+          <Route path="/" element={<></>} />
         </Routes>
       </Router>
     </div>

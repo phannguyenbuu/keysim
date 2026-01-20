@@ -15,7 +15,7 @@ export const keysSlice = createSlice({
       state.legendPrimaryStyle = action.payload;
     },
     setLegendSecondaryStyle: (state, action) => {
-      state.legendSecondaryStyle = action.payload;
+      state.legendSecondaryStyle = "";
     },
   },
 });

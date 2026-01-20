@@ -38,6 +38,9 @@ export default function Colorway(props) {
     if (accent_bg) {
       dispatch(settingsActions.setSceneColor(accent_bg));
     }
+    if (typeof props.setTab === "function") {
+      props.setTab(1);
+    }
   };
 
   // const removeColorway = (e) => {

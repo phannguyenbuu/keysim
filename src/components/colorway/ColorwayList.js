@@ -13,8 +13,6 @@ import {
   addCustomColorway,
 } from "../../store/slices/colorways";
 
-import { ReactComponent as PlusIcon } from "../../assets/icons/icon_plus.svg";
-
 export default function ColorwayList(props) {
   const dispatch = useDispatch();
   const customColorways = useSelector(selectAvailableColorways);
@@ -36,8 +34,28 @@ export default function ColorwayList(props) {
     );
   }, [customColorways, filter]);
 
-  const addColorway = (e) => {
-    let cw = ColorUtil.getColorwayTemplate(customColorways?.length + 1 || 1);
+  const addColorway = () => {
+    const list = customColorways || [];
+    const base = list.find(
+      (cw) =>
+        cw?.id === "My_Colorway_1" ||
+        cw?.label === "My_Colorway_1" ||
+        cw?.id === "My Colorway 1" ||
+        cw?.label === "My Colorway 1"
+    );
+    const maxIndex = list.reduce((max, cw) => {
+      const raw = cw?.id || cw?.label || "";
+      const match = raw.match(/^My_Colorway_(\d+)$/i);
+      if (!match) return max;
+      const num = Number.parseInt(match[1], 10);
+      return Number.isFinite(num) ? Math.max(max, num) : max;
+    }, 0);
+    const nextId = `My_Colorway_${maxIndex + 1}`;
+    let cw = base
+      ? JSON.parse(JSON.stringify(base))
+      : ColorUtil.getColorwayTemplate(list.length + 1 || 1);
+    cw.id = nextId;
+    cw.label = nextId;
     dispatch(addCustomColorway(cw));
     dispatch(setColorway(cw.id));
   };
@@ -51,16 +69,11 @@ export default function ColorwayList(props) {
               setFilter(val);
             }}
           />
-          {/* <Button
+          <Button
             title="Add"
-            icon={<PlusIcon />}
-            className={styles.add}
             handler={addColorway}
-            tabIndex="0"
-          >
-            <PlusIcon />
-            <span>Add New Colorway</span>
-          </Button> */}
+            isText={false}
+          />
         </div>
         {/* {filteredColorways.length ? (
           <div aria-hidden="true" className={styles.listLabel}>

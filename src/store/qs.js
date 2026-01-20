@@ -12,9 +12,9 @@ export const get_qs_values = () => {
 };
 
 const getColorwayString = (state) => {
-  let cw = state.colorways.active;
-  if (cw && !cw.includes("cw_")) return cw;
-  cw = state.colorways.custom.find((x) => x.id === cw);
+  const activeId = state.colorways.activeId;
+  if (activeId && !activeId.includes("cw_")) return activeId;
+  const cw = state.colorways.byId[activeId];
   return encodeColorway(cw);
 };
 

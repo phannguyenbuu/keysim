@@ -36,7 +36,7 @@ export class Key {
     this.dist_pressed = 0.25; // max vertical distance the key can be pressed down
     this.press_velocity = 0.1; // speed of press, smaller = smoother slower motion
     this.legend = options.legend; // currentState.keys.legendPrimaryStyle || "cherry";
-    this.sub = currentState.keys.legendSecondaryStyle || "";
+    this.sub = "";
     this.testing = initial_settings.settings.testing || false;
     this.setup();
   }
@@ -85,8 +85,8 @@ export class Key {
       this.testing = state.settings.testing;
     });
 
-    subscribe("keys.legendSecondaryStyle", (state) => {
-      this.sub = state.keys.legendSecondaryStyle;
+    subscribe("keys.legendSecondaryStyle", () => {
+      this.sub = "";
       this.updateColors();
     });
 
@@ -95,7 +95,7 @@ export class Key {
       this.updateColors(false, true);
     });
 
-    subscribe("colorways.active", (state) => {
+    subscribe("colorways.activeId", (state) => {
       this.updateColors();
     });
 

@@ -2,6 +2,7 @@
   "name": "keysim",
   "version": "1.0.0",
   "private": true,
+  "homepage": "/keysim",
   "dependencies": {
     "@cesdk/cesdk-js": "^1.58.0",
     "@dnd-kit/core": "^6.3.1",
@@ -47,6 +48,8 @@
     "styled-components": "^6.1.19",
     "theme-ui": "^0.17.2",
     "three": "^0.178.0",
+    "qrcode-generator": "^1.4.4",
+    "jsqr": "^1.4.0",
     "unsplash-js": "^7.0.19",
     "use-image": "^1.1.4",
     "webfontloader": "^1.6.28",

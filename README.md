@@ -1,3 +1,6 @@
+scp -r backend root@31.97.76.62:keysim
+scp -r build/* root@31.97.76.62:/var/www/keysim
+
 # KeySim
 
 https://keyboardsimulator.xyz/

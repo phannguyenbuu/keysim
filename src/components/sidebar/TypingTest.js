@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import styles from "./TestingPane.module.scss";
 import { wordsPerMinTest } from "wpmtest";
 import CollapsibleSection from "../containers/CollapsibleSection";
@@ -15,6 +15,7 @@ export default function TypingTest() {
   const [started, setStarted] = useState(false);
   const [finished, setFinished] = useState(false);
   const [currentText, setCurrentText] = useState(wpmTest.curDisplayText);
+  const wordsRef = useRef(null);
 
   useEffect(() => {
     wpmTest.stopwatch.onDone(() => {
@@ -24,6 +25,12 @@ export default function TypingTest() {
       setCurrentText("complete");
       setWpm(Math.round(wpmTest.averageWPM));
     });
+  }, []);
+
+  useEffect(() => {
+    if (wordsRef.current) {
+      wordsRef.current.focus();
+    }
   }, []);
 
   const start = () => {
@@ -68,7 +75,14 @@ export default function TypingTest() {
           <p>Time Remaining: {count / 1000}s</p>
           <p>The timer will start when you start typing.</p>
         </div>
-        <div tabIndex="0" className={styles.words} onKeyDown={handleKeypress}>
+        <div
+          tabIndex="0"
+          ref={wordsRef}
+          data-typing-input="true"
+          className={styles.words}
+          onKeyDown={handleKeypress}
+          onClick={() => wordsRef.current && wordsRef.current.focus()}
+        >
           <span
             className={!isSpaceFirst() && !finished ? styles.charAccent : null}
           >

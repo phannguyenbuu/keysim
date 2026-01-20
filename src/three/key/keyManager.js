@@ -98,6 +98,8 @@ export default class KeyManager extends Collection {
   bindPressedEvents() {
     const isEditableTarget = (target) => {
       if (!target) return false;
+      if (target.closest && target.closest('[data-typing-input="true"]'))
+        return true;
       const tag = (target.tagName || "").toLowerCase();
       if (tag === "input" || tag === "textarea" || tag === "select") return true;
       return target.isContentEditable === true;

@@ -49,6 +49,11 @@
     }
   }
 
+  &__tab svg {
+    width: 20px;
+    height: 20px;
+  }
+
   &__tab-panel {
     display: flex;
     flex-direction: column;
