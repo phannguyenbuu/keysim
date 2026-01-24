@@ -67,13 +67,13 @@ const MATERIAL_OPTIONS = {
   brushed: {
     metalness: 0.4,
     aoMapIntensity: 0.4,
-    envMapIntensity: 0.1,
+    envMapIntensity: 1,
   },
   glossy: {
     metalness: 0.8,
     roughness: 0.1,
     aoMapIntensity: 0.4,
-    envMapIntensity: 0.5,
+    envMapIntensity: 1,
   },
 };
 
@@ -112,7 +112,6 @@ export default class CaseManager {
     this.loader = new TextureLoader();
     this.loadTextures();
     this.createEnvCubeMap();
-    // this.createCaseShadow();
     // this.createBadge();
     // this.createPlate();
     this.createCase();
@@ -141,7 +140,6 @@ export default class CaseManager {
       this.layoutName = state.case.layout;
       this.layout = LAYOUTS[state.case.layout];
       this.updateCaseGeometry();
-      // this.createCaseShadow();
       this.createBadge();
       this.createPlate();
     });
@@ -231,25 +229,60 @@ export default class CaseManager {
     this.cubemap = new THREE.CubeTextureLoader().load([py, ny, pz, nz, px, nx]);
   }
 
-  createCaseShadow() {
+  getCaseBounds() {
+    if (!this.group) return null;
+    const bounds = new THREE.Box3();
+    let hasMesh = false;
+    this.group.updateMatrixWorld(true);
+    this.group.traverse((obj) => {
+      if (!obj.isMesh || !obj.geometry) return;
+      if (obj.name && obj.name.startsWith("KC_")) return;
+      obj.updateWorldMatrix(true, false);
+      if (!obj.geometry.boundingBox) {
+        obj.geometry.computeBoundingBox();
+      }
+      const box = obj.geometry.boundingBox.clone();
+      box.applyMatrix4(obj.matrixWorld);
+      bounds.union(box);
+      hasMesh = true;
+    });
+    if (!hasMesh) return null;
+    const size = new THREE.Vector3();
+    const center = new THREE.Vector3();
+    bounds.getSize(size);
+    bounds.getCenter(center);
+    return { size, center };
+  }
+
+  createCaseShadow(bounds = this.getCaseBounds()) {
+    if (!bounds) return;
     if (this.shadow) this.scene.remove(this.shadow);
-    let sh_w = this.style === "CASE_1" ? 32.7 : 32;
-    let sh_h = this.style === "CASE_1" ? 33 : 31.5;
-    let sh_o = this.style === "CASE_1" ? 0 : -0.05;
+    const sh_o = this.style === "CASE_1" ? 0 : -0.05;
+    const shadowScale = this.style === "CASE_1" ? 1.8 : 1.2;
+    const padding = this.bezel * 2;
+    const sh_w = bounds.size.x * shadowScale + padding;
+    const sh_h = bounds.size.z * shadowScale * 2.5 + padding;
     let shadowTex = this.loader.load(
       shadow_paths[`shadow_path_${this.layoutName}`]
     );
+    shadowTex.minFilter = THREE.LinearFilter;
+    shadowTex.magFilter = THREE.LinearFilter;
     let shadowMat = new THREE.MeshBasicMaterial({
       map: shadowTex,
+      transparent: true,
+      opacity: 0.45,
+      depthWrite: false,
     });
     this.shadow = new THREE.Mesh(
       new THREE.PlaneGeometry(sh_w, sh_h),
       shadowMat
     );
-    this.shadow.position.z = this.depth / 2 - this.bezel + sh_o;
-    this.shadow.position.y = 0.01;
+    this.shadow.position.x = bounds.center.x;
+    this.shadow.position.z = bounds.center.z + sh_o;
+    this.shadow.position.y = 0.6;
     this.shadow.material.side = THREE.DoubleSide;
-    this.shadow.rotateX(-Math.PI / 2);
+    this.shadow.rotateX(-Math.PI/2);
+    this.shadow.rotateY(0);
     this.scene.add(this.shadow);
   }
 
@@ -270,6 +303,7 @@ export default class CaseManager {
     // this.updateCaseMaterial();
     this.case = caseData.mesh;
     this.group.add(this.case);
+    this.group.updateMatrixWorld(true);
     // this.escPos = caseData.escPosition;
     this.keyPositions = caseData.keyPositions;
 
@@ -292,6 +326,9 @@ export default class CaseManager {
         key.cap.position.copy(pos);
       }
     });
+
+    this.updateCaseMaterial();
+    this.createCaseShadow();
   }
 
   updateCaseGeometry() {
@@ -299,6 +336,8 @@ export default class CaseManager {
     this.case.geometry = mesh.geometry;
     this.case.position.set(mesh.position.x, mesh.position.y, mesh.position.z);
     this.position();
+    this.group.updateMatrixWorld(true);
+    this.createCaseShadow();
   }
 
   // updateLightMap() {
@@ -307,36 +346,22 @@ export default class CaseManager {
   // }
 
   updateCaseMaterial(color = this.color, finish = this.finish) {
-    let materials = [];
-    let options = MATERIAL_OPTIONS[finish];
-    options.lightMap = this.ao;
-    if (finish !== "matte") {
-      options.envMap = this.cubemap;
-      options.roughnessMap = this.roughnessMap;
-      options.map = this.albedoMap;
-    }
-    //create materials
-    let materialPrimary = new THREE.MeshPhysicalMaterial(
-      Object.assign(
-        {
-          color: color,
-        },
-        options
-      )
-    );
-    //side material
-    options.lightMap = this.lightTexture;
-    let materialSecondary = new THREE.MeshPhysicalMaterial(
-      Object.assign(
-        {
-          color: color,
-          aoMap: this.aoShadowTexture,
-          aoMapIntensity: 0.6,
-        },
-        options
-      )
-    );
-    materials.push(materialPrimary, materialSecondary);
-    this.case.material = materials;
+    if (!this.case) return;
+    const glossyWhite = new THREE.MeshPhysicalMaterial({
+      color: "#eeeeee",
+      metalness: 0.15,
+      roughness: 0.08,
+      clearcoat: 0.7,
+      clearcoatRoughness: 0.1,
+      envMap: this.cubemap,
+      envMapIntensity: 1.1,
+    });
+
+    this.case.traverse((obj) => {
+      if (obj.isMesh) {
+        obj.material = glossyWhite;
+        obj.material.needsUpdate = true;
+      }
+    });
   }
 }

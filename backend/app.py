@@ -5,10 +5,11 @@ import json
 from flask_cors import CORS
 from pathlib import Path
 import re
+import math
 
 app = Flask(__name__)
 CORS(app)
-# COLORWAYS_CONFIG_DIR = os.path.join(os.path.dirname(__file__), '../src/config/colorways/')
+# COLORWAYS_CONFIG_DIR = os.path.join(os.path.dirname(__file__), '../frontend/src/config/colorways/')
 
 
 BASE_DIR = Path(__file__).parent
@@ -118,6 +119,7 @@ FILES = {
     "gmk": "gmk.json",
     "sa": "sa.json"
 }
+PAGE_SIZE = 10
 
 
 def load_json(filename):
@@ -151,11 +153,25 @@ def colorway_view(tab):
 
         items.append((k, v))
 
+    items.sort(key=lambda kv: kv[0])
+    total_items = len(items)
+    total_pages = max(1, math.ceil(total_items / PAGE_SIZE))
+    page = request.args.get("page", default=1, type=int)
+    if page < 1:
+        page = 1
+    if page > total_pages:
+        page = total_pages
+    start = (page - 1) * PAGE_SIZE
+    end = start + PAGE_SIZE
+    page_items = items[start:end]
+
     return render_template(
         "keysim.html",
         tab=tab,
-        items=items,
-        files=FILES
+        items=page_items,
+        files=FILES,
+        page=page,
+        total_pages=total_pages
     )
 
 @app.route("/api/colors/<tab>", methods=["GET"])
@@ -176,30 +192,56 @@ def update_go_colorway(tab):
             return jsonify({"error": "Invalid file"}), 400
         
         filename = FILES[tab]
-        payload = request.get_json(force=True)
+        payload = request.get_json(force=True) or {}
 
         current = load_json(filename)
-        new_data = OrderedDict()
-        updates = {r["old_key"]: r for r in payload["items"]}
+        items = payload.get("items", [])
+        deleted = set(payload.get("deleted", []))
 
+        updates = {}
+        creates = []
+        for row in items:
+            old_key = (row.get("old_key") or "").strip()
+            new_key = (row.get("new_key") or "").strip()
+            if not new_key:
+                continue
+            if old_key and old_key in current:
+                updates[old_key] = row
+            else:
+                creates.append(row)
+
+        new_data = OrderedDict()
         for k, v in current.items():
+            if k in deleted:
+                continue
             # normalize dữ liệu cũ
             if isinstance(v, str):
                 v = {
                     "bg": v,
                     "text": "#000000"
                 }
-
             if k in updates:
                 row = updates[k]
-                new_key = row.get("new_key", k)
-
+                new_key = (row.get("new_key") or k).strip() or k
+                if new_key in new_data and new_key != k:
+                    new_key = k
                 new_data[new_key] = {
                     "bg": row.get("bg_color", v["bg"]),
                     "text": row.get("text_color", v["text"])
                 }
             else:
                 new_data[k] = v
+
+        for row in creates:
+            new_key = (row.get("new_key") or "").strip()
+            if not new_key:
+                continue
+            if new_key in new_data:
+                continue
+            new_data[new_key] = {
+                "bg": row.get("bg_color", "#ffffff"),
+                "text": row.get("text_color", "#000000")
+            }
 
         save_json(filename, new_data)
         return jsonify({"status": "ok"}), 200

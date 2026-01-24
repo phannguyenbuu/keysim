@@ -1,9 +1,10 @@
 import os
-from PIL import Image 
-from os.path import dirname
+from pathlib import Path
+from PIL import Image
 
-import_dir = './src/assets/dist'
-output_dir = './src/assets/dist_temp'
+BASE_DIR = Path(__file__).resolve().parent.parent
+import_dir = BASE_DIR / "assets" / "dist"
+output_dir = BASE_DIR / "assets" / "dist_temp"
  
 img_count = 0
 file_count = 0
@@ -25,7 +26,7 @@ MODIFIER_STRING = '_sm'
 
 def get_new_name(filepath, mod):
 	fileName, fileExtension = os.path.splitext(filepath)
-	return '%s%s'%(fileName, fileExtension)
+	return "%s%s" % (fileName, fileExtension)
  
 def resize_image(filepath, filedest):
 	global resize_count
@@ -37,7 +38,7 @@ def resize_image(filepath, filedest):
 	global SAVE_ALL
 
 	if not os.path.isfile(filedest) or OVERWRITE: 
-		print 'Resizing: \n%s ---> %s'%(filepath, filedest)
+		print("Resizing: \n%s ---> %s" % (filepath, filedest))
 		status = "incomplete"
 		im = Image.open(filepath)
 		(width, height) = im.size
@@ -53,11 +54,11 @@ def resize_image(filepath, filedest):
 		else:
 			status = 'Success'
 			size = MIN_WIDTH, MIN_HEIGHT
-			im.thumbnail(size, Image.ANTIALIAS)
+			im.thumbnail(size, Image.LANCZOS)
 			im.save(filedest)
 			resize_count += 1
 
-		print 'Status: %s\n'%(status)
+		print("Status: %s\n" % (status))
 	else:
 		existing_count += 1
  
@@ -70,13 +71,13 @@ for subdir, dirs, files in os.walk(import_dir):
     	if(fileExtension == '.png') or (fileExtension == '.jpg'):
     		img_count += 1
     		if(MODIFIER_STRING not in fileName):
-    			filedest = get_new_name(filepath.replace(import_dir, output_dir), MODIFIER_STRING)
+    			filedest = get_new_name(filepath.replace(str(import_dir), str(output_dir)), MODIFIER_STRING)
     			resize_image(filepath, filedest)
 
  
-print '================'
-print 'TASK: COMPLETE'
-print 'Total Files Found: %s'%(file_count)
-print 'Total Images Found: %s'%(img_count)
-print 'Images Resized: %s'%(resize_count)
-print 'Images Skipped: %s'%(existing_count)
+print("================")
+print("TASK: COMPLETE")
+print("Total Files Found: %s" % (file_count))
+print("Total Images Found: %s" % (img_count))
+print("Images Resized: %s" % (resize_count))
+print("Images Skipped: %s" % (existing_count))

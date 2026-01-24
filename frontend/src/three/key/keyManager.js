@@ -8,6 +8,7 @@ import qmkCodes from "../../config/keys/qmk_codes.json";
 import { subscribe } from "redux-subscriber";
 import { initial_settings } from "../../store/startup";
 import { Key, KEYSTATES } from "./key";
+import { enableHighlight, disableHighlight } from "./materials";
 import Collection from "../collection";
 
 export default class KeyManager extends Collection {
@@ -28,6 +29,7 @@ export default class KeyManager extends Collection {
     this.createKeys();
     this.bindPressedEvents();
     this.bindPaintEvent();
+    this.bindTypingHighlight();
     this.position();
     this.scene.add(this.group);
 
@@ -145,6 +147,25 @@ export default class KeyManager extends Collection {
   bindPaintEvent() {
     document.addEventListener("key_painted", (e) => {
       this.paintKey(e.detail);
+    });
+  }
+
+  bindTypingHighlight() {
+    document.addEventListener("typing_next_key", (e) => {
+      const code = e.detail?.code;
+      if (this.highlightedKey) {
+        const prevKey = this.getKey(this.highlightedKey);
+        if (prevKey && prevKey.cap) {
+          disableHighlight(prevKey.cap);
+        }
+        this.highlightedKey = null;
+      }
+      if (!code) return;
+      const nextKey = this.getKey(code);
+      if (nextKey && nextKey.cap) {
+        enableHighlight(nextKey.cap);
+        this.highlightedKey = code;
+      }
     });
   }
 

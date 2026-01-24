@@ -27,6 +27,9 @@ export default class SceneManager extends Collection {
       antialias: true,
     });
     this.renderer.localClippingEnabled = true;
+    this.renderer.outputColorSpace = THREE.SRGBColorSpace;
+    this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    this.renderer.toneMappingExposure = 1.05;
     this.renderer.setPixelRatio(window.devicePixelRatio);
     this.el.appendChild(this.renderer.domElement);
     //css renderer for dom elements in the scene
@@ -117,18 +120,18 @@ export default class SceneManager extends Collection {
     this.controls.target = new THREE.Vector3(-8, 0, 0);
   }
   setupLights() {
-    let ambiant = new THREE.AmbientLight("#ffffff", 0.5);
+    let ambiant = new THREE.AmbientLight("#ffffff", 0.6);
     this.scene.add(ambiant);
 
     //main
-    let primaryLight = new THREE.DirectionalLight("#dddddd", 0.7);
+    let primaryLight = new THREE.DirectionalLight("#dddddd", 0.8);
     primaryLight.position.set(5, 10, 10);
     primaryLight.target.position.set(0, -10, -10);
     primaryLight.target.updateMatrixWorld();
     this.scene.add(primaryLight, primaryLight.target);
 
     //secondary shadows
-    let shadowLight = new THREE.DirectionalLight("#FFFFFF", 0.2);
+    let shadowLight = new THREE.DirectionalLight("#FFFFFF", 0.25);
     shadowLight.position.set(-4, 3, -10);
     shadowLight.target.position.set(0, 0, 0);
     shadowLight.target.updateMatrixWorld();

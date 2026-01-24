@@ -1,18 +1,33 @@
-scp -r backend root@31.97.76.62:keysim
-scp -r build/* root@31.97.76.62:/var/www/keysim
-
 # KeySim
 
 https://keyboardsimulator.xyz/
 
 design and test virtual 3d keyboards.
 
+## repo layout
+
+- `frontend/` React (CRA) app
+- `backend/` Flask API + admin templates
+
+## deploy (manual)
+
+scp -r backend root@31.97.76.62:keysim
+scp -r frontend/build/* root@31.97.76.62:/var/www/keysim
+
 ## getting started
 
 ```
+cd frontend
 nvm use
 npm install
 npm start
+```
+
+## backend (optional)
+
+```
+cd backend
+python app.py
 ```
 
 ## contributing
@@ -23,11 +38,11 @@ npm start
 
 ## adding new colorways
 
-run the command `npm run create-colorway COLORWAY_ID "COLORWAY_NAME"` to create the file: `/src/config/colorways/colorway_COLORWAY_ID`. Edit this file directly or paste json from the advanced section of the editor tab.
+run the command `npm run create-colorway COLORWAY_ID "COLORWAY_NAME"` from `frontend/` to create the file: `/frontend/src/config/colorways/colorway_COLORWAY_ID`. Edit this file directly or paste json from the advanced section of the editor tab.
 
 ## A note on three.js version
 
-This project was built before the [depreciation](https://discourse.threejs.org/t/three-geometry-will-be-removed-from-core-with-r125/22401) of `THREE.Geometry` there are currently no plans to update three past version 125 as this would require a rewrite of the case and key geometry to support BufferGeometry.
+This project targets `three` ^0.178 and uses BufferGeometry APIs throughout. Avoid deprecated `*BufferGeometry` class names in new code.
 
 ## configuration
 
@@ -37,8 +52,8 @@ _NOTE: Special keys from keyboards with custom firmware (e.g. [layer switching](
 
 ## screenshots
 
-![alt example image](./public/example-1.jpg?raw=true)
+![alt example image](./frontend/public/example-1.jpg?raw=true)
 
-![alt example image](./public/example-2.jpg?raw=true)
+![alt example image](./frontend/public/example-2.jpg?raw=true)
 
-![alt example image](./public/example-3.jpg?raw=true)
+![alt example image](./frontend/public/example-3.jpg?raw=true)

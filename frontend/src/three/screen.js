@@ -144,11 +144,11 @@ export default class Screen {
     //add debugging mesh
     if (this.debug) {
       var lightMesh = new THREE.Mesh(
-        new THREE.PlaneBufferGeometry(),
+        new THREE.PlaneGeometry(),
         new THREE.MeshBasicMaterial({ side: THREE.BackSide })
       );
       var lightMeshBack = new THREE.Mesh(
-        new THREE.PlaneBufferGeometry(),
+        new THREE.PlaneGeometry(),
         new THREE.MeshBasicMaterial({ color: "#080808" })
       );
       lightMesh.scale.x = this.glow.width;

@@ -19,7 +19,10 @@
     <div id="{{t}}-tab" class="tab-content {% if t==tab %}active{% endif %}">
       <div class="content-header">
         <div class="content-title">{{ t.upper() }} Colors</div>
-        <button class="save-btn" onclick="saveTable('{{t}}')">Save</button>
+        <div class="content-actions">
+          <button class="add-btn" onclick="addRow('{{t}}')">Add</button>
+          <button class="save-btn" onclick="saveTable('{{t}}')">Save</button>
+        </div>
       </div>
       
       <div class="table-container">
@@ -29,6 +32,7 @@
               <th>Key</th>
               <th>Fill</th>
               <th>Text</th>
+              <th class="delete-col">Delete</th>
             </tr>
           </thead>
           <tbody>
@@ -69,6 +73,9 @@
                             value="{{c.text}}">
                     </div>
                   </td>
+                  <td class="delete-col">
+                    <button class="delete-btn" onclick="deleteRow(this)">x</button>
+                  </td>
                 </tr>
 
               {% endfor %}
@@ -76,6 +83,19 @@
           </tbody>
         </table>
       </div>
+      {% if t==tab and total_pages > 1 %}
+      <div class="pagination">
+        {% if page > 1 %}
+        <a href="/admin/{{t}}?page={{page-1}}" class="page-btn">Prev</a>
+        {% endif %}
+        {% for p in range(1, total_pages + 1) %}
+        <a href="/admin/{{t}}?page={{p}}" class="page-btn {% if p==page %}active{% endif %}">{{p}}</a>
+        {% endfor %}
+        {% if page < total_pages %}
+        <a href="/admin/{{t}}?page={{page+1}}" class="page-btn">Next</a>
+        {% endif %}
+      </div>
+      {% endif %}
     </div>
     {% endfor %}
   </div>
@@ -85,35 +105,91 @@
       document.querySelectorAll('.tab-content, .tab-btn').forEach(el=>el.classList.remove('active'));
       document.getElementById(tab+'-tab').classList.add('active');
       event.target.classList.add('active');
-      window.location.href = '/admin/' + tab;
+      window.location.href = '/admin/' + tab + '?page=1';
     }
     
-    function initColorSync(tableId) {
-      const table = document.getElementById(tableId);
+    const deletedKeys = new Set();
 
-      table.querySelectorAll('.color-picker').forEach(picker => {
+    function wireRow(row) {
+      row.querySelectorAll('.color-picker').forEach(picker => {
         picker.oninput = e => {
-          const row = e.target.closest('td');
-          const text = row.querySelector('.color-text');
+          const cell = e.target.closest('td');
+          const text = cell.querySelector('.color-text');
           text.value = e.target.value;
         };
       });
 
-      table.querySelectorAll('.color-text').forEach(text => {
+      row.querySelectorAll('.color-text').forEach(text => {
         text.onchange = e => {
           if (/^#[0-9a-fA-F]{6}$/.test(e.target.value)) {
-            const row = e.target.closest('td');
-            const picker = row.querySelector('.color-picker');
+            const cell = e.target.closest('td');
+            const picker = cell.querySelector('.color-picker');
             picker.value = e.target.value;
           }
         };
       });
     }
 
+    function initColorSync(tableId) {
+      const table = document.getElementById(tableId);
+      table.querySelectorAll('tbody tr').forEach(wireRow);
+    }
+
     
     // Init sync cho tab hiện tại
     initColorSync('{{tab}}-table');
     
+    function addRow(tab) {
+      const table = document.getElementById(tab+'-table');
+      const tbody = table.querySelector('tbody');
+      const row = document.createElement('tr');
+      row.innerHTML = `
+        <td>
+          <input type="text"
+                class="key-input"
+                value=""
+                data-old-key="">
+        </td>
+        <td>
+          <div style="display:flex; gap:12px; align-items:center;">
+            <input type="text"
+                  class="color-text bg-text"
+                  value="#ffffff"
+                  placeholder="#rrggbb">
+            <input type="color"
+                  class="color-picker bg-picker"
+                  value="#ffffff">
+          </div>
+        </td>
+        <td>
+          <div style="display:flex; gap:12px; align-items:center;">
+            <input type="text"
+                  class="color-text text-text"
+                  value="#000000"
+                  placeholder="#rrggbb">
+            <input type="color"
+                  class="color-picker text-picker"
+                  value="#000000">
+          </div>
+        </td>
+        <td class="delete-col">
+          <button class="delete-btn" onclick="deleteRow(this)">x</button>
+        </td>
+      `;
+      tbody.appendChild(row);
+      wireRow(row);
+    }
+
+    function deleteRow(btn) {
+      const row = btn.closest('tr');
+      const keyInput = row.querySelector('.key-input');
+      const oldKey = keyInput ? keyInput.dataset.oldKey : '';
+      if (oldKey) {
+        deletedKeys.add(oldKey);
+      }
+      row.remove();
+    }
+
     function saveTable(tab) {
       const table = document.getElementById(tab+'-table');
 
@@ -127,7 +203,7 @@
       fetch(`/api/${tab}/go`, {
         method: 'PUT',
         headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({ items })
+        body: JSON.stringify({ items, deleted: Array.from(deletedKeys) })
       })
       .then(r => r.json())
       .then(d => {
