@@ -319,13 +319,23 @@ export default class CaseManager {
       if(!validKeys.has(obj.code))
         obj.cap.visible = false;
     })
+
+    this.keys.group.updateMatrixWorld(true);
     
     Object.entries(this.keyPositions).forEach(([code, pos]) => {
       const key = this.keys.getKey(code);
       if (key) {
-        key.cap.position.copy(pos);
+        // key.cap.position.copy(pos);
+        key.cap.position.x = pos.x;  // glb x
+        key.cap.position.z = pos.z;
+
+        // console.log("Cap",key.cap.visible, key.cap.position);
       }
     });
+
+    // if (this.keys?.applyProfileFromPositions) {
+    //   this.keys.applyProfileFromPositions(this.keyPositions);
+    // }
 
     this.updateCaseMaterial();
     this.createCaseShadow();

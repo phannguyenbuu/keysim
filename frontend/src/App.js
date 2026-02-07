@@ -12,6 +12,7 @@ import "./App.scss";
 
 import * as colorwaysActions from "./store/slices/colorways";
 import * as settingsActions from "./store/slices/settings";
+import { fetchRenderSettings } from "./store/slices/renderSettings";
 
 export default function App() {
   const dispatch = useDispatch();
@@ -24,6 +25,7 @@ export default function App() {
   useEffect(() => {
     console.log("Get coloways!");
     dispatch(fetchColorways());
+    dispatch(fetchRenderSettings());
   }, []);
 
   useEffect(() => {

@@ -6,6 +6,7 @@ import switchesReducer from "./slices/switches";
 import colorwaysReducer from "./slices/colorways";
 import caseReducer from "./slices/case";
 import keysReducer from "./slices/keys";
+import renderSettingsReducer from "./slices/renderSettings";
 import { initial_settings } from "./startup";
 
 const ENABLE_LOCAL_STORAGE = true;
@@ -17,6 +18,7 @@ const store = configureStore({
     settings: settingsReducer,
     switches: switchesReducer,
     colorways: colorwaysReducer,
+    renderSettings: renderSettingsReducer,
   },
   preloadedState: initial_settings,
 });

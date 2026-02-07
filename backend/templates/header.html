@@ -210,6 +210,38 @@
       color: white;
       background: linear-gradient(135deg, #4f46e5, #7c3aed);
     }
+    .render-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 20px;
+      background: white;
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+    }
+    .render-row {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .render-label {
+      font-weight: 600;
+      color: #374151;
+    }
+    .render-input {
+      width: 100%;
+      border: 2px solid #e5e7eb;
+      padding: 10px 12px;
+      border-radius: 10px;
+      font-size: 1em;
+      background: #ffffff;
+      transition: all 0.2s ease;
+    }
+    .render-input:focus {
+      outline: none;
+      border-color: #4f46e5;
+      box-shadow: 0 0 0 3px rgba(79,70,229,0.1);
+    }
     @media (max-width: 768px) {
       .tabs { flex-direction: column; }
       .tab-btn { padding: 16px; }

@@ -63,6 +63,19 @@ server {
         proxy_set_header X-Real-IP $remote_addr;
     }
 
+    location /pac-api/ {
+        proxy_pass http://127.0.0.1:5030/;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+    }
+
+    location /pac/ {
+        alias /var/www/pacdora/;
+        index index.html index.htm;
+        try_files $uri $uri/ /pac/index.html;
+    }
+
+
     location /admin/ {
         proxy_pass http://31.97.76.62:5000;  # ✅ Dùng IP public thay 127.0.0.1
         proxy_set_header Host $host;

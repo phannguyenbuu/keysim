@@ -13,6 +13,9 @@
         {{ t.upper() }}
       </button>
       {% endfor %}
+      <button class="tab-btn {% if tab=='render' %}active{% endif %}" onclick="switchTab('render')">
+        RENDER
+      </button>
     </div>
 
     {% for t,f in files.items() %}
@@ -98,9 +101,47 @@
       {% endif %}
     </div>
     {% endfor %}
+
+    <div id="render-tab" class="tab-content {% if tab=='render' %}active{% endif %}">
+      <div class="content-header">
+        <div class="content-title">Render Lighting</div>
+        <div class="content-actions">
+          <button class="save-btn" onclick="saveRenderSettings()">Save</button>
+        </div>
+      </div>
+
+      <div class="render-grid">
+        <div class="render-row">
+          <label class="render-label" for="lightIntensity">Light Intensity</label>
+          <input id="lightIntensity" class="render-input" type="number" step="0.1" min="0" max="5">
+        </div>
+        <div class="render-row">
+          <label class="render-label" for="brightness">Brightness</label>
+          <input id="brightness" class="render-input" type="number" step="0.05" min="0" max="2">
+        </div>
+        <div class="render-row">
+          <label class="render-label" for="contrast">Contrast</label>
+          <input id="contrast" class="render-input" type="number" step="0.05" min="0" max="2">
+        </div>
+        <div class="render-row">
+          <label class="render-label" for="hue">Hue (deg)</label>
+          <input id="hue" class="render-input" type="number" step="1" min="-180" max="180">
+        </div>
+        <div class="render-row">
+          <label class="render-label" for="saturation">Saturation</label>
+          <input id="saturation" class="render-input" type="number" step="0.05" min="0" max="2">
+        </div>
+        <div class="render-row">
+          <label class="render-label" for="lightness">Lightness</label>
+          <input id="lightness" class="render-input" type="number" step="0.05" min="0" max="2">
+        </div>
+      </div>
+    </div>
   </div>
 
   <script>
+    const renderSettings = {{ (render_settings or {}) | tojson }};
+
     function switchTab(tab) {
       document.querySelectorAll('.tab-content, .tab-btn').forEach(el=>el.classList.remove('active'));
       document.getElementById(tab+'-tab').classList.add('active');
@@ -215,6 +256,54 @@
         }
       });
     }
+
+    function setRenderInputs(settings) {
+      const s = settings || {};
+      const fields = ["lightIntensity", "brightness", "contrast", "hue", "saturation", "lightness"];
+      fields.forEach((key) => {
+        const el = document.getElementById(key);
+        if (!el) return;
+        if (typeof s[key] !== "undefined") {
+          el.value = s[key];
+        }
+      });
+    }
+
+    function readRenderInputs() {
+      const getVal = (id) => {
+        const el = document.getElementById(id);
+        if (!el) return null;
+        const value = parseFloat(el.value);
+        return Number.isFinite(value) ? value : null;
+      };
+      return {
+        lightIntensity: getVal("lightIntensity"),
+        brightness: getVal("brightness"),
+        contrast: getVal("contrast"),
+        hue: getVal("hue"),
+        saturation: getVal("saturation"),
+        lightness: getVal("lightness"),
+      };
+    }
+
+    function saveRenderSettings() {
+      const payload = readRenderInputs();
+      fetch(`/api/render-settings`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-cache' },
+        body: JSON.stringify(payload)
+      })
+      .then(r => r.json())
+      .then(d => {
+        alert('✅ Đã lưu cấu hình render');
+        setRenderInputs(d);
+      })
+      .catch(err => {
+        alert(`❌ Lỗi: ${err?.message || 'Unknown error'}`);
+      });
+    }
+
+    setRenderInputs(renderSettings);
 
   </script>
 </body>

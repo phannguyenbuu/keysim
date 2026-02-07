@@ -9,6 +9,41 @@ const it = 0.05; // inset top edge
 //stores geometry for each possible size
 var computed_geometries = {};
 
+const lowerCapFace = (vs, dist, distFront, offset) => {
+  distFront = distFront ?? dist;
+  offset = offset ?? 0;
+  vs[4][1] -= dist;
+  vs[5][1] -= dist + offset;
+  vs[6][1] -= dist + offset;
+  vs[7][1] -= dist;
+  vs[8][1] -= distFront;
+  vs[9][1] -= distFront - offset;
+  vs[10][1] -= distFront - offset;
+  vs[11][1] -= distFront;
+  return vs;
+};
+
+const rotateX = (vs, angle) => {
+  const cos = Math.cos(angle);
+  const sin = Math.sin(angle);
+  for (let idx = 0; idx < vs.length; idx++) {
+    const y = vs[idx][1];
+    const z = vs[idx][2];
+    vs[idx][1] = y * cos - z * sin;
+    vs[idx][2] = y * sin + z * cos;
+  }
+  return vs;
+};
+
+const translate = (vs, dx, dy, dz) => {
+  for (let idx = 0; idx < vs.length; idx++) {
+    vs[idx][0] += dx;
+    vs[idx][1] += dy;
+    vs[idx][2] += dz;
+  }
+  return vs;
+};
+
 //geometry for rectangle key
 export const keyGeometry = (opts) => {
   let key = `test${opts.w}${opts.h}${opts.row}`;
@@ -87,6 +122,26 @@ export const keyGeometry = (opts) => {
   
   const uvs = new Array(108).fill(0);
   [25,28,29,30,32,33].forEach((i) => uvs[i] = 1);
+
+  // angle top faces for profile
+  if (opts.h === 2 && opts.w < 1.25) {
+    lowerCapFace(vs, 0.1);
+  }
+  if (opts.row === 1) {
+    lowerCapFace(vs, -0.05);
+  }
+  if (opts.row === 2 && opts.h !== 2) {
+    lowerCapFace(vs, 0.1);
+  }
+  if (opts.row === 3 && opts.h !== 2) {
+    lowerCapFace(vs, 0.1);
+    rotateX(vs, -0.1);
+    translate(vs, 0, -0.1, 0);
+  }
+  if (opts.row === 4 && opts.h !== 2) {
+    rotateX(vs, -0.2);
+    translate(vs, 0, -0.19, 0);
+  }
 
   return geometryToBufferGeometry(vs,fs, uvs);
 };

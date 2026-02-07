@@ -32,11 +32,11 @@ export class Key {
     this.is_iso_enter = this.code === "KC_ENT" && this.options.isIso;
     this.direction = -1; // is key moving up or down
     this.gutter = 0.05; // space inbetween keys (this is subtracted from the key width not added after the key)
-    this.start_y = -0.05; // initial y position and reset after releasing key
+    this.start_y = 0.1; // initial y position and reset after releasing key
     this.dist_pressed = 0.25; // max vertical distance the key can be pressed down
     this.press_velocity = 0.1; // speed of press, smaller = smoother slower motion
-    this.legend = options.legend; // currentState.keys.legendPrimaryStyle || "cherry";
-    this.sub = "";
+    this.legend = currentState.keys.legendPrimaryStyle || "cherry";
+    this.sub = currentState.keys.legendSecondaryStyle || "";
     this.testing = initial_settings.settings.testing || false;
     this.setup();
   }
@@ -80,6 +80,8 @@ export class Key {
     this.cap.position.x = this.x;
     this.cap.position.z = this.y;
     this.options.container.add(this.cap);
+    this.reset();
+    
 
     subscribe("settings.testing", (state) => {
       this.testing = state.settings.testing;
@@ -218,8 +220,13 @@ export class Key {
   update() {
     // console.log('cap', this.cap);
     // check if key needs to be updated
-    if (this.state === KEYSTATES.INITIAL || this.state === KEYSTATES.PRESSED)
+    if (this.state === KEYSTATES.INITIAL) {
+      if (this.cap.position.y !== this.start_y) {
+        this.cap.position.y = this.start_y;
+      }
       return;
+    }
+    if (this.state === KEYSTATES.PRESSED) return;
     //set active
     if (this.testing) {
       setKeyMaterialState(

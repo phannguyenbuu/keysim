@@ -13,6 +13,8 @@ design and test virtual 3d keyboards.
 
 scp -r backend root@31.97.76.62:keysim
 scp -r frontend/build/* root@31.97.76.62:/var/www/keysim
+scp -r nginx root@31.97.76.62:/etc
+@baoLong0511
 
 ## getting started
 

@@ -10,10 +10,13 @@ import { initial_settings } from "../../store/startup";
 import { Key, KEYSTATES } from "./key";
 import { enableHighlight, disableHighlight } from "./materials";
 import Collection from "../collection";
+import { keyGeometry, keyGeometryISOEnter } from "./geometry";
+import layout75Default from "../../config/layouts/layout_75_default.json";
 
 export default class KeyManager extends Collection {
   constructor(opts) {
     super(opts);
+    this.caseManager = opts.caseManager;
     this.height = 1.1;
     this.angle = 6;
     this.setup();
@@ -27,16 +30,31 @@ export default class KeyManager extends Collection {
     this.getLayout();
     this.getKeymap();
     this.createKeys();
+
+//     console.log("0 KEY COUNT:", this.components.length);
+// console.log("0 KEYS GROUP CHILDREN:", this.group.children.length);
+
     this.bindPressedEvents();
     this.bindPaintEvent();
     this.bindTypingHighlight();
     this.position();
     this.scene.add(this.group);
 
+    if (this.caseManager) {
+      this.applyProfileFromPositions(this.caseManager.keyPositions);
+    }
+
     subscribe("case.layout", (state) => {
       this.getLayout(state.case.layout);
       this.getKeymap(state.case.layout);
       this.createKeys();
+//       console.log("1 KEY COUNT:", this.components.length);
+// console.log("1 KEYS GROUP CHILDREN:", this.group.children.length);
+
+
+      if (this.caseManager) {
+        this.applyProfileFromPositions(this.caseManager.keyPositions);
+      }
       this.position();
     });
     subscribe("colorways.editing", (state) => {
@@ -68,10 +86,54 @@ export default class KeyManager extends Collection {
     this.keymap = KEYMAPS['75'].layers[0];
   }
 
+  // getLayout(id = initial_settings.case.layout) {
+  //   this.layoutFull = LAYOUTS[id];
+  //   this.layout = LAYOUTS[id].layouts["LAYOUT"].layout;
+  // }
+
   getLayout(id = initial_settings.case.layout) {
     this.layoutFull = LAYOUTS[id];
-    this.layout = LAYOUTS[id].layouts["LAYOUT"].layout;
+
+    // 1) base absolute layout (x/y đầy đủ)
+    const base = layout75Default.layouts.LAYOUT.layout; // mảng 83 item có x/y
+
+    // 2) overrides minimal (chỉ có i,w,...)
+    const overrides = this.layoutFull.layouts.LAYOUT.layout; // mảng sparse [{i:29,w:2},...]
+
+    // 3) merge -> resolved layout dùng để createKeys
+    this.layout = this.mergeLayoutBaseWithOverrides(base, overrides);
+
+    console.log("RESOLVED LAYOUT SAMPLE:", this.layout.slice(0,10));
+
   }
+
+
+  mergeLayoutBaseWithOverrides(baseAbs, overridesSparse) {
+    const out = baseAbs.map((it) => ({
+      x: it.x ?? 0,
+      y: it.y ?? 0,
+      w: it.w ?? 1,
+      h: it.h ?? 1,
+      // nếu default json có các field khác thì copy luôn
+      ...it,
+    }));
+
+    // overrides kiểu {i:29, w:2, ...}
+    (overridesSparse || []).forEach((ov) => {
+      if (!ov) return;
+      const idx = Number.isInteger(ov.i) ? ov.i : Number.isInteger(ov.index) ? ov.index : -1;
+      if (idx < 0 || idx >= out.length) return;
+
+      const copy = { ...ov };
+      delete copy.i;
+      delete copy.index;
+
+      out[idx] = { ...out[idx], ...copy };
+    });
+
+    return out;
+  }
+
 
   normalizeLayout(layout, keyCount) {
     const defaultItem = { x: 0, y: 0, w: 1 };
@@ -229,15 +291,18 @@ export default class KeyManager extends Collection {
     for (let i = 0; i < this.layout.length; i++) {
       // ✅ PRIORITY: layout.code > keymap
       let code = this.layout[i].code || this.keymap[i] || 'BLANK';
+
+
+      // ✅ debug: in index của phím Fn
+
+      if (code.includes("PG")) {
+        console.log("KEY INDEX OUT OF BOUNDS:", i, code);
+      }
+
       
       let dimensions = this.layout[i];
-      dimensions.row = KeyUtil.getKeyProfile(i, this.layout, this.layoutFull.height);
-      
-      // 🔥 LEGEND cho Win/Fn = "sa" text
-      let legend = 'cherry';
-      if (code.includes('GUI')) {
-        legend = 'sa';  // Text "Win"/"Fn"/"HOME"
-      }
+      // dimensions.row = KeyUtil.getKeyProfile(i, this.layout, this.layoutFull.height);
+      dimensions.row = this.mapYToCherryRow(dimensions.y);
       
       let existingKey = this.getKey(code);
       if (existingKey && !seen.includes(code)) {
@@ -248,18 +313,89 @@ export default class KeyManager extends Collection {
         }
         this.removeKey(existingKey);
       }
+
+      // if (i < 10) console.log("DIM", i, dimensions);
+
       
       let K = new Key({
         dimensions: dimensions,
         container: this.group,
         isIso: this.layoutFull?.is_iso,
         colorway: this.colorway,
-        code: code,
-        legend: legend  // ← THÊM NÀY!
+        code: code
       });
       this.add(K);
+      
       seen.push(code);
+
+      if (i < 10) console.log("DIM", i, dimensions.x, dimensions.y, dimensions.w, dimensions.row);
     }
+
+
+    
+  }
+
+  mapYToCherryRow(y) {
+    // 75% thường 6 hàng: y=0..5
+    // Cherry profile hay map kiểu: top -> R1, ... bottom -> R4
+    // Bạn tùy chỉnh theo ý.
+    if (y <= 1) return 1;   // hàng 0-1: R1
+    if (y === 2) return 2;  // hàng 2:   R2
+    if (y === 3) return 3;  // hàng 3:   R3
+    return 4;               // hàng 4-5: R4
+  }
+
+
+  applyProfileFromPositions(keyPositions) {
+    if (!keyPositions) return;
+
+    const positions = Object.values(keyPositions);
+    if (!positions.length) return;
+
+    const epsilon = 0.0001;
+    const zValues = [];
+
+    positions.forEach((pos) => {
+      if (!zValues.some((z) => Math.abs(z - pos.z) < epsilon)) {
+        zValues.push(pos.z);
+      }
+    });
+
+    zValues.sort((a, b) => a - b);
+
+    if (!zValues.length) return;
+
+    const mapRowToProfile = (rowIndex, totalRows) => {
+      if (totalRows < 5) return rowIndex + 1;
+      if (totalRows > 5) {
+        let row = rowIndex === 0 ? 1 : rowIndex;
+        return row > 4 ? 4 : row;
+      }
+      let row = rowIndex + 1;
+      return row > 4 ? 4 : row;
+    };
+
+    const totalRows = zValues.length;
+
+    this.components.forEach((key) => {
+      const pos = keyPositions[key.code];
+      if (!pos) return;
+
+      const rowIndex = zValues.findIndex((z) => Math.abs(z - pos.z) < epsilon);
+
+      if (rowIndex < 0) return;
+
+      const profileRow = mapRowToProfile(rowIndex, totalRows);
+
+      key.options.dimensions.row = profileRow;
+      key.geometryOptions.row = profileRow;
+
+      const geometry = key.is_iso_enter
+        ? keyGeometryISOEnter(key.geometryOptions)
+        : keyGeometry(key.geometryOptions);
+
+      key.cap.geometry = geometry;
+    });
   }
 
 

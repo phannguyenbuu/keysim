@@ -6,6 +6,15 @@ import { enableHighlight, disableHighlight } from "./key/materials";
 import ThreeUtil from "../util/three";
 //import { CSS3DRenderer } from "three/examples/jsm/renderers/CSS3DRenderer.js";
 
+const DEFAULT_RENDER_SETTINGS = {
+  lightIntensity: 1.0,
+  brightness: 1.0,
+  contrast: 1.0,
+  hue: 0.0,
+  saturation: 1.0,
+  lightness: 1.0,
+};
+
 export default class SceneManager extends Collection {
   constructor(options) {
     super();
@@ -27,9 +36,6 @@ export default class SceneManager extends Collection {
       antialias: true,
     });
     this.renderer.localClippingEnabled = true;
-    this.renderer.outputColorSpace = THREE.SRGBColorSpace;
-    this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    this.renderer.toneMappingExposure = 1.05;
     this.renderer.setPixelRatio(window.devicePixelRatio);
     this.el.appendChild(this.renderer.domElement);
     //css renderer for dom elements in the scene
@@ -88,6 +94,10 @@ export default class SceneManager extends Collection {
     subscribe("colorways.editing", (state) => {
       this.editing = state.colorways.editing;
     });
+
+    subscribe("renderSettings", (state) => {
+      this.applyRenderSettings(state.renderSettings);
+    });
   }
   get w() {
     return this.el.offsetWidth;
@@ -108,7 +118,7 @@ export default class SceneManager extends Collection {
     this.camera = new THREE.PerspectiveCamera(60, this.w / this.h, 1, 1000);
     this.camera.position.y = 15;
     this.camera.position.z = 15;
-    this.camera.position.x = -8;
+    this.camera.position.x = 0;
   }
   setupControls() {
     this.controls = new OrbitControls(this.camera, this.renderer.domElement);
@@ -117,25 +127,36 @@ export default class SceneManager extends Collection {
     this.controls.dampingFactor = 0.25;
     this.controls.enableKeys = false;
     this.controls.maxDistance = 40;
-    this.controls.target = new THREE.Vector3(-8, 0, 0);
+    this.controls.target = new THREE.Vector3(0, 0, 0);
   }
   setupLights() {
-    let ambiant = new THREE.AmbientLight("#ffffff", 0.6);
+    let ambiant = new THREE.AmbientLight("#ffffff", 2);
     this.scene.add(ambiant);
 
     //main
-    let primaryLight = new THREE.DirectionalLight("#dddddd", 0.8);
+    let primaryLight = new THREE.DirectionalLight("#dddddd", 0.7);
     primaryLight.position.set(5, 10, 10);
     primaryLight.target.position.set(0, -10, -10);
     primaryLight.target.updateMatrixWorld();
     this.scene.add(primaryLight, primaryLight.target);
 
     //secondary shadows
-    let shadowLight = new THREE.DirectionalLight("#FFFFFF", 0.25);
+    let shadowLight = new THREE.DirectionalLight("#FFFFFF", 0.2);
     shadowLight.position.set(-4, 3, -10);
     shadowLight.target.position.set(0, 0, 0);
     shadowLight.target.updateMatrixWorld();
     this.scene.add(shadowLight, shadowLight.target);
+
+    this.lights = {
+      ambient: ambiant,
+      primary: primaryLight,
+      shadow: shadowLight,
+    };
+    this.baseLightIntensity = {
+      ambient: ambiant.intensity,
+      primary: primaryLight.intensity,
+      shadow: shadowLight.intensity,
+    };
 
     //lighthelpers
     // let slh = new THREE.DirectionalLightHelper(shadowLight, 2);
@@ -143,6 +164,41 @@ export default class SceneManager extends Collection {
     // slh.update();
     // plh.update();
     // this.scene.add(slh, plh);
+  }
+  applyRenderSettings(settings) {
+    const s = { ...DEFAULT_RENDER_SETTINGS, ...(settings || {}) };
+
+    const lightIntensity = Number.isFinite(Number(s.lightIntensity))
+      ? Number(s.lightIntensity)
+      : DEFAULT_RENDER_SETTINGS.lightIntensity;
+
+    if (this.lights && this.baseLightIntensity) {
+      this.lights.ambient.intensity = this.baseLightIntensity.ambient * lightIntensity;
+      this.lights.primary.intensity = this.baseLightIntensity.primary * lightIntensity;
+      this.lights.shadow.intensity = this.baseLightIntensity.shadow * lightIntensity;
+    }
+
+    const brightness = Number.isFinite(Number(s.brightness))
+      ? Number(s.brightness)
+      : DEFAULT_RENDER_SETTINGS.brightness;
+    const contrast = Number.isFinite(Number(s.contrast))
+      ? Number(s.contrast)
+      : DEFAULT_RENDER_SETTINGS.contrast;
+    const hue = Number.isFinite(Number(s.hue))
+      ? Number(s.hue)
+      : DEFAULT_RENDER_SETTINGS.hue;
+    const saturation = Number.isFinite(Number(s.saturation))
+      ? Number(s.saturation)
+      : DEFAULT_RENDER_SETTINGS.saturation;
+    const lightness = Number.isFinite(Number(s.lightness))
+      ? Number(s.lightness)
+      : DEFAULT_RENDER_SETTINGS.lightness;
+
+    if (this.renderer?.domElement) {
+      this.renderer.domElement.style.filter =
+        `brightness(${brightness}) brightness(${lightness}) ` +
+        `contrast(${contrast}) saturate(${saturation}) hue-rotate(${hue}deg)`;
+    }
   }
   mouseClick(e) {
     if (!this.editing) return;

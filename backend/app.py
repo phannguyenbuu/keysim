@@ -16,6 +16,65 @@ BASE_DIR = Path(__file__).parent
 COLORS_CONFIG_DIR = BASE_DIR / "colors"
 COLORWAYS_CONFIG_DIR = BASE_DIR / "colorways"
 COLORWAYS_CONFIG_DIR.mkdir(parents=True, exist_ok=True)
+RENDER_SETTINGS_PATH = BASE_DIR / "render_settings.json"
+DEFAULT_RENDER_SETTINGS = {
+    "lightIntensity": 1.0,
+    "brightness": 1.0,
+    "contrast": 1.0,
+    "hue": 0.0,
+    "saturation": 1.0,
+    "lightness": 1.0,
+}
+
+
+def _clamp(value, min_value, max_value, fallback):
+    try:
+        v = float(value)
+    except (TypeError, ValueError):
+        v = float(fallback)
+    if v < min_value:
+        return min_value
+    if v > max_value:
+        return max_value
+    return v
+
+
+def normalize_render_settings(data):
+    data = data or {}
+    return {
+        "lightIntensity": _clamp(data.get("lightIntensity"), 0.0, 5.0, DEFAULT_RENDER_SETTINGS["lightIntensity"]),
+        "brightness": _clamp(data.get("brightness"), 0.0, 2.0, DEFAULT_RENDER_SETTINGS["brightness"]),
+        "contrast": _clamp(data.get("contrast"), 0.0, 2.0, DEFAULT_RENDER_SETTINGS["contrast"]),
+        "hue": _clamp(data.get("hue"), -180.0, 180.0, DEFAULT_RENDER_SETTINGS["hue"]),
+        "saturation": _clamp(data.get("saturation"), 0.0, 2.0, DEFAULT_RENDER_SETTINGS["saturation"]),
+        "lightness": _clamp(data.get("lightness"), 0.0, 2.0, DEFAULT_RENDER_SETTINGS["lightness"]),
+    }
+
+
+def load_render_settings():
+    if not RENDER_SETTINGS_PATH.exists():
+        return DEFAULT_RENDER_SETTINGS.copy()
+    try:
+        with open(RENDER_SETTINGS_PATH, "r", encoding="utf-8") as f:
+            data = json.load(f)
+        return normalize_render_settings(data)
+    except Exception:
+        return DEFAULT_RENDER_SETTINGS.copy()
+
+
+def save_render_settings(data):
+    settings = normalize_render_settings(data)
+    with open(RENDER_SETTINGS_PATH, "w", encoding="utf-8") as f:
+        json.dump(settings, f, ensure_ascii=False, indent=2)
+    return settings
+
+
+def no_cache_json(payload):
+    resp = jsonify(payload)
+    resp.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+    resp.headers["Pragma"] = "no-cache"
+    resp.headers["Expires"] = "0"
+    return resp
 
 
 @app.route("/api/textures/<key>", methods=["POST"])
@@ -119,6 +178,7 @@ FILES = {
     "gmk": "gmk.json",
     "sa": "sa.json"
 }
+ADMIN_TABS = list(FILES.keys()) + ["render"]
 PAGE_SIZE = 10
 
 
@@ -134,8 +194,19 @@ def save_json(filename, data):
 
 @app.route("/admin/<tab>", methods=["GET"])
 def colorway_view(tab):
-    if tab not in FILES:
+    if tab not in ADMIN_TABS:
         return "Invalid tab", 404
+
+    if tab == "render":
+        return render_template(
+            "keysim.html",
+            tab=tab,
+            items=[],
+            files=FILES,
+            page=1,
+            total_pages=1,
+            render_settings=load_render_settings()
+        )
 
     raw = load_json(FILES[tab])
     items = []
@@ -171,8 +242,21 @@ def colorway_view(tab):
         items=page_items,
         files=FILES,
         page=page,
-        total_pages=total_pages
+        total_pages=total_pages,
+        render_settings=load_render_settings()
     )
+
+
+@app.route("/api/render-settings", methods=["GET"])
+def get_render_settings():
+    return no_cache_json(load_render_settings())
+
+
+@app.route("/api/render-settings", methods=["PUT"])
+def update_render_settings():
+    data = request.get_json(silent=True) or {}
+    saved = save_render_settings(data)
+    return no_cache_json(saved)
 
 @app.route("/api/colors/<tab>", methods=["GET"])
 def get_color_codes(tab):
