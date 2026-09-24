@@ -237,76 +237,68 @@ You might need to use a local HTTP server (instead of file://): https://react.de
 React keys must be passed directly to JSX without using spread:
   let props = %s;
   <%s key={someKey} {...props} />`,o,f,m,f),de[f+o]=!0)}if(f=null,i!==void 0&&(r(i),f=``+i),s(n)&&(r(n.key),f=``+n.key),`key`in n)for(var h in i={},n)h!==`key`&&(i[h]=n[h]);else i=n;return f&&c(i,typeof e==`function`?e.displayName||e.name||`Unknown`:e),d(e,f,i,a(),l,u)}function p(e){m(e)?e._store&&(e._store.validated=1):typeof e==`object`&&e&&e.$$typeof===ie&&(e._payload.status===`fulfilled`?m(e._payload.value)&&e._payload.value._store&&(e._payload.value._store.validated=1):e._store&&(e._store.validated=1))}function m(e){return typeof e==`object`&&!!e&&e.$$typeof===g}var h=u(),g=Symbol.for(`react.transitional.element`),_=Symbol.for(`react.portal`),v=Symbol.for(`react.fragment`),y=Symbol.for(`react.strict_mode`),b=Symbol.for(`react.profiler`),x=Symbol.for(`react.consumer`),S=Symbol.for(`react.context`),ee=Symbol.for(`react.forward_ref`),te=Symbol.for(`react.suspense`),ne=Symbol.for(`react.suspense_list`),re=Symbol.for(`react.memo`),ie=Symbol.for(`react.lazy`),C=Symbol.for(`react.activity`),ae=Symbol.for(`react.client.reference`),w=h.__CLIENT_INTERNALS_DO_NOT_USE_OR_WARN_USERS_THEY_CANNOT_UPGRADE,oe=Object.prototype.hasOwnProperty,se=Array.isArray,T=console.createTask?console.createTask:function(){return null};h={react_stack_bottom_frame:function(e){return e()}};var ce,E={},le=h.react_stack_bottom_frame.bind(h,o)(),ue=T(i(o)),de={};e.Fragment=v,e.jsxDEV=function(e,t,n,r){var a=1e4>w.recentlyCreatedOwnerStacks++;return f(e,t,n,r,a?Error(`react-stack-top-frame`):le,a?T(i(e)):ue)}})()})),v=o(((e,t)=>{t.exports=_()})),y=c(g(),1),b=c(u(),1),x=v(),S=`/workspaces/.cached-preview/src/AdminPanel.tsx`;
-function getPersonaStyle(p, key, defColor, defSize, defBold, defItalic) {
-  const pSt = p?.styles || p?.specs?.styles || {};
-  const s = pSt[key];
+function getPersonaStyle(p, field, defColor, defSize, defBold, defItalic) {
+  let s = p?.styles?.[field] || p?.specs?.styles?.[field] || {};
   return {
-    color: (s?.color !== undefined && s?.color !== "") ? s.color : defColor,
-    fontSize: (s?.fontSize !== undefined ? s.fontSize : defSize) + "px",
-    fontWeight: (s?.bold !== undefined ? s.bold : defBold) ? "bold" : "normal",
-    fontStyle: (s?.italic !== undefined ? s.italic : defItalic) ? "italic" : "normal"
+    color: s.color || defColor,
+    fontSize: (s.size ? s.size + "px" : (defSize ? defSize + "px" : undefined)),
+    fontWeight: (s.bold !== undefined ? (s.bold ? "bold" : "normal") : (defBold ? "bold" : "normal")),
+    fontStyle: (s.italic !== undefined ? (s.italic ? "italic" : "normal") : (defItalic ? "italic" : "normal"))
   };
 }
 
-function TextStyleBar({ style, onStyleChange, defaultColor = "#ffffff", defaultSize = 11, defaultBold = false, defaultItalic = false }) {
-  const curColor = style?.color !== undefined && style?.color !== "" ? style.color : defaultColor;
-  const curSize = style?.fontSize !== undefined ? style.fontSize : defaultSize;
-  const isBold = style?.bold !== undefined ? !!style.bold : defaultBold;
-  const isItalic = style?.italic !== undefined ? !!style.italic : defaultItalic;
+function TextStyleBar({ style, defaultColor, defaultSize, defaultBold, defaultItalic, onStyleChange }) {
+  const current = style || {};
+  const color = current.color || defaultColor || "#ffffff";
+  const size = current.size !== undefined ? current.size : (defaultSize || 14);
+  const isBold = current.bold !== undefined ? current.bold : !!defaultBold;
+  const isItalic = current.italic !== undefined ? current.italic : !!defaultItalic;
 
   return (0, x.jsxDEV)("div", {
-    className: "flex items-center gap-1 bg-[#090912] px-1.5 py-0.5 rounded-lg border border-[#222234] shrink-0",
+    className: "flex items-center gap-1.5 bg-[#0a0a12] border border-[#1a1a28] rounded-lg px-2 py-1 shrink-0",
+    onClick: e => e.stopPropagation(),
     children: [
       (0, x.jsxDEV)("div", {
-        title: "Font Color",
-        className: "relative flex items-center gap-1 cursor-pointer p-0.5 rounded hover:bg-[#1a1a28] transition-colors",
+        className: "flex items-center gap-1 relative",
+        title: "Font color",
         children: [
           (0, x.jsxDEV)("svg", {
-            width: "12", height: "12", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", className: "text-[#888]",
+            width: "11", height: "11", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", className: "text-[#888]",
             children: [
-              (0, x.jsxDEV)("circle", { cx: "13.5", cy: "6.5", r: ".5", fill: "currentColor" }),
-              (0, x.jsxDEV)("circle", { cx: "17.5", cy: "10.5", r: ".5", fill: "currentColor" }),
-              (0, x.jsxDEV)("circle", { cx: "8.5", cy: "7.5", r: ".5", fill: "currentColor" }),
-              (0, x.jsxDEV)("circle", { cx: "6.5", cy: "12.5", r: ".5", fill: "currentColor" }),
-              (0, x.jsxDEV)("path", { d: "M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.926 0 1.648-.746 1.648-1.688 0-.437-.18-.835-.437-1.125-.29-.289-.438-.652-.438-1.125a1.64 1.64 0 0 1 1.668-1.668h1.996c3.051 0 5.555-2.503 5.555-5.554C21.965 6.012 17.461 2 12 2z" })
+              (0, x.jsxDEV)("path", { d: "M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z" }),
+              (0, x.jsxDEV)("path", { d: "M12 22.5V14" })
             ]
           }),
-          (0, x.jsxDEV)("span", { className: "w-3 h-3 rounded-full border border-[#444] shrink-0", style: { backgroundColor: curColor } }),
           (0, x.jsxDEV)("input", {
             type: "color",
-            value: curColor.startsWith("#") ? curColor : "#ffffff",
-            onChange: e => onStyleChange({ ...(style || {}), color: e.target.value }),
-            style: { position: "absolute", top: 0, left: 0, width: "100%", height: "100%", opacity: 0, cursor: "pointer" }
+            value: color,
+            onChange: e => onStyleChange({ ...current, color: e.target.value }),
+            className: "w-4 h-4 rounded cursor-pointer border-0 p-0 bg-transparent"
           })
         ]
       }),
+      (0, x.jsxDEV)("div", { className: "w-px h-3 bg-[#1a1a28]" }),
       (0, x.jsxDEV)("div", {
-        title: "Font Size (px)",
-        className: "flex items-center gap-0.5 ml-0.5",
+        className: "flex items-center gap-0.5",
+        title: "Font size (px)",
         children: [
-          (0, x.jsxDEV)("svg", {
-            width: "10", height: "10", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", className: "text-[#888]",
-            children: [
-              (0, x.jsxDEV)("path", { d: "M4 7V4h16v3" }),
-              (0, x.jsxDEV)("path", { d: "M9 20h6" }),
-              (0, x.jsxDEV)("path", { d: "M12 4v16" })
-            ]
-          }),
+          (0, x.jsxDEV)("span", { className: "text-[10px] text-[#666] font-mono select-none", children: "T" }),
           (0, x.jsxDEV)("input", {
             type: "number",
-            min: "8",
-            max: "72",
-            value: curSize,
-            onChange: e => onStyleChange({ ...(style || {}), fontSize: parseInt(e.target.value) || defaultSize }),
-            className: "w-7 bg-transparent text-white text-[10px] font-mono text-center outline-none border-b border-[#2a2a3e] focus:border-[#f59e0b] p-0"
+            min: 8,
+            max: 72,
+            value: size,
+            onChange: e => onStyleChange({ ...current, size: parseInt(e.target.value) || defaultSize }),
+            className: "w-9 px-1 py-0.5 rounded text-[11px] text-white bg-[#13131e] border border-[#1a1a28] outline-none text-center font-mono"
           }),
-          (0, x.jsxDEV)("span", { className: "text-[9px] text-[#666] font-mono", children: "px" })
+          (0, x.jsxDEV)("span", { className: "text-[9px] text-[#666] select-none", children: "px" })
         ]
       }),
+      (0, x.jsxDEV)("div", { className: "w-px h-3 bg-[#1a1a28]" }),
       (0, x.jsxDEV)("button", {
         type: "button",
         title: "Bold",
-        onClick: () => onStyleChange({ ...(style || {}), bold: !isBold }),
+        onClick: () => onStyleChange({ ...current, bold: !isBold }),
         className: "p-1 rounded transition-colors " + (isBold ? "bg-[#f59e0b] text-black" : "text-[#888] hover:text-white hover:bg-[#1a1a28]"),
         children: (0, x.jsxDEV)("svg", {
           width: "10", height: "10", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "3",
@@ -319,7 +311,7 @@ function TextStyleBar({ style, onStyleChange, defaultColor = "#ffffff", defaultS
       (0, x.jsxDEV)("button", {
         type: "button",
         title: "Italic",
-        onClick: () => onStyleChange({ ...(style || {}), italic: !isItalic }),
+        onClick: () => onStyleChange({ ...current, italic: !isItalic }),
         className: "p-1 rounded transition-colors " + (isItalic ? "bg-[#f59e0b] text-black" : "text-[#888] hover:text-white hover:bg-[#1a1a28]"),
         children: (0, x.jsxDEV)("svg", {
           width: "10", height: "10", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2.5",
@@ -409,7 +401,6 @@ function SidebarSpecsStylingPanel() {
             className: "p-4 rounded-xl border border-[#1a1a28] bg-[#0c0c14] space-y-4",
             children: [
               (0, x.jsxDEV)("p", { className: "text-[#f59e0b] text-xs font-bold uppercase tracking-wider", children: "2. Specs Rows (Label & Value Styles)" }),
-
               [
                 { id: "type", key: "typeLabel", text: typeText, defText: "Type", labelSt: styles.typeLabel, valSt: styles.typeValue, defValColor: "#60a5fa" },
                 { id: "actuation", key: "actuationLabel", text: actuationText, defText: "Actuation", labelSt: styles.actuationLabel, valSt: styles.actuationValue, defValColor: "#60a5fa" },
@@ -473,14 +464,17 @@ function SidebarSpecsStylingPanel() {
                 className: "w-full px-3 py-2 rounded-lg text-xs text-white bg-[#13131e] border border-[#1a1a28] outline-none focus:border-[#f59e0b] resize-none"
               }),
               (0, x.jsxDEV)("div", {
-                className: "flex justify-end",
-                children: (0, x.jsxDEV)(TextStyleBar, {
-                  style: styles.bundleHint,
-                  defaultColor: "#CAFF00",
-                  defaultSize: 11,
-                  defaultBold: false,
-                  onStyleChange: st => updateStyle("bundleHint", st)
-                })
+                className: "flex items-center justify-between",
+                children: [
+                  (0, x.jsxDEV)("span", { className: "text-[#888] text-xs", children: "Text style for hint:" }),
+                  (0, x.jsxDEV)(TextStyleBar, {
+                    style: styles.bundleHint,
+                    defaultColor: "#a3e635",
+                    defaultSize: 11,
+                    defaultBold: false,
+                    onStyleChange: st => updateStyle("bundleHint", st)
+                  })
+                ]
               })
             ]
           })
@@ -488,85 +482,45 @@ function SidebarSpecsStylingPanel() {
       }),
 
       (0, x.jsxDEV)("div", {
-        className: "lg:col-span-5 space-y-4",
+        className: "lg:col-span-5 space-y-3",
         children: [
-          (0, x.jsxDEV)("p", { className: "text-[#888] text-xs font-mono uppercase tracking-wider", children: "Live Preview (Storefront Sidebar)" }),
+          (0, x.jsxDEV)("p", { className: "text-[#888] text-xs font-mono font-bold uppercase tracking-wider", children: "Live Preview (Storefront)" }),
           (0, x.jsxDEV)("div", {
-            className: "rounded-2xl p-5 border border-[#1a1a2a] shadow-xl",
-            style: { backgroundColor: "#0d0d14" },
+            className: "rounded-2xl p-5 border border-[#1e1e2e] bg-[#0d0d14] space-y-4 shadow-xl",
             children: [
               (0, x.jsxDEV)("div", {
-                className: "flex items-center gap-2 mb-4",
+                className: "flex items-center gap-2",
                 children: [
-                  (0, x.jsxDEV)("div", { className: "w-1 h-4 rounded-full bg-[#60a5fa]" }),
+                  (0, x.jsxDEV)("div", { className: "w-1 h-4 rounded-full bg-[#CAFF00]" }),
                   (0, x.jsxDEV)("span", {
-                    style: {
-                      fontFamily: "var(--font-display)",
-                      color: styles.title?.color || "#ffffff",
-                      fontSize: (styles.title?.fontSize || 14) + "px",
-                      fontWeight: styles.title?.bold !== false ? "bold" : "normal",
-                      fontStyle: styles.title?.italic ? "italic" : "normal"
-                    },
+                    style: { fontFamily: "var(--font-display)", ...getPersonaStyle({ styles }, "title", "#ffffff", 14, true, false) },
                     children: titleText
                   })
                 ]
               }),
               (0, x.jsxDEV)("div", {
-                className: "space-y-3",
+                className: "space-y-2.5 pt-1",
                 children: [
-                  { label: typeText, val: "TĨNH LẶNG", labelSt: styles.typeLabel, valSt: styles.typeValue },
-                  { label: actuationText, val: "35g", labelSt: styles.actuationLabel, valSt: styles.actuationValue },
-                  { label: travelText, val: "3.8mm total", labelSt: styles.travelLabel, valSt: styles.travelValue },
-                  { label: housingText, val: "Nylon PA66", labelSt: styles.housingLabel, valSt: styles.housingValue }
-                ].map((row, idx) => (0, x.jsxDEV)("div", {
-                  className: "flex items-center justify-between",
+                  { label: typeText, val: "Linear", labelSt: styles.typeLabel, valSt: styles.typeValue },
+                  { label: actuationText, val: "45g", labelSt: styles.actuationLabel, valSt: styles.actuationValue },
+                  { label: travelText, val: "4.0mm", labelSt: styles.travelLabel, valSt: styles.travelValue },
+                  { label: housingText, val: "Nylon", labelSt: styles.housingLabel, valSt: styles.housingValue }
+                ].map((row, rIdx) => (0, x.jsxDEV)("div", {
+                  className: "flex justify-between items-center text-xs py-1 border-b border-[#141420]",
                   children: [
-                    (0, x.jsxDEV)("span", {
-                      style: {
-                        fontFamily: "var(--font-mono)",
-                        color: row.labelSt?.color || "#999999",
-                        fontSize: (row.labelSt?.fontSize || 11) + "px",
-                        fontWeight: row.labelSt?.bold ? "bold" : "normal",
-                        fontStyle: row.labelSt?.italic ? "italic" : "normal"
-                      },
-                      children: row.label
-                    }),
-                    (0, x.jsxDEV)("span", {
-                      style: {
-                        fontFamily: "var(--font-mono)",
-                        color: row.valSt?.color || "#60a5fa",
-                        fontSize: (row.valSt?.fontSize || 11) + "px",
-                        fontWeight: row.valSt?.bold !== false ? "bold" : "normal",
-                        fontStyle: row.valSt?.italic ? "italic" : "normal"
-                      },
-                      children: row.val
-                    })
+                    (0, x.jsxDEV)("span", { style: { fontFamily: "var(--font-mono)", ...getPersonaStyle({ styles }, row.labelSt ? undefined : "label", "#999999", 11, false, false), ...row.labelSt }, children: row.label }),
+                    (0, x.jsxDEV)("span", { style: { fontFamily: "var(--font-mono)", ...getPersonaStyle({ styles }, row.valSt ? undefined : "val", "#60a5fa", 11, true, false), ...row.valSt }, children: row.val })
                   ]
-                }, idx))
+                }, rIdx))
+              }),
+              (0, x.jsxDEV)("div", {
+                className: "rounded-xl px-4 py-3 border border-[#CAFF00]/20 bg-[#CAFF00]/5 mt-4",
+                children: (0, x.jsxDEV)("p", {
+                  style: { fontFamily: "var(--font-mono)", ...getPersonaStyle({ styles }, "bundleHint", "#a3e635", 11, false, false) },
+                  children: ["◆ ", bundleText]
+                })
               })
             ]
-          }),
-
-          (0, x.jsxDEV)("div", {
-            className: "rounded-xl px-4 py-3 border border-[#CAFF00]/20 bg-[#CAFF00]/5",
-            children: (0, x.jsxDEV)("p", {
-              className: "leading-relaxed",
-              style: {
-                fontFamily: "var(--font-mono)",
-                color: styles.bundleHint?.color || "#CAFF00",
-                fontSize: (styles.bundleHint?.fontSize || 11) + "px",
-                fontWeight: styles.bundleHint?.bold ? "bold" : "normal",
-                fontStyle: styles.bundleHint?.italic ? "italic" : "normal"
-              },
-              children: [
-                "◆ ",
-                ...(bundleText.includes("15%") ? [
-                  bundleText.split("15%")[0],
-                  (0, x.jsxDEV)("span", { className: "font-bold", children: "15%" }),
-                  bundleText.split("15%").slice(1).join("15%")
-                ] : [bundleText])
-              ]
-            })
           })
         ]
       })
@@ -575,102 +529,75 @@ function SidebarSpecsStylingPanel() {
 }
 
 function renderSidebarSpecs(p, a) {
-  let _st = {};
+  let { appData } = de();
+  let tr = appData.translations || {};
+  let styles = {};
   try {
-    const _raw = a("sidebar_specs_styles");
-    if (_raw && _raw.startsWith("{")) _st = JSON.parse(_raw);
+    if (tr.sidebar_specs_styles && tr.sidebar_specs_styles.startsWith("{")) {
+      styles = JSON.parse(tr.sidebar_specs_styles);
+    }
   } catch(e) {}
 
-  const pSt = p?.styles || p?.specs?.styles || {};
+  let titleStyle = { fontFamily: "var(--font-display)", ...getPersonaStyle({ styles }, "title", "#ffffff", 14, true, false) };
+  let typeLabelStyle = { fontFamily: "var(--font-mono)", ...getPersonaStyle({ styles }, "typeLabel", "#999999", 11, false, false), ...styles.typeLabel };
+  let typeValStyle = { fontFamily: "var(--font-mono)", ...getPersonaStyle({ styles }, "typeValue", "#60a5fa", 11, true, false), ...styles.typeValue };
+  let actLabelStyle = { fontFamily: "var(--font-mono)", ...getPersonaStyle({ styles }, "actuationLabel", "#999999", 11, false, false), ...styles.actuationLabel };
+  let actValStyle = { fontFamily: "var(--font-mono)", ...getPersonaStyle({ styles }, "actuationValue", "#60a5fa", 11, true, false), ...styles.actuationValue };
+  let travelLabelStyle = { fontFamily: "var(--font-mono)", ...getPersonaStyle({ styles }, "travelLabel", "#999999", 11, false, false), ...styles.travelLabel };
+  let travelValStyle = { fontFamily: "var(--font-mono)", ...getPersonaStyle({ styles }, "travelValue", "#60a5fa", 11, true, false), ...styles.travelValue };
+  let housingLabelStyle = { fontFamily: "var(--font-mono)", ...getPersonaStyle({ styles }, "housingLabel", "#999999", 11, false, false), ...styles.housingLabel };
+  let housingValStyle = { fontFamily: "var(--font-mono)", ...getPersonaStyle({ styles }, "housingValue", "#60a5fa", 11, true, false), ...styles.housingValue };
 
-  const _getST = (itemStyle, defColor, defSize, defBold, defItalic) => ({
-    color: (itemStyle?.color !== undefined && itemStyle?.color !== "") ? itemStyle.color : defColor,
-    fontSize: (itemStyle?.fontSize ? itemStyle.fontSize : defSize) + "px",
-    fontWeight: (itemStyle?.bold !== undefined ? itemStyle.bold : defBold) ? "bold" : "normal",
-    fontStyle: (itemStyle?.italic !== undefined ? itemStyle.italic : defItalic) ? "italic" : "normal"
-  });
-
-  const _titleStyle = _getST(_st.title, "#ffffff", 14, true, false);
-  const _titleText = _st.title?.text || a("switchSpecsLabel");
-
-  const _rows = [
-    {
-      id: "type",
-      label: _st.typeLabel?.text || (a("typeLabel") && a("typeLabel") !== "typeLabel" ? a("typeLabel") : "Type"),
-      labelStyle: _getST(_st.typeLabel, "#999999", 11, false, false),
-      val: (p.specs?.type !== undefined && p.specs?.type !== "") ? p.specs.type : (p.badge || "—"),
-      valStyle: _getST(pSt.specType || _st.typeValue, p.accent, 11, true, false)
-    },
-    {
-      id: "actuation",
-      label: _st.actuationLabel?.text || (a("actuationLabel") && a("actuationLabel") !== "actuationLabel" ? a("actuationLabel") : "Actuation"),
-      labelStyle: _getST(_st.actuationLabel, "#999999", 11, false, false),
-      val: (p.specs?.actuation !== undefined && p.specs?.actuation !== "") ? p.specs.actuation : (p.switchSpec?.split("·")[1]?.trim() ?? "—"),
-      valStyle: _getST(pSt.specActuation || _st.actuationValue, p.accent, 11, true, false)
-    },
-    {
-      id: "travel",
-      label: _st.travelLabel?.text || (a("travelLabel") && a("travelLabel") !== "travelLabel" ? a("travelLabel") : "Travel"),
-      labelStyle: _getST(_st.travelLabel, "#999999", 11, false, false),
-      val: (p.specs?.travel !== undefined && p.specs?.travel !== "") ? p.specs.travel : "4.0mm total",
-      valStyle: _getST(pSt.specTravel || _st.travelValue, p.accent, 11, true, false)
-    },
-    {
-      id: "housing",
-      label: _st.housingLabel?.text || (a("housingLabel") && a("housingLabel") !== "housingLabel" ? a("housingLabel") : "Housing"),
-      labelStyle: _getST(_st.housingLabel, "#999999", 11, false, false),
-      val: (p.specs?.housing !== undefined && p.specs?.housing !== "") ? p.specs.housing : (p.id === "designer" ? "Cerakote PC" : "Nylon PA66"),
-      valStyle: _getST(pSt.specHousing || _st.housingValue, p.accent, 11, true, false)
-    }
+  let specs = p.specs || {};
+  let items = [
+    { label: a("typeLabel") || "Type", value: specs.type || p.badge || "Linear", labelSt: typeLabelStyle, valSt: typeValStyle },
+    { label: a("actuationLabel") || "Actuation", value: specs.actuation || "45g", labelSt: actLabelStyle, valSt: actValStyle },
+    { label: a("travelLabel") || "Travel", value: specs.travel || "4.0mm", labelSt: travelLabelStyle, valSt: travelValStyle },
+    { label: a("housingLabel") || "Housing", value: specs.housing || "Nylon", labelSt: housingLabelStyle, valSt: housingValStyle }
   ];
 
   return [
     (0, x.jsxDEV)("div", {
       className: "flex items-center gap-2 mb-4",
       children: [
-        (0, x.jsxDEV)("div", { className: "w-1 h-4 rounded-full", style: { backgroundColor: p.accent } }),
-        (0, x.jsxDEV)("span", { style: { fontFamily: "var(--font-display)", ..._titleStyle }, children: _titleText })
+        (0, x.jsxDEV)("div", { className: "w-1 h-4 rounded-full bg-[#CAFF00]" }),
+        (0, x.jsxDEV)("span", {
+          style: titleStyle,
+          children: a("switchSpecsLabel") || "Switch specs"
+        })
       ]
-    }),
+    }, "specs-title"),
     (0, x.jsxDEV)("div", {
       className: "space-y-3",
-      children: _rows.map(r => (0, x.jsxDEV)("div", {
-        className: "flex items-center justify-between",
+      children: items.map(item => (0, x.jsxDEV)("div", {
+        className: "flex justify-between items-center text-xs",
         children: [
-          (0, x.jsxDEV)("span", { style: { fontFamily: "var(--font-mono)", ...r.labelStyle }, children: r.label }),
-          (0, x.jsxDEV)("span", { style: { fontFamily: "var(--font-mono)", ...r.valStyle }, children: r.val })
+          (0, x.jsxDEV)("span", { style: item.labelSt, children: item.label }),
+          (0, x.jsxDEV)("span", { style: item.valSt, children: item.value })
         ]
-      }, r.id))
-    })
+      }, item.label))
+    }, "specs-list")
   ];
 }
 
 function renderBundleHint(a) {
-  let _st = {};
+  let { appData } = de();
+  let tr = appData.translations || {};
+  let styles = {};
   try {
-    const _raw = a("sidebar_specs_styles");
-    if (_raw && _raw.startsWith("{")) _st = JSON.parse(_raw);
+    if (tr.sidebar_specs_styles && tr.sidebar_specs_styles.startsWith("{")) {
+      styles = JSON.parse(tr.sidebar_specs_styles);
+    }
   } catch(e) {}
-  const bSt = _st.bundleHint || {};
-  const bColor = bSt.color || "#CAFF00";
-  const bSize = (bSt.fontSize || 11) + "px";
-  const bBold = bSt.bold ? "bold" : "normal";
-  const bItalic = bSt.italic ? "italic" : "normal";
-  const bText = bSt.text || a("bundleHintText") || "Complete the full build and save 15% on your entire order.";
+
+  let hintText = a("bundleHintText") || "Complete the full build and save 15% on your entire order.";
+  let st = { fontFamily: "var(--font-mono)", ...getPersonaStyle({ styles }, "bundleHint", "#a3e635", 11, false, false) };
 
   return (0, x.jsxDEV)("div", {
     className: "rounded-xl px-4 py-3 border border-[#CAFF00]/20 bg-[#CAFF00]/5",
     children: (0, x.jsxDEV)("p", {
-      className: "leading-relaxed",
-      style: { fontFamily: "var(--font-mono)", color: bColor, fontSize: bSize, fontWeight: bBold, fontStyle: bItalic },
-      children: [
-        "◆ ",
-        ...(bText.includes("15%") ? [
-          bText.split("15%")[0],
-          (0, x.jsxDEV)("span", { style: { fontWeight: "bold" }, children: "15%" }),
-          bText.split("15%").slice(1).join("15%")
-        ] : [bText])
-      ]
+      style: st,
+      children: ["◆ ", hintText]
     })
   });
 }
@@ -831,12 +758,12 @@ function ImageCropModal({ src, fileName, onConfirm, onCancel }) {
         if (res && res.url) {
           onConfirm(res.url);
         } else {
-          alert("Lỗi upload ảnh: " + (res?.detail || "Unknown error"));
+          alert("Error uploading image: " + (res?.detail || "Unknown error"));
         }
       })
       .catch(err => {
         setIsUploading(false);
-        alert("Lỗi mạng khi tải ảnh: " + err);
+        alert("Network error while uploading: " + err);
       });
     }, "image/jpeg", 0.92);
   };
@@ -873,10 +800,7 @@ function ImageCropModal({ src, fileName, onConfirm, onCancel }) {
   return (0, x.jsxDEV)("div", {
     style: {
       position: "fixed",
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
+      top: 0, left: 0, right: 0, bottom: 0,
       zIndex: 999999,
       display: "flex",
       alignItems: "center",
@@ -902,24 +826,17 @@ function ImageCropModal({ src, fileName, onConfirm, onCancel }) {
       onClick: ev => ev.stopPropagation(),
       children: [
         (0, x.jsxDEV)("div", {
-          style: {
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "flex-start",
-            marginBottom: "18px",
-            borderBottom: "1px solid #1a1a2a",
-            paddingBottom: "12px"
-          },
+          style: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px", borderBottom: "1px solid #1a1a28", paddingBottom: "12px" },
           children: [
             (0, x.jsxDEV)("div", {
               children: [
                 (0, x.jsxDEV)("h3", {
                   style: { fontFamily: "var(--font-display)", color: "#ffffff", fontSize: "17px", fontWeight: "bold", margin: 0 },
-                  children: "✂️ ĐIỀU CHỈNH & CROP ẢNH SWITCH PERSONA"
+                  children: "✂️ CROP & ADJUST SWITCH IMAGE"
                 }),
                 (0, x.jsxDEV)("p", {
                   style: { fontFamily: "var(--font-mono)", color: "#888888", fontSize: "12px", margin: "4px 0 0 0" },
-                  children: "Kéo ô điều khiển màu cam hoặc co giãn 4 góc để chọn khung hình chuẩn hiển thị trên Storefront"
+                  children: "Drag the amber crop box or corner handles to choose the exact display frame for the Storefront"
                 })
               ]
             }),
@@ -933,62 +850,58 @@ function ImageCropModal({ src, fileName, onConfirm, onCancel }) {
         }),
 
         (0, x.jsxDEV)("div", {
-          style: {
-            display: "grid",
-            gridTemplateColumns: "570px 290px",
-            gap: "20px",
-            alignItems: "start"
-          },
+          style: { display: "flex", alignItems: "center", gap: "8px", marginBottom: "14px", flexWrap: "wrap" },
+          children: [
+            (0, x.jsxDEV)("span", {
+              style: { fontFamily: "var(--font-mono)", fontSize: "11px", color: "#888888", fontWeight: "bold", textTransform: "uppercase", letterSpacing: "0.05em", marginRight: "4px" },
+              children: "CROP RATIO:"
+            }),
+            [
+              { label: "Card Storefront (1.82:1)", ratio: 1.818 },
+              { label: "16:9", ratio: 16 / 9 },
+              { label: "4:3", ratio: 4 / 3 },
+              { label: "1:1", ratio: 1 },
+              { label: "Free", ratio: null }
+            ].map(r => (0, x.jsxDEV)("button", {
+              type: "button",
+              onClick: () => handleRatioClick(r.ratio),
+              style: {
+                padding: "4px 10px",
+                borderRadius: "6px",
+                fontSize: "11px",
+                fontFamily: "var(--font-mono)",
+                cursor: "pointer",
+                fontWeight: currentRatio === r.ratio ? "bold" : "normal",
+                backgroundColor: currentRatio === r.ratio ? "#f59e0b" : "#141420",
+                color: currentRatio === r.ratio ? "#000000" : "#aaaaaa",
+                border: currentRatio === r.ratio ? "1px solid #f59e0b" : "1px solid #222234"
+              },
+              children: r.label
+            }, r.label))
+          ]
+        }),
+
+        (0, x.jsxDEV)("div", {
+          style: { display: "grid", gridTemplateColumns: "1fr 310px", gap: "20px", alignItems: "start" },
           children: [
             (0, x.jsxDEV)("div", {
               children: [
                 (0, x.jsxDEV)("div", {
-                  style: { display: "flex", alignItems: "center", gap: "8px", marginBottom: "12px" },
-                  children: [
-                    (0, x.jsxDEV)("span", {
-                      style: { fontFamily: "var(--font-mono)", fontSize: "11px", color: "#888888", fontWeight: "bold" },
-                      children: "TỈ LỆ CROP:"
-                    }),
-                    [
-                      { label: "Card Storefront (1.82:1)", ratio: 1.818 },
-                      { label: "16:9", ratio: 1.777 },
-                      { label: "4:3", ratio: 1.333 },
-                      { label: "1:1", ratio: 1.0 },
-                      { label: "Tự do", ratio: null }
-                    ].map(r => (0, x.jsxDEV)("button", {
-                      type: "button",
-                      onClick: () => handleRatioClick(r.ratio),
-                      style: {
-                        padding: "5px 10px",
-                        borderRadius: "8px",
-                        fontSize: "11px",
-                        fontWeight: currentRatio === r.ratio ? "bold" : "600",
-                        backgroundColor: currentRatio === r.ratio ? "#f59e0b" : "#161624",
-                        color: currentRatio === r.ratio ? "#000000" : "#888888",
-                        border: currentRatio === r.ratio ? "1px solid #f59e0b" : "1px solid #26263a",
-                        cursor: "pointer",
-                        transition: "all 0.15s"
-                      },
-                      children: r.label
-                    }, r.label))
-                  ]
-                }),
-
-                (0, x.jsxDEV)("div", {
                   style: {
-                    background: "#050508",
-                    border: "1px solid #1c1c2b",
-                    borderRadius: "14px",
-                    padding: "10px",
+                    position: "relative",
+                    width: "100%",
+                    minHeight: "320px",
+                    backgroundColor: "#07070b",
+                    borderRadius: "12px",
+                    overflow: "hidden",
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    minHeight: "360px",
-                    position: "relative",
+                    border: "1px solid #1a1a28",
                     userSelect: "none"
                   },
                   children: (0, x.jsxDEV)("div", {
-                    style: { position: "relative", overflow: "hidden", display: "inline-block" },
+                    style: { position: "relative", display: "inline-block" },
                     children: [
                       (0, x.jsxDEV)("img", {
                         ref: imgRef,
@@ -1014,7 +927,6 @@ function ImageCropModal({ src, fileName, onConfirm, onCancel }) {
                           (0, x.jsxDEV)("div", { style: { position: "absolute", left: 0, right: 0, top: "66.66%", height: "1px", background: "rgba(255,255,255,0.25)", pointerEvents: "none" } }),
                           (0, x.jsxDEV)("div", { style: { position: "absolute", top: 0, bottom: 0, left: "33.33%", width: "1px", background: "rgba(255,255,255,0.25)", pointerEvents: "none" } }),
                           (0, x.jsxDEV)("div", { style: { position: "absolute", top: 0, bottom: 0, left: "66.66%", width: "1px", background: "rgba(255,255,255,0.25)", pointerEvents: "none" } }),
-
                           ["tl", "tr", "bl", "br"].map(handlePos => {
                             const isTop = handlePos.includes("t");
                             const isLeft = handlePos.includes("l");
@@ -1043,25 +955,15 @@ function ImageCropModal({ src, fileName, onConfirm, onCancel }) {
                     ]
                   })
                 }),
-
                 (0, x.jsxDEV)("div", {
-                  style: {
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    marginTop: "10px",
-                    fontSize: "11px",
-                    color: "#888888"
-                  },
+                  style: { display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "10px", fontSize: "11px", color: "#888888" },
                   children: [
-                    (0, x.jsxDEV)("span", {
-                      children: "💡 Nhấp giữ vào giữa khung để di chuyển • Kéo chấm tròn ở 4 góc để co giãn khung"
-                    }),
+                    (0, x.jsxDEV)("span", { children: "💡 Drag box to move · Pull corner handles to resize" }),
                     (0, x.jsxDEV)("button", {
                       type: "button",
                       onClick: () => initBox(imgDims.w, imgDims.h, currentRatio),
                       style: { background: "none", border: "none", color: "#f59e0b", cursor: "pointer", fontWeight: "bold", textDecoration: "underline" },
-                      children: "Đặt lại khung"
+                      children: "Reset Frame"
                     })
                   ]
                 })
@@ -1071,99 +973,36 @@ function ImageCropModal({ src, fileName, onConfirm, onCancel }) {
             (0, x.jsxDEV)("div", {
               children: [
                 (0, x.jsxDEV)("div", {
-                  style: {
-                    fontFamily: "var(--font-mono)",
-                    fontSize: "11px",
-                    fontWeight: "bold",
-                    color: "#aaaaaa",
-                    textTransform: "uppercase",
-                    letterSpacing: "0.05em",
-                    marginBottom: "10px"
-                  },
-                  children: "Xem trước trên Storefront"
+                  style: { fontFamily: "var(--font-mono)", fontSize: "11px", fontWeight: "bold", color: "#aaaaaa", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "10px" },
+                  children: "STOREFRONT PREVIEW"
                 }),
-
                 (0, x.jsxDEV)("div", {
-                  style: {
-                    width: "100%",
-                    height: "154px",
-                    borderRadius: "14px",
-                    overflow: "hidden",
-                    position: "relative",
-                    backgroundColor: "#0d0d14",
-                    border: "1px solid #2a2a3e"
-                  },
+                  style: { width: "100%", height: "154px", borderRadius: "14px", overflow: "hidden", position: "relative", backgroundColor: "#0d0d14", border: "1px solid #2a2a3e" },
                   children: [
-                    (0, x.jsxDEV)("canvas", {
-                      ref: canvasRef,
-                      width: 280,
-                      height: 154,
-                      style: { width: "100%", height: "100%", objectFit: "cover" }
-                    }),
+                    (0, x.jsxDEV)("canvas", { ref: canvasRef, width: 280, height: 154, style: { width: "100%", height: "100%", objectFit: "cover" } }),
                     (0, x.jsxDEV)("div", {
-                      style: {
-                        position: "absolute",
-                        bottom: 0,
-                        left: 0,
-                        right: 0,
-                        padding: "16px 12px 8px 12px",
-                        background: "linear-gradient(to top, rgba(6,6,10,0.95) 0%, rgba(6,6,10,0.6) 70%, transparent 100%)",
-                        pointerEvents: "none"
-                      },
+                      style: { position: "absolute", bottom: 0, left: 0, right: 0, padding: "16px 12px 8px 12px", background: "linear-gradient(to top, rgba(6,6,10,0.95) 0%, rgba(6,6,10,0.6) 70%, transparent 100%)", pointerEvents: "none" },
                       children: [
-                        (0, x.jsxDEV)("span", {
-                          style: {
-                            fontSize: "8px",
-                            fontWeight: "bold",
-                            backgroundColor: "#60a5fa",
-                            color: "#000000",
-                            padding: "1px 5px",
-                            borderRadius: "2px",
-                            fontFamily: "var(--font-mono)"
-                          },
-                          children: "TĨNH LẶNG"
-                        }),
+                        (0, x.jsxDEV)("span", { style: { fontSize: "8px", fontWeight: "bold", backgroundColor: "#60a5fa", color: "#000000", padding: "1px 5px", borderRadius: "2px", fontFamily: "var(--font-mono)" }, children: "SILENT" }),
                         (0, x.jsxDEV)("div", {
-                          style: {
-                            display: "flex",
-                            justifyContent: "space-between",
-                            alignItems: "baseline",
-                            marginTop: "3px"
-                          },
+                          style: { display: "flex", justifyContent: "space-between", alignItems: "baseline", marginTop: "3px" },
                           children: [
-                            (0, x.jsxDEV)("span", {
-                              style: { fontFamily: "var(--font-display)", fontSize: "12px", fontWeight: "bold", color: "#ffffff" },
-                              children: "Gateron Silent Pink"
-                            }),
-                            (0, x.jsxDEV)("span", {
-                              style: { fontFamily: "var(--font-mono)", fontSize: "13px", fontWeight: "900", color: "#60a5fa" },
-                              children: "$650"
-                            })
+                            (0, x.jsxDEV)("span", { style: { fontFamily: "var(--font-display)", fontSize: "12px", fontWeight: "bold", color: "#ffffff" }, children: "Gateron Silent Pink" }),
+                            (0, x.jsxDEV)("span", { style: { fontFamily: "var(--font-mono)", fontSize: "13px", fontWeight: "900", color: "#60a5fa" }, children: "$650" })
                           ]
                         })
                       ]
                     })
                   ]
                 }),
-
                 (0, x.jsxDEV)("div", {
-                  style: {
-                    marginTop: "14px",
-                    backgroundColor: "#141420",
-                    border: "1px solid #1f1f30",
-                    borderRadius: "10px",
-                    padding: "12px",
-                    fontSize: "11px",
-                    color: "#999999",
-                    lineHeight: 1.5
-                  },
+                  style: { marginTop: "14px", backgroundColor: "#141420", border: "1px solid #1f1f30", borderRadius: "10px", padding: "12px", fontSize: "11px", color: "#999999", lineHeight: 1.5 },
                   children: [
-                    "Khung crop chuẩn ",
+                    "Standard ",
                     (0, x.jsxDEV)("strong", { style: { color: "#f59e0b" }, children: "1.82:1" }),
-                    " khớp hoàn hảo với tỉ lệ card Storefront, giữ trọn vẹn toàn bộ các hàng phím và không bị cắt xén."
+                    " aspect ratio matches Storefront card framing perfectly without cutting keys."
                   ]
                 }),
-
                 (0, x.jsxDEV)("div", {
                   style: { marginTop: "20px", display: "flex", flexDirection: "column", gap: "10px" },
                   children: [
@@ -1183,22 +1022,13 @@ function ImageCropModal({ src, fileName, onConfirm, onCancel }) {
                         boxShadow: "0 4px 14px rgba(245,158,11,0.35)",
                         transition: "all 0.15s"
                       },
-                      children: isUploading ? "⏳ Đang cắt & upload..." : "✓ Cắt & Lưu ảnh vào Storefront"
+                      children: isUploading ? "⏳ Uploading..." : "✓ Crop & Save Image to VPS"
                     }),
                     (0, x.jsxDEV)("button", {
                       type: "button",
                       onClick: onCancel,
-                      style: {
-                        backgroundColor: "#1a1a28",
-                        color: "#aaaaaa",
-                        border: "1px solid #2a2a3e",
-                        padding: "10px",
-                        borderRadius: "10px",
-                        fontWeight: "600",
-                        fontSize: "12px",
-                        cursor: "pointer"
-                      },
-                      children: "Hủy"
+                      style: { backgroundColor: "#1a1a28", color: "#aaaaaa", border: "1px solid #2a2a3e", padding: "10px", borderRadius: "10px", fontWeight: "600", fontSize: "12px", cursor: "pointer" },
+                      children: "Cancel"
                     })
                   ]
                 })
@@ -1289,7 +1119,7 @@ function ee({label:e,children:t,toolbar:tb}){
       onConfirm: newUrl => {
         t(newUrl);
         setCropData(null);
-        setUploadMsg("✓ Đã crop & lưu ảnh lên VPS");
+        setUploadMsg("✓ Cropped & saved to VPS");
         setTimeout(()=>setUploadMsg(null), 3000);
       },
       onCancel: () => setCropData(null)
@@ -1367,82 +1197,61 @@ function ie({value:e,onChange:t}){return(0,x.jsxDEV)(`div`,{className:`flex item
           },
           onDrop: ev => {
             ev.preventDefault();
-            if (draggedIdx === null) {
-              setDraggedIdx(null);
-              setDropIndicator(null);
-              return;
+            let fromIdx = draggedIdx;
+            let toIdx = idx;
+            let pos = dropIndicator?.pos || `bottom`;
+            if (fromIdx !== null && toIdx !== null && fromIdx !== toIdx) {
+              let nextPersonas = [...n];
+              let [moved] = nextPersonas.splice(fromIdx, 1);
+              let targetIdx = pos === `bottom` ? toIdx + (fromIdx < toIdx ? 0 : 1) : toIdx - (fromIdx < toIdx ? 1 : 0);
+              targetIdx = Math.max(0, Math.min(nextPersonas.length, targetIdx));
+              nextPersonas.splice(targetIdx, 0, moved);
+              t(prev => ({ ...prev, switchPersonas: nextPersonas }));
             }
-            let rect = ev.currentTarget.getBoundingClientRect();
-            let relY = ev.clientY - rect.top;
-            let isBottom = relY >= rect.height / 2;
-            let targetIdx = isBottom ? idx + 1 : idx;
-
-            let updated = [...n];
-            let [moved] = updated.splice(draggedIdx, 1);
-            if (draggedIdx < targetIdx) {
-              targetIdx -= 1;
-            }
-            updated.splice(targetIdx, 0, moved);
-            t(prev => ({ ...prev, switchPersonas: updated }));
             setDraggedIdx(null);
             setDropIndicator(null);
           },
-          onClick: () => c(e.id),
-          style: {
-            opacity: draggedIdx === idx ? 0.35 : 1,
-            transform: draggedIdx === idx ? `scale(0.98)` : `scale(1)`,
-            transition: `opacity 0.15s ease, transform 0.15s ease`
-          },
           className: [
-            `w-full text-left px-3 py-2.5 rounded-xl transition-all group/item flex items-center justify-between cursor-pointer select-none relative`,
-            r === e.id ? `bg-[#f59e0b]/10 border border-[#f59e0b]/30 shadow-sm` : `border border-transparent hover:bg-[#0c0c14]`
+            `w-full text-left px-3 py-2.5 rounded-xl transition-all group/item flex items-center justify-between cursor-grab active:cursor-grabbing select-none`,
+            r === e.id ? `bg-[#f59e0b]/10 border border-[#f59e0b]/30` : `border border-transparent hover:bg-[#0c0c14]`
           ].join(` `),
+          onClick: () => c(e.id),
           children: [
             (0, x.jsxDEV)(`div`, {
-              className: `flex items-center gap-2 min-w-0 flex-1`,
+              className: `flex items-center gap-2.5 min-w-0 flex-1`,
               children: [
                 (0, x.jsxDEV)(`div`, {
+                  className: `opacity-40 group-hover/item:opacity-90 transition-opacity text-[#999] hover:text-white shrink-0 mr-0.5`,
                   title: `Drag to reorder`,
-                  className: `text-[#444] group-hover/item:text-[#888] cursor-grab active:cursor-grabbing p-0.5 -ml-1 transition-colors shrink-0`,
                   children: (0, x.jsxDEV)(`svg`, {
-                    width: `12`, height: `12`, viewBox: `0 0 24 24`, fill: `currentColor`,
+                    width: `12`, height: `12`, viewBox: `0 0 24 24`, fill: `none`, stroke: `currentColor`, strokeWidth: `2.5`,
                     children: [
-                      (0, x.jsxDEV)(`circle`, { cx: `9`, cy: `6`, r: `1.8` }),
-                      (0, x.jsxDEV)(`circle`, { cx: `9`, cy: `12`, r: `1.8` }),
-                      (0, x.jsxDEV)(`circle`, { cx: `9`, cy: `18`, r: `1.8` }),
-                      (0, x.jsxDEV)(`circle`, { cx: `15`, cy: `6`, r: `1.8` }),
-                      (0, x.jsxDEV)(`circle`, { cx: `15`, cy: `12`, r: `1.8` }),
-                      (0, x.jsxDEV)(`circle`, { cx: `15`, cy: `18`, r: `1.8` })
+                      (0, x.jsxDEV)(`circle`, { cx: `9`, cy: `6`, r: `1.5`, fill: `currentColor` }),
+                      (0, x.jsxDEV)(`circle`, { cx: `15`, cy: `6`, r: `1.5`, fill: `currentColor` }),
+                      (0, x.jsxDEV)(`circle`, { cx: `9`, cy: `12`, r: `1.5`, fill: `currentColor` }),
+                      (0, x.jsxDEV)(`circle`, { cx: `15`, cy: `12`, r: `1.5`, fill: `currentColor` }),
+                      (0, x.jsxDEV)(`circle`, { cx: `9`, cy: `18`, r: `1.5`, fill: `currentColor` }),
+                      (0, x.jsxDEV)(`circle`, { cx: `15`, cy: `18`, r: `1.5`, fill: `currentColor` })
                     ]
                   })
                 }),
-                (0, x.jsxDEV)(`div`, {
-                  className: `w-2.5 h-2.5 rounded-full shrink-0 shadow-sm`,
-                  style: { backgroundColor: e.accent }
-                }),
+                (0, x.jsxDEV)(`div`, { className: `w-2 h-2 rounded-full shrink-0`, style: { backgroundColor: e.accent } }, void 0, !1, { fileName: S, lineNumber: 206, columnNumber: 17 }, this),
                 (0, x.jsxDEV)(`span`, {
                   className: [`text-sm font-semibold truncate`, r === e.id ? `text-white` : `text-[#999]`].join(` `),
                   style: { fontFamily: `var(--font-display)` },
                   children: e.label
-                })
+                }, void 0, !1, { fileName: S, lineNumber: 207, columnNumber: 17 }, this)
               ]
             }),
             (0, x.jsxDEV)(`button`, {
-              type: `button`,
-              title: `Delete Persona`,
-              onClick: ev => {
-                ev.stopPropagation();
+              onClick: t => {
+                t.stopPropagation();
                 setPersonaToDelete(e);
               },
-              className: `w-6 h-6 rounded-lg flex items-center justify-center text-[#666] hover:text-[#f87171] hover:bg-red-500/10 transition-all ml-1 shrink-0`,
-              children: (0, x.jsxDEV)(`svg`, {
-                width: `13`, height: `13`, viewBox: `0 0 24 24`, fill: `none`, stroke: `currentColor`, strokeWidth: `2.5`, strokeLinecap: `round`, strokeLinejoin: `round`,
-                children: [
-                  (0, x.jsxDEV)(`line`, { x1: `18`, y1: `6`, x2: `6`, y2: `18` }),
-                  (0, x.jsxDEV)(`line`, { x1: `6`, y1: `6`, x2: `18`, y2: `18` })
-                ]
-              })
-            })
+              className: `opacity-0 group-hover/item:opacity-100 text-[#888] hover:text-[#f87171] transition-all text-base leading-none ml-1 p-1 hover:bg-[#201010] rounded`,
+              title: `Delete persona`,
+              children: `×`
+            }, void 0, !1, { fileName: S, lineNumber: 212, columnNumber: 15 }, this)
           ]
         }),
         showBottom && (0, x.jsxDEV)(`div`, {
@@ -1557,62 +1366,24 @@ function ie({value:e,onChange:t}){return(0,x.jsxDEV)(`div`,{className:`flex item
       label:`Spec Line`,
       toolbar:(0,x.jsxDEV)(TextStyleBar,{
         style:pSt.switchSpec,
-        defaultColor:`#888888`,
+        defaultColor:`#999999`,
         defaultSize:12,
         defaultBold:false,
         onStyleChange:st=>upSt(`switchSpec`,st)
       }),
       children:(0,x.jsxDEV)(te,{value:s.switchSpec,onChange:e=>d(`switchSpec`,e),placeholder:`Linear · 45g · 4.0mm travel`})
     },"spec-line-row"),
-    (0,x.jsxDEV)("div",{className:"border-t border-[#1a1a28] pt-3 pb-1 space-y-2",children:[
-      (0,x.jsxDEV)("p",{className:"text-[#f59e0b] text-xs font-bold uppercase tracking-wider",children:"Sidebar Specs (Type / Actuation / Travel / Housing)"}),
-      (0,x.jsxDEV)("div",{className:"grid grid-cols-2 gap-3",children:[
-        (0,x.jsxDEV)(ee,{
-          label:"Spec: Type",
-          toolbar:(0,x.jsxDEV)(TextStyleBar,{
-            style:pSt.specType,
-            defaultColor:s.accent||`#60a5fa`,
-            defaultSize:11,
-            defaultBold:true,
-            onStyleChange:st=>upSt(`specType`,st)
-          }),
-          children:(0,x.jsxDEV)(te,{value:s.specs?.type??s.badge??"",placeholder:s.badge||"TĨNH LẶNG",onChange:e=>d("specs",{...(s.specs||{}),type:e})})
-        }),
-        (0,x.jsxDEV)(ee,{
-          label:"Spec: Actuation",
-          toolbar:(0,x.jsxDEV)(TextStyleBar,{
-            style:pSt.specActuation,
-            defaultColor:s.accent||`#60a5fa`,
-            defaultSize:11,
-            defaultBold:true,
-            onStyleChange:st=>upSt(`specActuation`,st)
-          }),
-          children:(0,x.jsxDEV)(te,{value:s.specs?.actuation??(s.switchSpec?.split("·")[1]?.trim()||""),placeholder:"45g",onChange:e=>d("specs",{...(s.specs||{}),actuation:e})})
-        }),
-        (0,x.jsxDEV)(ee,{
-          label:"Spec: Travel",
-          toolbar:(0,x.jsxDEV)(TextStyleBar,{
-            style:pSt.specTravel,
-            defaultColor:s.accent||`#60a5fa`,
-            defaultSize:11,
-            defaultBold:true,
-            onStyleChange:st=>upSt(`specTravel`,st)
-          }),
-          children:(0,x.jsxDEV)(te,{value:s.specs?.travel??"4.0mm total",placeholder:"4.0mm total",onChange:e=>d("specs",{...(s.specs||{}),travel:e})})
-        }),
-        (0,x.jsxDEV)(ee,{
-          label:"Spec: Housing",
-          toolbar:(0,x.jsxDEV)(TextStyleBar,{
-            style:pSt.specHousing,
-            defaultColor:s.accent||`#60a5fa`,
-            defaultSize:11,
-            defaultBold:true,
-            onStyleChange:st=>upSt(`specHousing`,st)
-          }),
-          children:(0,x.jsxDEV)(te,{value:s.specs?.housing??(s.id==="designer"?"Cerakote PC":"Nylon PA66"),placeholder:"Nylon PA66",onChange:e=>d("specs",{...(s.specs||{}),housing:e})})
-        })
+    (0,x.jsxDEV)(`div`,{className:`p-3 rounded-xl border border-[#2a2a3e] bg-[#0c0c16] space-y-3`,children:[
+      (0,x.jsxDEV)(`p`,{className:`text-[#f59e0b] text-xs font-bold uppercase tracking-wider`,children:`Sidebar Specs (Type / Actuation / Travel / Housing)`}),
+      (0,x.jsxDEV)(`div`,{className:`grid grid-cols-2 gap-3`,children:[
+        (0,x.jsxDEV)(ee,{label:`Spec: Type`,toolbar:(0,x.jsxDEV)(TextStyleBar,{style:pSt.type,defaultColor:`#60a5fa`,defaultSize:11,defaultBold:true,onStyleChange:st=>upSt(`type`,st)}),children:(0,x.jsxDEV)(te,{value:s.specs?.type??s.badge??``,placeholder:s.badge||`Linear`,onChange:e=>d(`specs`,{...(s.specs||{}),type:e})})}),
+        (0,x.jsxDEV)(ee,{label:`Spec: Actuation`,toolbar:(0,x.jsxDEV)(TextStyleBar,{style:pSt.actuation,defaultColor:`#60a5fa`,defaultSize:11,defaultBold:true,onStyleChange:st=>upSt(`actuation`,st)}),children:(0,x.jsxDEV)(te,{value:s.specs?.actuation??`45g`,onChange:e=>d(`specs`,{...(s.specs||{}),actuation:e})})})
+      ]}),
+      (0,x.jsxDEV)(`div`,{className:`grid grid-cols-2 gap-3`,children:[
+        (0,x.jsxDEV)(ee,{label:`Spec: Travel`,toolbar:(0,x.jsxDEV)(TextStyleBar,{style:pSt.travel,defaultColor:`#60a5fa`,defaultSize:11,defaultBold:true,onStyleChange:st=>upSt(`travel`,st)}),children:(0,x.jsxDEV)(te,{value:s.specs?.travel??`4.0mm`,onChange:e=>d(`specs`,{...(s.specs||{}),travel:e})})}),
+        (0,x.jsxDEV)(ee,{label:`Spec: Housing`,toolbar:(0,x.jsxDEV)(TextStyleBar,{style:pSt.housing,defaultColor:`#60a5fa`,defaultSize:11,defaultBold:true,onStyleChange:st=>upSt(`housing`,st)}),children:(0,x.jsxDEV)(te,{value:s.specs?.housing??`Nylon`,onChange:e=>d(`specs`,{...(s.specs||{}),housing:e})})})
       ]})
-    ]},"sidebar-specs-block"),
+    ]},"specs-container"),
     (0,x.jsxDEV)(ee,{
       label:`Description`,
       toolbar:(0,x.jsxDEV)(TextStyleBar,{
@@ -1625,39 +1396,35 @@ function ie({value:e,onChange:t}){return(0,x.jsxDEV)(`div`,{className:`flex item
       children:(0,x.jsxDEV)(ne,{value:s.description,onChange:e=>d(`description`,e),rows:3})
     },"desc-row")
   ];
-})(),(0,x.jsxDEV)(ee,{label:`Image URL`,children:(0,x.jsxDEV)(re,{value:s.image,onChange:e=>d(`image`,e)},void 0,!1,{fileName:S,lineNumber:255,columnNumber:13},this)},void 0,!1,{fileName:S,lineNumber:254,columnNumber:11},this),(0,x.jsxDEV)(ee,{label:`Accent Color`,children:(0,x.jsxDEV)(ie,{value:s.accent,onChange:e=>d(`accent`,e)},void 0,!1,{fileName:S,lineNumber:258,columnNumber:13},this)},void 0,!1,{fileName:S,lineNumber:257,columnNumber:11},this),(0,x.jsxDEV)(ee,{label:`Feature Tags`,children:(0,x.jsxDEV)(C,{tags:s.features,onChange:e=>d(`features`,e)},void 0,!1,{fileName:S,lineNumber:261,columnNumber:13},this)},void 0,!1,{fileName:S,lineNumber:260,columnNumber:11},this)]},void 0,!0,{fileName:S,lineNumber:228,columnNumber:9},this):(0,x.jsxDEV)(`div`,{className:`flex items-center justify-center text-[#888] text-sm`,style:{fontFamily:`var(--font-mono)`},children:`Select a persona to edit`},void 0,!1,{fileName:S,lineNumber:265,columnNumber:9},this),
-personaToDelete && (0, x.jsxDEV)(`div`, {
+})(),(0,x.jsxDEV)(ee,{label:`Image URL`,children:(0,x.jsxDEV)(re,{value:s.image,onChange:e=>d(`image`,e)},void 0,!1,{fileName:S,lineNumber:255,columnNumber:13},this)},void 0,!1,{fileName:S,lineNumber:254,columnNumber:11},this),(0,x.jsxDEV)(ee,{label:`Accent Color`,children:(0,x.jsxDEV)(ie,{value:s.accent,onChange:e=>d(`accent`,e)},void 0,!1,{fileName:S,lineNumber:258,columnNumber:13},this)},void 0,!1,{fileName:S,lineNumber:257,columnNumber:11},this),(0,x.jsxDEV)(ee,{label:`Feature Tags`,children:(0,x.jsxDEV)(C,{tags:s.features,onChange:e=>d(`features`,e)},void 0,!1,{fileName:S,lineNumber:261,columnNumber:13},this)},void 0,!1,{fileName:S,lineNumber:260,columnNumber:11},this)]},void 0,!0,{fileName:S,lineNumber:228,columnNumber:9},this):(0,x.jsxDEV)(`div`,{className:`flex items-center justify-center text-[#888] text-sm`,style:{fontFamily:`var(--font-mono)`},children:`Select a persona to edit`},void 0,!1,{fileName:S,lineNumber:265,columnNumber:9},this),personaToDelete&&(0,x.jsxDEV)(`div`,{
   style: {
     position: `fixed`,
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    zIndex: 99999,
+    top: 0, left: 0, right: 0, bottom: 0,
+    backgroundColor: `rgba(0, 0, 0, 0.8)`,
+    backdropFilter: `blur(6px)`,
     display: `flex`,
     alignItems: `center`,
     justifyContent: `center`,
-    backgroundColor: `rgba(0, 0, 0, 0.75)`,
-    backdropFilter: `blur(4px)`,
+    zIndex: 999999,
     padding: `16px`
   },
   onClick: () => setPersonaToDelete(null),
   children: (0, x.jsxDEV)(`div`, {
     style: {
       width: `100%`,
-      maxWidth: `420px`,
-      backgroundColor: `#12121c`,
+      maxWidth: `440px`,
+      backgroundColor: `#0d0d14`,
       borderRadius: `16px`,
-      border: `1px solid #2a2a3e`,
+      border: `1px solid #262638`,
       padding: `24px`,
-      boxShadow: `0 25px 50px -12px rgba(0, 0, 0, 0.7)`,
-      textAlign: `left`,
-      position: `relative`
+      boxShadow: `0 25px 50px rgba(0, 0, 0, 0.85)`,
+      color: `#ffffff`,
+      textAlign: `left`
     },
     onClick: ev => ev.stopPropagation(),
     children: [
       (0, x.jsxDEV)(`div`, {
-        style: { display: `flex`, alignItems: `center`, gap: `12px`, marginBottom: `16px` },
+        style: { display: `flex`, alignItems: `center`, gap: `14px`, marginBottom: `16px` },
         children: [
           (0, x.jsxDEV)(`div`, {
             style: {
@@ -1744,7 +1511,414 @@ personaToDelete && (0, x.jsxDEV)(`div`, {
       })
     ]
   })
-})]},void 0,!0,{fileName:S,lineNumber:195,columnNumber:5},this)}function w({type:e}){let{appData:t,setAppData:n}=de(),r=e===`keycaps`?t.keycaps:t.cables,[i,a]=(0,b.useState)(r[0]?.id??``),o=r.find(e=>e.id===i)??null;function s(){let t=`${e}-${Date.now()}`,r={id:t,name:`New Product`,subtitle:`Material · Profile`,price:49,image:``,badge:``,description:`Describe this product.`,accent:`#CAFF00`};n(t=>({...t,[e]:[...e===`keycaps`?t.keycaps:t.cables,r]})),a(t)}function c(r){let i=e===`keycaps`?t.keycaps:t.cables;if(i.length<=1)return;let o=i.find(e=>e.id!==r);n(t=>({...t,[e]:(e===`keycaps`?t.keycaps:t.cables).filter(e=>e.id!==r)})),a(o?.id??``)}function l(t,r){o&&n(n=>({...n,[e]:(e===`keycaps`?n.keycaps:n.cables).map(e=>e.id===o.id?{...e,[t]:r}:e)}))}return(0,x.jsxDEV)(`div`,{className:`grid grid-cols-[220px_1fr] gap-6 h-full`,children:[(0,x.jsxDEV)(`div`,{children:[(0,x.jsxDEV)(`div`,{className:`space-y-1.5 mb-3`,children:r.map(e=>(0,x.jsxDEV)(`button`,{onClick:()=>a(e.id),className:[`w-full text-left px-3 py-2.5 rounded-xl transition-all group/item flex items-center justify-between`,i===e.id?`bg-[#f59e0b]/10 border border-[#f59e0b]/30`:`border border-transparent hover:bg-[#0c0c14]`].join(` `),children:[(0,x.jsxDEV)(`div`,{className:`flex items-center gap-2.5 min-w-0`,children:[(0,x.jsxDEV)(`div`,{className:`w-6 h-6 rounded-md overflow-hidden shrink-0 border border-[#1a1a28] bg-[#0a0a12]`,children:e.image?(0,x.jsxDEV)(`img`,{src:e.image,alt:``,className:`w-full h-full object-cover`},void 0,!1,{fileName:S,lineNumber:334,columnNumber:30},this):(0,x.jsxDEV)(`div`,{className:`w-full h-full bg-[#1a1a28]`},void 0,!1,{fileName:S,lineNumber:334,columnNumber:100},this)},void 0,!1,{fileName:S,lineNumber:333,columnNumber:17},this),(0,x.jsxDEV)(`span`,{className:[`text-sm font-semibold truncate`,i===e.id?`text-white`:`text-[#999]`].join(` `),style:{fontFamily:`var(--font-display)`},children:e.name},void 0,!1,{fileName:S,lineNumber:336,columnNumber:17},this)]},void 0,!0,{fileName:S,lineNumber:332,columnNumber:15},this),(0,x.jsxDEV)(`button`,{onClick:t=>{t.stopPropagation(),c(e.id)},className:`opacity-0 group-hover/item:opacity-100 text-[#888] hover:text-[#f87171] transition-all text-base leading-none ml-1`,children:`×`},void 0,!1,{fileName:S,lineNumber:341,columnNumber:15},this)]},e.id,!0,{fileName:S,lineNumber:327,columnNumber:13},this))},void 0,!1,{fileName:S,lineNumber:325,columnNumber:9},this),(0,x.jsxDEV)(`button`,{onClick:s,className:`w-full py-2.5 rounded-xl border border-dashed border-[#1a1a28] text-[#999] hover:text-[#f59e0b] hover:border-[#f59e0b]/40 text-xs font-semibold tracking-widest uppercase transition-all`,style:{fontFamily:`var(--font-mono)`},children:`+ Add Product`},void 0,!1,{fileName:S,lineNumber:346,columnNumber:9},this)]},void 0,!0,{fileName:S,lineNumber:324,columnNumber:7},this),o?(0,x.jsxDEV)(`div`,{className:`space-y-5 overflow-y-auto pr-1`,children:[(0,x.jsxDEV)(`div`,{className:`grid grid-cols-2 gap-4`,children:[(0,x.jsxDEV)(ee,{label:`Product Name`,children:(0,x.jsxDEV)(te,{value:o.name,onChange:e=>l(`name`,e)},void 0,!1,{fileName:S,lineNumber:358,columnNumber:15},this)},void 0,!1,{fileName:S,lineNumber:357,columnNumber:13},this),(0,x.jsxDEV)(ee,{label:`Price ($)`,children:(0,x.jsxDEV)(te,{value:o.price,type:`number`,onChange:e=>l(`price`,parseFloat(e)||0)},void 0,!1,{fileName:S,lineNumber:361,columnNumber:15},this)},void 0,!1,{fileName:S,lineNumber:360,columnNumber:13},this)]},void 0,!0,{fileName:S,lineNumber:356,columnNumber:11},this),(0,x.jsxDEV)(ee,{label:`Subtitle / Spec Line`,children:(0,x.jsxDEV)(te,{value:o.subtitle,onChange:e=>l(`subtitle`,e)},void 0,!1,{fileName:S,lineNumber:365,columnNumber:13},this)},void 0,!1,{fileName:S,lineNumber:364,columnNumber:11},this),(0,x.jsxDEV)(ee,{label:`Badge (optional)`,children:(0,x.jsxDEV)(te,{value:o.badge??``,onChange:e=>l(`badge`,e.toUpperCase()||void 0),placeholder:`e.g. NEW, BESTSELLER`},void 0,!1,{fileName:S,lineNumber:368,columnNumber:13},this)},void 0,!1,{fileName:S,lineNumber:367,columnNumber:11},this),(0,x.jsxDEV)(ee,{label:`Description`,children:(0,x.jsxDEV)(ne,{value:o.description,onChange:e=>l(`description`,e),rows:3},void 0,!1,{fileName:S,lineNumber:371,columnNumber:13},this)},void 0,!1,{fileName:S,lineNumber:370,columnNumber:11},this),(0,x.jsxDEV)(ee,{label:`Image URL`,children:(0,x.jsxDEV)(re,{value:o.image,onChange:e=>l(`image`,e)},void 0,!1,{fileName:S,lineNumber:374,columnNumber:13},this)},void 0,!1,{fileName:S,lineNumber:373,columnNumber:11},this),(0,x.jsxDEV)(ee,{label:`Accent Color`,children:(0,x.jsxDEV)(ie,{value:o.accent,onChange:e=>l(`accent`,e)},void 0,!1,{fileName:S,lineNumber:377,columnNumber:13},this)},void 0,!1,{fileName:S,lineNumber:376,columnNumber:11},this)]},void 0,!0,{fileName:S,lineNumber:355,columnNumber:9},this):(0,x.jsxDEV)(`div`,{className:`flex items-center justify-center text-[#888] text-sm`,style:{fontFamily:`var(--font-mono)`},children:`Select a product to edit`},void 0,!1,{fileName:S,lineNumber:381,columnNumber:9},this)]},void 0,!0,{fileName:S,lineNumber:322,columnNumber:5},this)}var oe=[{key:`brandName`,label:`Brand Name`},{key:`brandSubtitle`,label:`Brand Subtitle`},{key:`switchesTitle`,label:`Switches — Step Title`},{key:`switchesSubtitle`,label:`Switches — Step Subtitle`},{key:`keycapsTitle`,label:`Keycaps — Step Title`},{key:`keycapsSubtitle`,label:`Keycaps — Step Subtitle`},{key:`cableTitle`,label:`Cable — Step Title`},{key:`cableSubtitle`,label:`Cable — Step Subtitle`},{key:`bundleHintText`,label:`Bundle Hint Text`},{key:`summaryTitle`,label:`Summary — Title`},{key:`bundleDiscountTitle`,label:`Bundle Discount — Banner Title`},{key:`checkoutBtn`,label:`Checkout Button`},{key:`startOverBtn`,label:`Start Over Button`},{key:`addContinueBtn`,label:`Add & Continue Button`,hint:`Use {name} and {next} as placeholders`},{key:`addOnlyBtn`,label:`Add Only / Exit Button`,hint:`Use {item} as placeholder`},{key:`skipBtn`,label:`Skip Button`,hint:`Use {item} as placeholder`},{key:`customizeBtn`,label:`Customize Design Button`},{key:`switchSpecsLabel`,label:`Switch Specs Sidebar Label`},{key:`buildSoFarLabel`,label:`"Your Build So Far" Label`},{key:`adminBtn`,label:`Admin Button Label`}];function se(){let{appData:e,setAppData:t}=de(),n=e.translations;function r(e,n){t(t=>({...t,translations:{...t.translations,[e]:n}}))}return(0,x.jsxDEV)(`div`,{className:`space-y-1`,children:oe.map(({key:e,label:t,hint:i})=>(0,x.jsxDEV)(`div`,{className:`grid grid-cols-[200px_1fr] gap-4 items-center py-3 border-b border-[#0f0f18]`,children:[(0,x.jsxDEV)(`div`,{children:[(0,x.jsxDEV)(`p`,{className:`text-[#666] text-xs font-semibold`,style:{fontFamily:`var(--font-display)`},children:t},void 0,!1,{fileName:S,lineNumber:429,columnNumber:13},this),i&&(0,x.jsxDEV)(`p`,{className:`text-[#888] text-[10px] mt-0.5`,style:{fontFamily:`var(--font-mono)`},children:i},void 0,!1,{fileName:S,lineNumber:430,columnNumber:22},this)]},void 0,!0,{fileName:S,lineNumber:428,columnNumber:11},this),(0,x.jsxDEV)(te,{value:n[e]??``,onChange:t=>r(e,t)},void 0,!1,{fileName:S,lineNumber:432,columnNumber:11},this)]},e,!0,{fileName:S,lineNumber:427,columnNumber:9},this))},void 0,!1,{fileName:S,lineNumber:425,columnNumber:5},this)}function T(){let{appData:e,setAppData:t,versions:n,setVersions:r}=de(),[i,a]=(0,b.useState)(``),[o,s]=(0,b.useState)(null);function c(){let t=i.trim()||`Version ${n.length+1}`,o={id:`v-${Date.now()}`,name:t,createdAt:new Date().toLocaleString(),data:JSON.parse(JSON.stringify(e))};r(e=>[o,...e]),a(``)}function l(e){t(JSON.parse(JSON.stringify(e.data))),s(e.id),setTimeout(()=>s(null),2e3)}function u(e){r(t=>t.filter(t=>t.id!==e))}return(0,x.jsxDEV)(`div`,{className:`max-w-2xl`,children:[(0,x.jsxDEV)(`div`,{className:`rounded-2xl border border-[#1a1a28] p-5 mb-6`,style:{backgroundColor:`#0c0c14`},children:[(0,x.jsxDEV)(`p`,{className:`text-white font-bold text-sm mb-3`,style:{fontFamily:`var(--font-display)`},children:`Save current state as a version`},void 0,!1,{fileName:S,lineNumber:471,columnNumber:9},this),(0,x.jsxDEV)(`div`,{className:`flex gap-3`,children:[(0,x.jsxDEV)(`input`,{value:i,onChange:e=>a(e.target.value),onKeyDown:e=>e.key===`Enter`&&c(),placeholder:`Version ${n.length+1} — ${new Date().toLocaleDateString()}`,className:`flex-1 px-3 py-2.5 rounded-lg text-sm text-white placeholder-[#333] border border-[#1a1a28] outline-none focus:border-[#f59e0b]/60 transition-all`,style:{backgroundColor:`#080810`,fontFamily:`var(--font-display)`}},void 0,!1,{fileName:S,lineNumber:475,columnNumber:11},this),(0,x.jsxDEV)(`button`,{onClick:c,className:`px-5 py-2.5 rounded-lg bg-[#f59e0b] text-[#06060a] font-bold text-sm hover:bg-[#fbbf24] transition-all`,style:{fontFamily:`var(--font-display)`},children:`Save Version`},void 0,!1,{fileName:S,lineNumber:483,columnNumber:11},this)]},void 0,!0,{fileName:S,lineNumber:474,columnNumber:9},this),(0,x.jsxDEV)(`p`,{className:`text-[#888] text-[11px] mt-2`,style:{fontFamily:`var(--font-mono)`},children:`Versions snapshot all products, personas, and translations. Restore any time.`},void 0,!1,{fileName:S,lineNumber:489,columnNumber:9},this)]},void 0,!0,{fileName:S,lineNumber:470,columnNumber:7},this),n.length===0?(0,x.jsxDEV)(`div`,{className:`text-center py-16 text-[#888] text-sm`,style:{fontFamily:`var(--font-mono)`},children:`No saved versions yet. Make some edits and save your first version.`},void 0,!1,{fileName:S,lineNumber:496,columnNumber:9},this):(0,x.jsxDEV)(`div`,{className:`space-y-3`,children:n.map((e,t)=>{let n=o===e.id;return(0,x.jsxDEV)(`div`,{className:[`rounded-2xl border p-5 transition-all duration-300`,n?`border-[#f59e0b]/50 bg-[#f59e0b]/5`:`border-[#1a1a28] bg-[#0c0c14]`].join(` `),children:(0,x.jsxDEV)(`div`,{className:`flex items-start justify-between gap-4`,children:[(0,x.jsxDEV)(`div`,{className:`flex-1 min-w-0`,children:[(0,x.jsxDEV)(`div`,{className:`flex items-center gap-2 mb-1`,children:[t===0&&(0,x.jsxDEV)(`span`,{className:`text-[9px] px-1.5 py-0.5 rounded-sm bg-[#f59e0b]/20 text-[#f59e0b] font-bold tracking-widest`,style:{fontFamily:`var(--font-mono)`},children:`LATEST`},void 0,!1,{fileName:S,lineNumber:513,columnNumber:25},this),(0,x.jsxDEV)(`h4`,{className:`text-white font-bold text-sm truncate`,style:{fontFamily:`var(--font-display)`},children:e.name},void 0,!1,{fileName:S,lineNumber:516,columnNumber:23},this)]},void 0,!0,{fileName:S,lineNumber:511,columnNumber:21},this),(0,x.jsxDEV)(`p`,{className:`text-[#999] text-[11px]`,style:{fontFamily:`var(--font-mono)`},children:e.createdAt},void 0,!1,{fileName:S,lineNumber:518,columnNumber:21},this),(0,x.jsxDEV)(`div`,{className:`flex gap-3 mt-2`,children:[`${e.data.switchPersonas.length} personas`,`${e.data.keycaps.length} keycaps`,`${e.data.cables.length} cables`].map(e=>(0,x.jsxDEV)(`span`,{className:`text-[#888] text-[10px]`,style:{fontFamily:`var(--font-mono)`},children:e},e,!1,{fileName:S,lineNumber:525,columnNumber:25},this))},void 0,!1,{fileName:S,lineNumber:519,columnNumber:21},this)]},void 0,!0,{fileName:S,lineNumber:510,columnNumber:19},this),(0,x.jsxDEV)(`div`,{className:`flex gap-2 shrink-0`,children:[(0,x.jsxDEV)(`button`,{onClick:()=>l(e),className:[`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all`,n?`bg-[#f59e0b]/20 text-[#f59e0b] border border-[#f59e0b]/40`:`bg-[#f59e0b] text-[#06060a] hover:bg-[#fbbf24]`].join(` `),style:{fontFamily:`var(--font-display)`},children:n?`✓ Restored`:`Restore`},void 0,!1,{fileName:S,lineNumber:530,columnNumber:21},this),(0,x.jsxDEV)(`button`,{onClick:()=>u(e.id),className:`px-3 py-1.5 rounded-lg border border-[#1a1a28] text-[#999] hover:text-[#f87171] hover:border-[#f87171]/30 text-xs transition-all`,style:{fontFamily:`var(--font-mono)`},children:`×`},void 0,!1,{fileName:S,lineNumber:538,columnNumber:21},this)]},void 0,!0,{fileName:S,lineNumber:529,columnNumber:19},this)]},void 0,!0,{fileName:S,lineNumber:509,columnNumber:17},this)},e.id,!1,{fileName:S,lineNumber:504,columnNumber:15},this)})},void 0,!1,{fileName:S,lineNumber:500,columnNumber:9},this)]},void 0,!0,{fileName:S,lineNumber:468,columnNumber:5},this)}
+})]},void 0,!0,{fileName:S,lineNumber:195,columnNumber:5},this)}function w({type:e}){
+  let { appData: t, setAppData: n } = de(),
+      r = e === "keycaps" ? t.keycaps : t.cables,
+      [i, a] = (0, b.useState)(r[0]?.id ?? ""),
+      o = r.find(x => x.id === i) ?? null,
+      [draggedIdx, setDraggedIdx] = (0, b.useState)(null),
+      [dropIndicator, setDropIndicator] = (0, b.useState)(null),
+      [itemToDelete, setItemToDelete] = (0, b.useState)(null);
+
+  function s() {
+    let newId = `${e}-${Date.now()}`,
+        newItem = {
+          id: newId,
+          name: "New Product",
+          subtitle: "Material · Profile",
+          price: 49,
+          image: "",
+          badge: "",
+          description: "Describe this product.",
+          accent: "#CAFF00",
+          freeSpecs: "",
+          layoutCode: "",
+          variants: []
+        };
+    n(prev => ({ ...prev, [e]: [...(e === "keycaps" ? prev.keycaps : prev.cables), newItem] }));
+    a(newId);
+  }
+
+  function c(targetId) {
+    let list = e === "keycaps" ? t.keycaps : t.cables;
+    if (list.length <= 1) return;
+    let nextSelected = list.find(x => x.id !== targetId);
+    n(prev => ({
+      ...prev,
+      [e]: (e === "keycaps" ? prev.keycaps : prev.cables).filter(x => x.id !== targetId)
+    }));
+    a(nextSelected?.id ?? "");
+  }
+
+  function l(field, val) {
+    if (!o) return;
+    n(prev => ({
+      ...prev,
+      [e]: (e === "keycaps" ? prev.keycaps : prev.cables).map(x => x.id === o.id ? { ...x, [field]: val } : x)
+    }));
+  }
+
+  function handleReorder(fromIdx, toIdx, pos) {
+    if (fromIdx === null || toIdx === null || fromIdx === toIdx) return;
+    let list = [...(e === "keycaps" ? t.keycaps : t.cables)];
+    let [moved] = list.splice(fromIdx, 1);
+    let targetIdx = pos === "bottom" ? toIdx + (fromIdx < toIdx ? 0 : 1) : toIdx - (fromIdx < toIdx ? 1 : 0);
+    targetIdx = Math.max(0, Math.min(list.length, targetIdx));
+    list.splice(targetIdx, 0, moved);
+    n(prev => ({ ...prev, [e]: list }));
+  }
+
+  function addVariant() {
+    let curVariants = o.variants || [];
+    let newV = {
+      id: "v-" + Date.now(),
+      name: "Biến thể " + (curVariants.length + 1),
+      price: o.price || 0,
+      image: o.image || "",
+      description: "Mô tả cho biến thể này"
+    };
+    l("variants", [...curVariants, newV]);
+  }
+
+  function updateVariant(vId, vField, vVal) {
+    let curVariants = o.variants || [];
+    l("variants", curVariants.map(v => v.id === vId ? { ...v, [vField]: vVal } : v));
+  }
+
+  function removeVariant(vId) {
+    let curVariants = o.variants || [];
+    l("variants", curVariants.filter(v => v.id !== vId));
+  }
+
+  return (0, x.jsxDEV)("div", {
+    className: "grid grid-cols-[230px_1fr] gap-6 h-full relative",
+    children: [
+      (0, x.jsxDEV)("div", {
+        children: [
+          (0, x.jsxDEV)("div", {
+            className: "space-y-1.5 mb-3",
+            onDragLeave: ev => {
+              if (!ev.currentTarget.contains(ev.relatedTarget)) setDropIndicator(null);
+            },
+            children: r.map((item, idx) => {
+              let showTop = draggedIdx !== null && draggedIdx !== idx && dropIndicator?.idx === idx && dropIndicator?.pos === "top";
+              let showBottom = draggedIdx !== null && draggedIdx !== idx && dropIndicator?.idx === idx && dropIndicator?.pos === "bottom";
+              return (0, x.jsxDEV)("div", {
+                className: "relative",
+                children: [
+                  showTop && (0, x.jsxDEV)("div", {
+                    style: { position: "absolute", top: "-4px", left: 0, right: 0, height: "3px", display: "flex", alignItems: "center", zIndex: 40, pointerEvents: "none" },
+                    children: [
+                      (0, x.jsxDEV)("div", { style: { width: "8px", height: "8px", borderRadius: "50%", backgroundColor: "#f59e0b", boxShadow: "0 0 10px #f59e0b", marginLeft: "-2px", flexShrink: 0 } }),
+                      (0, x.jsxDEV)("div", { style: { flex: 1, height: "3px", backgroundColor: "#f59e0b", borderRadius: "9999px", boxShadow: "0 0 10px #f59e0b" } })
+                    ]
+                  }),
+                  (0, x.jsxDEV)("div", {
+                    draggable: true,
+                    onDragStart: ev => {
+                      ev.dataTransfer.setData("text/plain", String(idx));
+                      ev.dataTransfer.effectAllowed = "move";
+                      setDraggedIdx(idx);
+                    },
+                    onDragOver: ev => {
+                      ev.preventDefault();
+                      ev.dataTransfer.dropEffect = "move";
+                      let rect = ev.currentTarget.getBoundingClientRect();
+                      let relY = ev.clientY - rect.top;
+                      let pos = relY < rect.height / 2 ? "top" : "bottom";
+                      if (!dropIndicator || dropIndicator.idx !== idx || dropIndicator.pos !== pos) {
+                        setDropIndicator({ idx, pos });
+                      }
+                    },
+                    onDragEnd: () => {
+                      setDraggedIdx(null);
+                      setDropIndicator(null);
+                    },
+                    onDrop: ev => {
+                      ev.preventDefault();
+                      let fromIdx = draggedIdx;
+                      let toIdx = idx;
+                      let pos = dropIndicator?.pos || "bottom";
+                      handleReorder(fromIdx, toIdx, pos);
+                      setDraggedIdx(null);
+                      setDropIndicator(null);
+                    },
+                    className: [
+                      "w-full text-left px-3 py-2.5 rounded-xl transition-all group/item flex items-center justify-between cursor-grab active:cursor-grabbing select-none",
+                      i === item.id ? "bg-[#f59e0b]/10 border border-[#f59e0b]/30" : "border border-transparent hover:bg-[#0c0c14]"
+                    ].join(" "),
+                    onClick: () => a(item.id),
+                    children: [
+                      (0, x.jsxDEV)("div", {
+                        className: "flex items-center gap-2.5 min-w-0 flex-1",
+                        children: [
+                          (0, x.jsxDEV)("div", {
+                            className: "opacity-40 group-hover/item:opacity-90 transition-opacity text-[#999] hover:text-white shrink-0 mr-0.5",
+                            title: "Drag to reorder",
+                            children: (0, x.jsxDEV)("svg", {
+                              width: "12", height: "12", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2.5",
+                              children: [
+                                (0, x.jsxDEV)("circle", { cx: "9", cy: "6", r: "1.5", fill: "currentColor" }),
+                                (0, x.jsxDEV)("circle", { cx: "15", cy: "6", r: "1.5", fill: "currentColor" }),
+                                (0, x.jsxDEV)("circle", { cx: "9", cy: "12", r: "1.5", fill: "currentColor" }),
+                                (0, x.jsxDEV)("circle", { cx: "15", cy: "12", r: "1.5", fill: "currentColor" }),
+                                (0, x.jsxDEV)("circle", { cx: "9", cy: "18", r: "1.5", fill: "currentColor" }),
+                                (0, x.jsxDEV)("circle", { cx: "15", cy: "18", r: "1.5", fill: "currentColor" })
+                              ]
+                            })
+                          }),
+                          (0, x.jsxDEV)("div", {
+                            className: "w-6 h-6 rounded-md overflow-hidden shrink-0 border border-[#1a1a28] bg-[#0a0a12]",
+                            children: item.image
+                              ? (0, x.jsxDEV)("img", { src: item.image, alt: "", className: "w-full h-full object-cover" })
+                              : (0, x.jsxDEV)("div", { className: "w-full h-full bg-[#1a1a28]" })
+                          }),
+                          (0, x.jsxDEV)("span", {
+                            className: ["text-sm font-semibold truncate", i === item.id ? "text-white" : "text-[#999]"].join(" "),
+                            style: { fontFamily: "var(--font-display)" },
+                            children: item.name
+                          })
+                        ]
+                      }),
+                      (0, x.jsxDEV)("button", {
+                        type: "button",
+                        onClick: ev => {
+                          ev.stopPropagation();
+                          setItemToDelete(item);
+                        },
+                        className: "opacity-0 group-hover/item:opacity-100 text-[#888] hover:text-[#f87171] transition-all text-base leading-none ml-1 p-1 hover:bg-[#201010] rounded",
+                        title: "Delete",
+                        children: "×"
+                      })
+                    ]
+                  }),
+                  showBottom && (0, x.jsxDEV)("div", {
+                    style: { position: "absolute", bottom: "-4px", left: 0, right: 0, height: "3px", display: "flex", alignItems: "center", zIndex: 40, pointerEvents: "none" },
+                    children: [
+                      (0, x.jsxDEV)("div", { style: { width: "8px", height: "8px", borderRadius: "50%", backgroundColor: "#f59e0b", boxShadow: "0 0 10px #f59e0b", marginLeft: "-2px", flexShrink: 0 } }),
+                      (0, x.jsxDEV)("div", { style: { flex: 1, height: "3px", backgroundColor: "#f59e0b", borderRadius: "9999px", boxShadow: "0 0 10px #f59e0b" } })
+                    ]
+                  })
+                ]
+              }, item.id);
+            })
+          }),
+          (0, x.jsxDEV)("button", {
+            type: "button",
+            onClick: s,
+            className: "w-full py-2.5 rounded-xl border border-dashed border-[#1a1a28] text-[#999] hover:text-[#f59e0b] hover:border-[#f59e0b]/40 text-xs font-semibold tracking-widest uppercase transition-all",
+            style: { fontFamily: "var(--font-mono)" },
+            children: "+ Add Product"
+          })
+        ]
+      }),
+
+      o ? (0, x.jsxDEV)("div", {
+        className: "space-y-5 overflow-y-auto pr-1 pb-16",
+        children: [
+          (0, x.jsxDEV)("div", {
+            className: "grid grid-cols-2 gap-4",
+            children: [
+              (0, x.jsxDEV)(ee, { label: "Product Name", children: (0, x.jsxDEV)(te, { value: o.name, onChange: e => l("name", e) }) }),
+              (0, x.jsxDEV)(ee, { label: "Price ($)", children: (0, x.jsxDEV)(te, { value: o.price, type: "number", onChange: e => l("price", parseFloat(e) || 0) }) })
+            ]
+          }),
+          (0, x.jsxDEV)(ee, { label: "Subtitle / Spec Line", children: (0, x.jsxDEV)(te, { value: o.subtitle, onChange: e => l("subtitle", e) }) }),
+          (0, x.jsxDEV)(ee, { label: "Badge (optional)", children: (0, x.jsxDEV)(te, { value: o.badge ?? "", onChange: e => l("badge", e.toUpperCase() || void 0), placeholder: "e.g. NEW, BESTSELLER" }) }),
+          (0, x.jsxDEV)(ee, { label: "Description", children: (0, x.jsxDEV)(ne, { value: o.description, onChange: e => l("description", e), rows: 3 }) }),
+          (0, x.jsxDEV)(ee, { label: "Image URL", children: (0, x.jsxDEV)(re, { value: o.image, onChange: e => l("image", e) }) }),
+          (0, x.jsxDEV)(ee, { label: "Accent Color", children: (0, x.jsxDEV)(ie, { value: o.accent, onChange: e => l("accent", e) }) }),
+
+          e === "keycaps" && (0, x.jsxDEV)("div", {
+            className: "p-4 rounded-xl border border-[#2a2a3e] bg-[#0c0c16] space-y-4 mt-4",
+            children: [
+              (0, x.jsxDEV)("p", { className: "text-[#f59e0b] text-xs font-bold uppercase tracking-wider", children: "⚙️ Keycap Advanced Settings (Mã Bố Cục & Thông Số Tự Do)" }),
+              (0, x.jsxDEV)(ee, {
+                label: "Keycap Layout Code (Mã đại diện để nạp nhanh vào 3D)",
+                children: (0, x.jsxDEV)(te, {
+                  value: o.layoutCode || "",
+                  onChange: e => l("layoutCode", e),
+                  placeholder: "e.g. ARCTIC-WHITE-75 or base64 colorway code"
+                })
+              }),
+              (0, x.jsxDEV)(ee, {
+                label: "Free-form Specs (Thông số mô tả tự do hiển thị ở cột phải)",
+                children: (0, x.jsxDEV)(ne, {
+                  value: o.freeSpecs || "",
+                  onChange: e => l("freeSpecs", e),
+                  rows: 3,
+                  placeholder: "Cherry Profile · PBT Double-shot · 1.5mm thickness · Full ANSI 84-keys compatibility..."
+                })
+              })
+            ]
+          }),
+
+          e === "cables" && (0, x.jsxDEV)("div", {
+            className: "p-4 rounded-xl border border-[#2a2a3e] bg-[#0c0c16] space-y-4 mt-4",
+            children: [
+              (0, x.jsxDEV)("div", {
+                className: "flex items-center justify-between",
+                children: [
+                  (0, x.jsxDEV)("div", {
+                    children: [
+                      (0, x.jsxDEV)("p", { className: "text-[#f59e0b] text-xs font-bold uppercase tracking-wider", children: "📦 Quản Lý Biến Thể Cable (Shopee Style)" }),
+                      (0, x.jsxDEV)("p", { className: "text-[#888] text-[11px] mt-0.5", children: "Mỗi biến thể có tên, ảnh riêng và mô tả mở rộng khi khách click chọn" })
+                    ]
+                  }),
+                  (0, x.jsxDEV)("button", {
+                    type: "button",
+                    onClick: addVariant,
+                    className: "px-3 py-1.5 rounded-lg bg-[#f59e0b]/15 text-[#f59e0b] hover:bg-[#f59e0b]/25 border border-[#f59e0b]/30 text-xs font-bold transition-all",
+                    children: "+ Thêm biến thể"
+                  })
+                ]
+              }),
+              (o.variants && o.variants.length > 0) ? (0, x.jsxDEV)("div", {
+                className: "space-y-3",
+                children: o.variants.map((v, vIdx) => (0, x.jsxDEV)("div", {
+                  className: "p-3 rounded-lg border border-[#1a1a28] bg-[#07070d] space-y-2 relative",
+                  children: [
+                    (0, x.jsxDEV)("div", {
+                      className: "flex items-center justify-between",
+                      children: [
+                        (0, x.jsxDEV)("span", { className: "text-xs font-mono font-bold text-white", children: "Biến thể #" + (vIdx + 1) }),
+                        (0, x.jsxDEV)("button", {
+                          type: "button",
+                          onClick: () => removeVariant(v.id),
+                          className: "text-[#888] hover:text-[#f87171] text-xs font-bold",
+                          children: "Xóa"
+                        })
+                      ]
+                    }),
+                    (0, x.jsxDEV)("div", {
+                      className: "grid grid-cols-2 gap-2",
+                      children: [
+                        (0, x.jsxDEV)("input", {
+                          type: "text",
+                          value: v.name,
+                          onChange: ev => updateVariant(v.id, "name", ev.target.value),
+                          placeholder: "Tên biến thể (e.g. 0.8m Coiled Black)",
+                          className: "px-2.5 py-1.5 rounded bg-[#13131e] border border-[#1a1a28] text-xs text-white outline-none focus:border-[#f59e0b]"
+                        }),
+                        (0, x.jsxDEV)("input", {
+                          type: "number",
+                          value: v.price ?? o.price,
+                          onChange: ev => updateVariant(v.id, "price", parseFloat(ev.target.value) || 0),
+                          placeholder: "Giá ($)",
+                          className: "px-2.5 py-1.5 rounded bg-[#13131e] border border-[#1a1a28] text-xs text-white outline-none focus:border-[#f59e0b]"
+                        })
+                      ]
+                    }),
+                    (0, x.jsxDEV)("div", {
+                      children: (0, x.jsxDEV)(re, {
+                        value: v.image,
+                        onChange: imgUrl => updateVariant(v.id, "image", imgUrl)
+                      })
+                    }),
+                    (0, x.jsxDEV)("input", {
+                      type: "text",
+                      value: v.description || "",
+                      onChange: ev => updateVariant(v.id, "description", ev.target.value),
+                      placeholder: "Mô tả mở rộng riêng cho biến thể này...",
+                      className: "w-full px-2.5 py-1.5 rounded bg-[#13131e] border border-[#1a1a28] text-xs text-white outline-none focus:border-[#f59e0b]"
+                    })
+                  ]
+                }, v.id))
+              }) : (0, x.jsxDEV)("div", {
+                className: "text-center py-4 border border-dashed border-[#1a1a28] rounded-lg text-[#666] text-xs",
+                children: "Chưa có biến thể riêng. Bấm '+ Thêm biến thể' để tạo biến thể kèm ảnh riêng như Shopee."
+              })
+            ]
+          })
+        ]
+      }) : (0, x.jsxDEV)("div", {
+        className: "flex items-center justify-center text-[#888] text-sm",
+        style: { fontFamily: "var(--font-mono)" },
+        children: "Select a product to edit"
+      }),
+
+      itemToDelete && (0, x.jsxDEV)("div", {
+        style: {
+          position: "fixed",
+          top: 0, left: 0, right: 0, bottom: 0,
+          backgroundColor: "rgba(0, 0, 0, 0.8)",
+          backdropFilter: "blur(6px)",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          zIndex: 999999,
+          padding: "16px"
+        },
+        onClick: () => setItemToDelete(null),
+        children: (0, x.jsxDEV)("div", {
+          style: {
+            width: "100%",
+            maxWidth: "440px",
+            backgroundColor: "#0d0d14",
+            borderRadius: "16px",
+            border: "1px solid #262638",
+            padding: "24px",
+            boxShadow: "0 25px 50px rgba(0, 0, 0, 0.85)",
+            color: "#ffffff"
+          },
+          onClick: ev => ev.stopPropagation(),
+          children: [
+            (0, x.jsxDEV)("div", {
+              style: { display: "flex", alignItems: "center", gap: "14px", marginBottom: "16px" },
+              children: [
+                (0, x.jsxDEV)("div", {
+                  style: { width: "42px", height: "42px", borderRadius: "12px", backgroundColor: "rgba(239, 68, 68, 0.15)", border: "1px solid rgba(239, 68, 68, 0.3)", display: "flex", alignItems: "center", justifyContent: "center", color: "#f87171", flexShrink: 0 },
+                  children: (0, x.jsxDEV)("svg", {
+                    width: "22", height: "22", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2",
+                    children: [
+                      (0, x.jsxDEV)("path", { d: "M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" }),
+                      (0, x.jsxDEV)("line", { x1: "12", y1: "9", x2: "12", y2: "13" }),
+                      (0, x.jsxDEV)("line", { x1: "12", y1: "17", x2: "12.01", y2: "17" })
+                    ]
+                  })
+                }),
+                (0, x.jsxDEV)("div", {
+                  children: [
+                    (0, x.jsxDEV)("h3", { style: { fontFamily: "var(--font-display)", color: "#ffffff", fontSize: "16px", fontWeight: "bold", margin: 0 }, children: "Are you want to delete?" }),
+                    (0, x.jsxDEV)("p", { style: { fontFamily: "var(--font-mono)", color: "#888888", fontSize: "12px", margin: "4px 0 0 0" }, children: itemToDelete.name || itemToDelete.id })
+                  ]
+                })
+              ]
+            }),
+            (0, x.jsxDEV)("p", {
+              style: { color: "#aaaaaa", fontSize: "12px", lineHeight: "1.6", margin: "0 0 24px 0" },
+              children: r.length <= 1
+                ? "Cannot delete the last remaining product. At least one product is required."
+                : `Do you really want to delete "${itemToDelete.name || itemToDelete.id}"? This product and its configuration will be permanently removed.`
+            }),
+            (0, x.jsxDEV)("div", {
+              style: { display: "flex", alignItems: "center", justifyContent: "flex-end", gap: "10px" },
+              children: [
+                (0, x.jsxDEV)("button", {
+                  type: "button",
+                  onClick: () => setItemToDelete(null),
+                  style: { padding: "8px 18px", borderRadius: "10px", border: "1px solid #2a2a3e", color: "#aaaaaa", backgroundColor: "#161622", fontSize: "12px", fontWeight: "600", cursor: "pointer" },
+                  children: "Cancel"
+                }),
+                (0, x.jsxDEV)("button", {
+                  type: "button",
+                  disabled: r.length <= 1,
+                  onClick: () => {
+                    let targetId = itemToDelete.id;
+                    setItemToDelete(null);
+                    c(targetId);
+                  },
+                  style: { padding: "8px 18px", borderRadius: "10px", backgroundColor: r.length <= 1 ? "#4a2020" : "#dc2626", color: "#ffffff", fontSize: "12px", fontWeight: "bold", border: "none", cursor: r.length <= 1 ? "not-allowed" : "pointer", boxShadow: "0 4px 14px rgba(220, 38, 38, 0.35)" },
+                  children: "Delete"
+                })
+              ]
+            })
+          ]
+        })
+      })
+    ]
+  });
+}var oe=[{key:`brandName`,label:`Brand Name`},{key:`brandSubtitle`,label:`Brand Subtitle`},{key:`stepperSwitches`,label:`Step 1 Name (Switches)`},{key:`stepperKeycaps`,label:`Step 2 Name (Keycaps)`},{key:`stepperCable`,label:`Step 3 Name (Cable)`},{key:`stepperSummary`,label:`Step 4 Name (Summary)`},{key:`customKeycapName`,label:`Custom Keycap Card Title (STT 9)`},{key:`customKeycapDesc`,label:`Custom Keycap Card Description (STT 9)`},{key:`switchesTitle`,label:`Switches — Step Title`},{key:`switchesSubtitle`,label:`Switches — Step Subtitle`},{key:`keycapsTitle`,label:`Keycaps — Step Title`},{key:`keycapsSubtitle`,label:`Keycaps — Step Subtitle`},{key:`cableTitle`,label:`Cable — Step Title`},{key:`cableSubtitle`,label:`Cable — Step Subtitle`},{key:`bundleHintText`,label:`Bundle Hint Text`},{key:`summaryTitle`,label:`Summary — Title`},{key:`bundleDiscountTitle`,label:`Bundle Discount — Banner Title`},{key:`checkoutBtn`,label:`Checkout Button`},{key:`startOverBtn`,label:`Start Over Button`},{key:`addContinueBtn`,label:`Add & Continue Button`,hint:`Use {name} and {next} as placeholders`},{key:`addOnlyBtn`,label:`Add Only / Exit Button`,hint:`Use {item} as placeholder`},{key:`skipBtn`,label:`Skip Button`,hint:`Use {item} as placeholder`},{key:`customizeBtn`,label:`Customize Design Button`},{key:`switchSpecsLabel`,label:`Switch Specs Sidebar Label`},{key:`buildSoFarLabel`,label:`"Your Build So Far" Label`},{key:`adminBtn`,label:`Admin Button Label`}];function se(){let{appData:e,setAppData:t}=de(),n=e.translations;function r(e,n){t(t=>({...t,translations:{...t.translations,[e]:n}}))}return(0,x.jsxDEV)(`div`,{className:`space-y-1`,children:oe.map(({key:e,label:t,hint:i})=>(0,x.jsxDEV)(`div`,{className:`grid grid-cols-[200px_1fr] gap-4 items-center py-3 border-b border-[#0f0f18]`,children:[(0,x.jsxDEV)(`div`,{children:[(0,x.jsxDEV)(`p`,{className:`text-[#666] text-xs font-semibold`,style:{fontFamily:`var(--font-display)`},children:t},void 0,!1,{fileName:S,lineNumber:429,columnNumber:13},this),i&&(0,x.jsxDEV)(`p`,{className:`text-[#888] text-[10px] mt-0.5`,style:{fontFamily:`var(--font-mono)`},children:i},void 0,!1,{fileName:S,lineNumber:430,columnNumber:22},this)]},void 0,!0,{fileName:S,lineNumber:428,columnNumber:11},this),(0,x.jsxDEV)(te,{value:n[e]??``,onChange:t=>r(e,t)},void 0,!1,{fileName:S,lineNumber:432,columnNumber:11},this)]},e,!0,{fileName:S,lineNumber:427,columnNumber:9},this))},void 0,!1,{fileName:S,lineNumber:425,columnNumber:5},this)}function T(){let{appData:e,setAppData:t,versions:n,setVersions:r}=de(),[i,a]=(0,b.useState)(``),[o,s]=(0,b.useState)(null);function c(){let t=i.trim()||`Version ${n.length+1}`,o={id:`v-${Date.now()}`,name:t,createdAt:new Date().toLocaleString(),data:JSON.parse(JSON.stringify(e))};r(e=>[o,...e]),a(``)}function l(e){t(JSON.parse(JSON.stringify(e.data))),s(e.id),setTimeout(()=>s(null),2e3)}function u(e){r(t=>t.filter(t=>t.id!==e))}return(0,x.jsxDEV)(`div`,{className:`max-w-2xl`,children:[(0,x.jsxDEV)(`div`,{className:`rounded-2xl border border-[#1a1a28] p-5 mb-6`,style:{backgroundColor:`#0c0c14`},children:[(0,x.jsxDEV)(`p`,{className:`text-white font-bold text-sm mb-3`,style:{fontFamily:`var(--font-display)`},children:`Save current state as a version`},void 0,!1,{fileName:S,lineNumber:471,columnNumber:9},this),(0,x.jsxDEV)(`div`,{className:`flex gap-3`,children:[(0,x.jsxDEV)(`input`,{value:i,onChange:e=>a(e.target.value),onKeyDown:e=>e.key===`Enter`&&c(),placeholder:`Version ${n.length+1} — ${new Date().toLocaleDateString()}`,className:`flex-1 px-3 py-2.5 rounded-lg text-sm text-white placeholder-[#333] border border-[#1a1a28] outline-none focus:border-[#f59e0b]/60 transition-all`,style:{backgroundColor:`#080810`,fontFamily:`var(--font-display)`}},void 0,!1,{fileName:S,lineNumber:475,columnNumber:11},this),(0,x.jsxDEV)(`button`,{onClick:c,className:`px-5 py-2.5 rounded-lg bg-[#f59e0b] text-[#06060a] font-bold text-sm hover:bg-[#fbbf24] transition-all`,style:{fontFamily:`var(--font-display)`},children:`Save Version`},void 0,!1,{fileName:S,lineNumber:483,columnNumber:11},this)]},void 0,!0,{fileName:S,lineNumber:474,columnNumber:9},this),(0,x.jsxDEV)(`p`,{className:`text-[#888] text-[11px] mt-2`,style:{fontFamily:`var(--font-mono)`},children:`Versions snapshot all products, personas, and translations. Restore any time.`},void 0,!1,{fileName:S,lineNumber:489,columnNumber:9},this)]},void 0,!0,{fileName:S,lineNumber:470,columnNumber:7},this),n.length===0?(0,x.jsxDEV)(`div`,{className:`text-center py-16 text-[#888] text-sm`,style:{fontFamily:`var(--font-mono)`},children:`No saved versions yet. Make some edits and save your first version.`},void 0,!1,{fileName:S,lineNumber:496,columnNumber:9},this):(0,x.jsxDEV)(`div`,{className:`space-y-3`,children:n.map((e,t)=>{let n=o===e.id;return(0,x.jsxDEV)(`div`,{className:[`rounded-2xl border p-5 transition-all duration-300`,n?`border-[#f59e0b]/50 bg-[#f59e0b]/5`:`border-[#1a1a28] bg-[#0c0c14]`].join(` `),children:(0,x.jsxDEV)(`div`,{className:`flex items-start justify-between gap-4`,children:[(0,x.jsxDEV)(`div`,{className:`flex-1 min-w-0`,children:[(0,x.jsxDEV)(`div`,{className:`flex items-center gap-2 mb-1`,children:[t===0&&(0,x.jsxDEV)(`span`,{className:`text-[9px] px-1.5 py-0.5 rounded-sm bg-[#f59e0b]/20 text-[#f59e0b] font-bold tracking-widest`,style:{fontFamily:`var(--font-mono)`},children:`LATEST`},void 0,!1,{fileName:S,lineNumber:513,columnNumber:25},this),(0,x.jsxDEV)(`h4`,{className:`text-white font-bold text-sm truncate`,style:{fontFamily:`var(--font-display)`},children:e.name},void 0,!1,{fileName:S,lineNumber:516,columnNumber:23},this)]},void 0,!0,{fileName:S,lineNumber:511,columnNumber:21},this),(0,x.jsxDEV)(`p`,{className:`text-[#999] text-[11px]`,style:{fontFamily:`var(--font-mono)`},children:e.createdAt},void 0,!1,{fileName:S,lineNumber:518,columnNumber:21},this),(0,x.jsxDEV)(`div`,{className:`flex gap-3 mt-2`,children:[`${e.data.switchPersonas.length} personas`,`${e.data.keycaps.length} keycaps`,`${e.data.cables.length} cables`].map(e=>(0,x.jsxDEV)(`span`,{className:`text-[#888] text-[10px]`,style:{fontFamily:`var(--font-mono)`},children:e},e,!1,{fileName:S,lineNumber:525,columnNumber:25},this))},void 0,!1,{fileName:S,lineNumber:519,columnNumber:21},this)]},void 0,!0,{fileName:S,lineNumber:510,columnNumber:19},this),(0,x.jsxDEV)(`div`,{className:`flex gap-2 shrink-0`,children:[(0,x.jsxDEV)(`button`,{onClick:()=>l(e),className:[`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all`,n?`bg-[#f59e0b]/20 text-[#f59e0b] border border-[#f59e0b]/40`:`bg-[#f59e0b] text-[#06060a] hover:bg-[#fbbf24]`].join(` `),style:{fontFamily:`var(--font-display)`},children:n?`✓ Restored`:`Restore`},void 0,!1,{fileName:S,lineNumber:530,columnNumber:21},this),(0,x.jsxDEV)(`button`,{onClick:()=>u(e.id),className:`px-3 py-1.5 rounded-lg border border-[#1a1a28] text-[#999] hover:text-[#f87171] hover:border-[#f87171]/30 text-xs transition-all`,style:{fontFamily:`var(--font-mono)`},children:`×`},void 0,!1,{fileName:S,lineNumber:538,columnNumber:21},this)]},void 0,!0,{fileName:S,lineNumber:529,columnNumber:19},this)]},void 0,!0,{fileName:S,lineNumber:509,columnNumber:17},this)},e.id,!1,{fileName:S,lineNumber:504,columnNumber:15},this)})},void 0,!1,{fileName:S,lineNumber:500,columnNumber:9},this)]},void 0,!0,{fileName:S,lineNumber:468,columnNumber:5},this)}
 function RenderLightingSubPanel(){
   let defaultLighting = {
     lightIntensity: 1.0,
@@ -2572,7 +2746,7 @@ function g(){let e=l.trim()||`Version ${n.length+1} — ${new Date().toLocaleDat
       children:adminTheme==="light"?"Light":"Dark"
     })
   ]
-},void 0,!0,{fileName:S,lineNumber:624,columnNumber:30},this),d&&(0,x.jsxDEV)(`span`,{className:`text-[#f59e0b] text-xs font-medium animate-fade-up`,style:{fontFamily:`var(--font-mono)`},children:`✓ Version saved`},void 0,!1,{fileName:S,lineNumber:625,columnNumber:13},this),s?(0,x.jsxDEV)(`div`,{className:`flex items-center gap-2`,children:[(0,x.jsxDEV)(`input`,{ref:p,autoFocus:!0,value:l,onChange:e=>u(e.target.value),onKeyDown:e=>{e.key===`Enter`&&g(),e.key===`Escape`&&c(!1)},placeholder:`Version ${n.length+1}`,className:`px-3 py-1.5 rounded-lg text-sm text-white placeholder-[#444] border border-[#f59e0b]/40 outline-none focus:border-[#f59e0b]/70 bg-[#0c0c14]`,style:{width:`200px`,fontFamily:`var(--font-display)`}},void 0,!1,{fileName:S,lineNumber:631,columnNumber:15},this),(0,x.jsxDEV)(`button`,{onClick:g,className:`px-3.5 py-1.5 rounded-lg bg-[#f59e0b] text-[#06060a] font-bold text-xs hover:bg-[#fbbf24] transition-all`,style:{fontFamily:`var(--font-display)`},children:`Save`},void 0,!1,{fileName:S,lineNumber:641,columnNumber:15},this),(0,x.jsxDEV)(`button`,{onClick:()=>c(!1),className:`px-3 py-1.5 rounded-lg border border-[#1a1a28] text-[#999] hover:text-white transition-all text-xs`,style:{fontFamily:`var(--font-mono)`},children:`✕`},void 0,!1,{fileName:S,lineNumber:646,columnNumber:15},this)]},void 0,!0,{fileName:S,lineNumber:630,columnNumber:13},this):(0,x.jsxDEV)(`button`,{onClick:()=>{c(!0),setTimeout(()=>p.current?.focus(),50)},className:`flex items-center gap-2 px-4 py-2 rounded-lg bg-[#f59e0b] text-[#06060a] font-bold text-xs hover:bg-[#fbbf24] transition-all`,style:{fontFamily:`var(--font-display)`},children:[(0,x.jsxDEV)(`svg`,{width:`12`,height:`12`,viewBox:`0 0 12 12`,fill:`none`,children:[(0,x.jsxDEV)(`rect`,{x:`1`,y:`1`,width:`10`,height:`10`,rx:`1.5`,stroke:`currentColor`,strokeWidth:`1.2`},void 0,!1,{fileName:S,lineNumber:657,columnNumber:17},this),(0,x.jsxDEV)(`path`,{d:`M3.5 7.5 6 10l2.5-2.5M6 3v7`,stroke:`currentColor`,strokeWidth:`1.2`,strokeLinecap:`round`,strokeLinejoin:`round`},void 0,!1,{fileName:S,lineNumber:658,columnNumber:17},this)]},void 0,!0,{fileName:S,lineNumber:656,columnNumber:15},this),`Save Version`]},void 0,!0,{fileName:S,lineNumber:653,columnNumber:13},this)]},void 0,!0,{fileName:S,lineNumber:623,columnNumber:9},this)]},void 0,!0,{fileName:S,lineNumber:599,columnNumber:7},this),(0,x.jsxDEV)(`div`,{className:`flex flex-1 min-h-0`,children:[(0,x.jsxDEV)(`nav`,{className:`w-52 shrink-0 border-r border-[#0f0f18] py-6 px-3`,style:{backgroundColor:`#080810`},children:h.map(e=>(0,x.jsxDEV)(`div`,{className:`mb-5`,children:[(0,x.jsxDEV)(`p`,{className:`text-[#888] text-[9px] font-bold tracking-widest uppercase px-3 mb-2`,style:{fontFamily:`var(--font-mono)`},children:e},void 0,!1,{fileName:S,lineNumber:672,columnNumber:15},this),m.filter(t=>t.group===e).map(e=>(0,x.jsxDEV)(`button`,{onClick:()=>{o(e.id);window.history.pushState(null,'','/admin/'+e.id);},className:[`w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-all mb-0.5`,a===e.id?`bg-[#f59e0b]/10 text-[#f59e0b] border border-[#f59e0b]/20`:`text-[#999] hover:text-[#888] hover:bg-[#0c0c14] border border-transparent`].join(` `),style:{fontFamily:`var(--font-display)`},children:[e.label,e.id===`versions`&&n.length>0&&(0,x.jsxDEV)(`span`,{className:`ml-auto float-right text-[10px] px-1.5 py-0.5 rounded bg-[#f59e0b]/20 text-[#f59e0b]`,style:{fontFamily:`var(--font-mono)`},children:n.length},void 0,!1,{fileName:S,lineNumber:687,columnNumber:21},this)]},e.id,!0,{fileName:S,lineNumber:677,columnNumber:17},this))]},e,!0,{fileName:S,lineNumber:671,columnNumber:13},this))},void 0,!1,{fileName:S,lineNumber:669,columnNumber:9},this),(0,x.jsxDEV)(`main`,{className:`flex-1 overflow-y-auto p-8`,children:[(0,x.jsxDEV)(`div`,{className:`mb-6 flex items-center justify-between`,children:(0,x.jsxDEV)(`div`,{children:[(0,x.jsxDEV)(`h1`,{className:`text-2xl font-extrabold text-white tracking-tight`,style:{fontFamily:`var(--font-display)`},children:{personas:`Switch Personas`,keycaps:`Keycap Sets`,cables:`Cable Options`,translations:`Translations`,versions:`Version History`,'3d-settings':`3D Setting`}[a]},void 0,!1,{fileName:S,lineNumber:702,columnNumber:15},this),(0,x.jsxDEV)(`p`,{className:`text-[#888] text-xs mt-1`,style:{fontFamily:`var(--font-mono)`},children:[a===`personas`&&`Edit or add switch persona option cards shown in Step 1`,a===`keycaps`&&`Edit or add keycap product cards shown in Step 2`,a===`cables`&&`Edit or add cable product cards shown in Step 3`,a===`translations`&&`Edit all static UI text — changes reflect immediately in the storefront`,a===`sidebar-specs`&&`Customize Sidebar Specs (Type, Actuation, Travel, Housing), Bundle Hint text and font colors, sizes, bold, italic with icons`,a===`versions`&&`Save snapshots of the current storefront state and restore previous versions`,a===`3d-settings`&&`Configure 3D rendering lighting, GMK & SA color presets, and model transforms`]},void 0,!0,{fileName:S,lineNumber:705,columnNumber:15},this)]},void 0,!0,{fileName:S,lineNumber:701,columnNumber:13},this)},void 0,!1,{fileName:S,lineNumber:700,columnNumber:11},this),(0,x.jsxDEV)(`div`,{style:{minHeight:`400px`},children:[a===`personas`&&(0,x.jsxDEV)(ae,{},void 0,!1,{fileName:S,lineNumber:716,columnNumber:40},this),a===`keycaps`&&(0,x.jsxDEV)(w,{type:`keycaps`},void 0,!1,{fileName:S,lineNumber:717,columnNumber:39},this),a===`cables`&&(0,x.jsxDEV)(w,{type:`cables`},void 0,!1,{fileName:S,lineNumber:718,columnNumber:38},this),a===`translations`&&(0,x.jsxDEV)(se,{},void 0,!1,{fileName:S,lineNumber:719,columnNumber:44},this),a===`sidebar-specs`&&(0,x.jsxDEV)(SidebarSpecsStylingPanel,{},void 0,!1,{},this),a===`versions`&&(0,x.jsxDEV)(T,{},void 0,!1,{fileName:S,lineNumber:720,columnNumber:40},this),a===`3d-settings`&&(0,x.jsxDEV)(Settings3DPanel,{},void 0,!1,{fileName:S,lineNumber:721,columnNumber:40},this)]},void 0,!0,{fileName:S,lineNumber:715,columnNumber:11},this)]},void 0,!0,{fileName:S,lineNumber:699,columnNumber:9},this)]},void 0,!0,{fileName:S,lineNumber:667,columnNumber:7},this)]},void 0,!0,{fileName:S,lineNumber:597,columnNumber:5},this)}var E=`/workspaces/.cached-preview/src/App.tsx`,le={switchPersonas:[{id:`office`,label:`Office`,tagline:`Silent & Focused`,switchName:`Gateron Silent Pink`,switchSpec:`Linear · 45g · Ultra-quiet`,badge:`SILENT`,price:45,description:`Engineered for open offices and focused deep work. Near-zero operating noise with a factory-dampened stem and pre-lubed bore. Long typing sessions feel effortless at 45g.`,features:[`45g actuation`,`Dampened stem`,`Pre-lubed`,`SMD LED compat.`],image:`/uploads/switch_office.jpg`,accent:`#60a5fa`,accentDim:`rgba(96,165,250,0.15)`},{id:`gamer`,label:`Gamer`,tagline:`Speed & Precision`,switchName:`Gateron Yellow Pro`,switchSpec:`Linear · 35g · 1.0mm pre-travel`,badge:`FAST`,price:45,description:`Lowest pre-travel actuation in its class. Factory-lubed linear motion eliminates any scratch. Built for competitive play where every millisecond of input lag matters.`,features:[`35g actuation`,`1.0mm pre-travel`,`Factory lubed`,`N-key rollover`],image:`/uploads/switch_gamer.jpg`,accent:`#f87171`,accentDim:`rgba(248,113,113,0.15)`},{id:`typist`,label:`Typist`,tagline:`Sound & Thock`,switchName:`Holy Panda X`,switchSpec:`Tactile · 67g · Thocky bump`,badge:`THOCK`,price:65,description:`The sound profile that sparked a thousand ASMR videos. A defined tactile bump at 2.0mm delivers auditory and physical confirmation of every keystroke.`,features:[`67g actuation`,`Rounded tactile bump`,`Long-pole stem`,`Thocky resonance`],image:`/uploads/switch_typist.jpg`,accent:`#a78bfa`,accentDim:`rgba(167,139,250,0.15)`},{id:`designer`,label:`Designer`,tagline:`Feedback & Flow`,switchName:`Boba U4T`,switchSpec:`Tactile · 62g · Fast + Feedback`,badge:`PRECISE`,price:55,description:`Sharp tactile bump that never interrupts flow state. Cerakote-coated housing creates a refined, muted sound signature — clean feedback without the drama.`,features:[`62g actuation`,`Sharp tactile bump`,`Cerakote housing`,`Muted sound sig.`],image:`/uploads/switch_designer.jpg`,accent:`#34d399`,accentDim:`rgba(52,211,153,0.15)`}],keycaps:[{id:`arctic-white`,name:`Arctic White`,subtitle:`PBT Double-shot · Cherry Profile`,price:89,image:`/uploads/keycap_arctic_white.jpg`,badge:`BESTSELLER`,description:`Ultra-clean legends with zero shine-through. PBT texture that only improves with age.`,accent:`#e8e8e8`},{id:`midnight-void`,name:`Midnight Void`,subtitle:`ABS · Laser-engraved · SA Profile`,price:79,image:`/uploads/cable_void_braided.jpg`,description:`Stealth matte finish with barely-there legends. For setups that prefer to disappear.`,accent:`#4a4a6a`},{id:`forest-sage`,name:`Forest Sage`,subtitle:`PBT Dye-sublimated · SA Profile`,price:95,image:`/uploads/keycap_forest_sage.jpg`,badge:`NEW`,description:`Muted earth tones with botanical-inspired colorway. Pairs beautifully with brass and walnut.`,accent:`#3d6b38`},{id:`neon-pulse`,name:`Neon Pulse`,subtitle:`ABS · Double-shot · OEM Profile`,price:85,image:`/uploads/keycap_neon_pulse.jpg`,description:`High-contrast RGB-transparent legends. Engineered for backlit builds that demand attention.`,accent:`#e84393`}],cables:[{id:`cosmos-coil`,name:`Cosmos Coil`,subtitle:`Coiled · Paracord Sleeved · USB-C`,price:55,image:`/uploads/cable_cosmos_coil.jpg`,badge:`ARTISAN`,description:`Hand-built coiled cable with custom GX16 aviator connector and milled brass barrel ends.`,accent:`#CAFF00`},{id:`void-braided`,name:`Void Braided`,subtitle:`Straight · Techflex · USB-C to USB-A`,price:28,image:`/uploads/cable_void_braided.jpg`,description:`No-frills quality. 1.8m techflex braid, triple-shielded core, zero cable drag.`,accent:`#6b7280`},{id:`aurora-coil`,name:`Aurora Coil`,subtitle:`Coiled · Transparent Sleeving · USB-C`,price:48,image:`/uploads/cable_aurora_coil.jpg`,badge:`NEW`,description:`Crystal-clear sleeving reveals the internal helix. Pairs with any keycap colorway seamlessly.`,accent:`#a5f3fc`}],translations:{brandName:`Keyhaus`,brandSubtitle:`Build Studio`,switchesTitle:`Choose your switches`,switchesSubtitle:`Four archetypes. Pick the one that fits how you work.`,keycapsTitle:`Choose your keycaps`,keycapsSubtitle:`Select one to customize and add to your build.`,cableTitle:`Choose your cable`,cableSubtitle:`Select one to customize and add to your build.`,bundleHintText:`Complete the full build and save 15% on your entire order.`,summaryTitle:`Your Build`,bundleDiscountTitle:`15% Bundle Discount Applied`,checkoutBtn:`Proceed to Checkout →`,startOverBtn:`Start Over`,addContinueBtn:`Add {name} + Continue to {next} →`,addOnlyBtn:`Add {item} only, exit flow`,skipBtn:`Skip {item}, continue without →`,customizeBtn:`Customize Design`,switchSpecsLabel:`Switch specs`,buildSoFarLabel:`Your build so far`,adminBtn:`Admin`}},ue=(0,b.createContext)(null);function de(){return(0,b.useContext)(ue)}function fe(){let{appData:e}=de();return(t,n)=>{let r=e.translations[t]??t;if(n)for(let[e,t]of Object.entries(n))r=r.replaceAll(`{${e}}`,t);return r}}var pe={keycaps:{Profile:[`Cherry`,`SA`,`OEM`,`XDA`,`MT3`],Material:[`PBT`,`ABS`],"Legend Style":[`Double-shot`,`Dye-sub`,`Laser-engraved`],Shine:[`Standard`,`Matte Coat`,`Glossy Coat`]},cable:{Connector:[`USB-C to USB-C`,`USB-C to USB-A`,`USB-C to USB-B Mini`],Length:[`0.8m`,`1.2m`,`1.5m`,`2.0m`],"Color Sleeve":[`Stock Color`,`Black`,`White`,`Custom (+$12)`],"Aviator Connector":[`None`,`GX16 Silver`,`GX16 Gold`,`GX16 Black`]}},me=.15;function he(e){return((e.keycaps?.product?.price??e.keycaps?.price??0)+(e.switches?.product?.price??e.switches?.price??0)+(e.cable?.product?.price??e.cable?.price??0))}function ge(e){let t={};for(let[n,r]of Object.entries(pe[e]??{}))t[n]=r[0];return t}function _e({text:e}){return(0,x.jsxDEV)(`span`,{className:`px-1.5 py-0.5 rounded-sm bg-[#CAFF00] text-[#06060a] font-semibold tracking-widest`,style:{fontFamily:`var(--font-mono)`,fontSize:`9px`},children:e},void 0,!1,{fileName:E,lineNumber:229,columnNumber:5},this)}function ve({current:e,cart:t,onStepClick:n}){let r=[`switches`,`keycaps`,`cable`,`summary`],i=r.indexOf(e),a=e=>e===`switches`?!!t.switches:e===`keycaps`?!!t.keycaps:e===`cable`?!!t.cable:!1,o=[{id:`switches`,label:`Switches`,num:1},{id:`keycaps`,label:`Keycaps`,num:2},{id:`cable`,label:`Cable`,num:3},{id:`summary`,label:`Summary`,num:4}];return(0,x.jsxDEV)(`div`,{className:`flex items-center`,children:o.map((t,s)=>{let c=r.indexOf(t.id),l=c<i,u=t.id===e,d=a(t.id);return(0,x.jsxDEV)(`div`,{className:`flex items-center`,children:[(0,x.jsxDEV)(`button`,{onClick:()=>n(t.id),className:`flex items-center gap-2.5 group/step cursor-pointer px-3.5 py-1.5 rounded-full transition-all border border-transparent`,children:[(0,x.jsxDEV)(`div`,{className:[`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-300`,u?`bg-[#CAFF00] text-[#06060a] ring-4 ring-[#CAFF00]/20 shadow-[0_0_12px_rgba(202,255,0,0.35)]`:d?`border-2 border-[#CAFF00] text-[#CAFF00] bg-[#CAFF00]/10`:`bg-[#1e1e2e] group-hover/step:bg-[#2a2a3e]`].join(` `),style:{fontFamily:`var(--font-mono)`,fontSize:`11px`,color:u?`#06060a`:d?`#CAFF00`:`#999999`},children:d&&!u?`✓`:t.num},void 0,!1,{fileName:E,lineNumber:274,columnNumber:15},this),(0,x.jsxDEV)(`span`,{className:[`text-sm font-semibold transition-colors`,u?`text-white`:`hover:text-white`].join(` `),style:{fontFamily:`var(--font-display)`,color:u?`#ffffff`:`#999999`},children:t.label},void 0,!1,{fileName:E,lineNumber:289,columnNumber:15},this)]},void 0,!0,{fileName:E,lineNumber:270,columnNumber:13},this),s<o.length-1&&(0,x.jsxDEV)(`div`,{className:`mx-3`,children:(0,x.jsxDEV)(`div`,{className:[`h-px w-12 transition-all duration-500`,c<i?`bg-[#CAFF00]/40`:`bg-[#1a1a2a]`].join(` `)},void 0,!1,{fileName:E,lineNumber:301,columnNumber:17},this)},void 0,!1,{fileName:E,lineNumber:300,columnNumber:15},this)]},t.id,!0,{fileName:E,lineNumber:269,columnNumber:11},this)})},void 0,!1,{fileName:E,lineNumber:261,columnNumber:5},this)}function ye({label:e,values:t,selected:n,onChange:r}){return(0,x.jsxDEV)(`div`,{children:[(0,x.jsxDEV)(`div`,{className:`flex items-center justify-between mb-2`,children:[(0,x.jsxDEV)(`span`,{className:`text-[#999] text-[10px] font-medium tracking-widest uppercase`,style:{fontFamily:`var(--font-mono)`},children:e},void 0,!1,{fileName:E,lineNumber:325,columnNumber:9},this),(0,x.jsxDEV)(`span`,{className:`text-[#CAFF00] text-[11px]`,style:{fontFamily:`var(--font-mono)`},children:n},void 0,!1,{fileName:E,lineNumber:328,columnNumber:9},this)]},void 0,!0,{fileName:E,lineNumber:324,columnNumber:7},this),(0,x.jsxDEV)(`div`,{className:`flex flex-wrap gap-1.5`,children:t.map(e=>(0,x.jsxDEV)(`button`,{onClick:()=>r(e),className:[`px-2.5 py-1 rounded-md text-[10px] font-medium transition-all duration-150`,n===e?`bg-[#CAFF00] text-[#06060a]`:`bg-[#111118] text-[#999] hover:text-[#888] border border-[#1e1e2e]`].join(` `),style:{fontFamily:`var(--font-mono)`},children:e},e,!1,{fileName:E,lineNumber:332,columnNumber:11},this))},void 0,!1,{fileName:E,lineNumber:330,columnNumber:7},this)]},void 0,!0,{fileName:E,lineNumber:323,columnNumber:5},this)}function be({entry:e,label:t}){let p=e?.product||e||{};return(0,x.jsxDEV)(`div`,{className:`flex items-center gap-3 py-3 border-b border-[#0f0f18] last:border-0`,children:[(0,x.jsxDEV)(`img`,{src:p.image,alt:p.name,className:`w-10 h-10 rounded-lg object-cover bg-[#0d0d14] shrink-0`},void 0,!1,{fileName:E,lineNumber:354,columnNumber:7},this),(0,x.jsxDEV)(`div`,{className:`flex-1 min-w-0`,children:[(0,x.jsxDEV)(`p`,{className:`text-[#999] text-[10px] font-medium tracking-widest uppercase`,style:{fontFamily:`var(--font-mono)`},children:t},void 0,!1,{fileName:E,lineNumber:356,columnNumber:9},this),(0,x.jsxDEV)(`p`,{className:`text-white text-sm font-semibold truncate`,style:{fontFamily:`var(--font-display)`},children:p.name},void 0,!1,{fileName:E,lineNumber:357,columnNumber:9},this)]},void 0,!0,{fileName:E,lineNumber:355,columnNumber:7},this),(0,x.jsxDEV)(`span`,{className:`text-white font-bold text-sm shrink-0`,style:{fontFamily:`var(--font-mono)`},children:[`$`,p.price??0]},void 0,!0,{fileName:E,lineNumber:359,columnNumber:7},this)]},void 0,!0,{fileName:E,lineNumber:353,columnNumber:5},this)}function xe({cart:e,onAdd:t,onAddOnly:n,onSkip:r}){let{appData:i}=de(),a=fe(),o=i.switchPersonas,[s,c]=(0,b.useState)(o[0]?.id??``),[l,u]=(0,b.useState)(!0),[d,f]=(0,b.useState)(!1),p=o.find(e=>e.id===s)??o[0];(0,b.useEffect)(()=>{!o.find(e=>e.id===s)&&o[0]&&c(o[0].id)},[o]);function m(e){e!==s&&(u(!1),setTimeout(()=>{c(e),u(!0)},180))}function h(){return{product:{id:p.id,name:p.switchName,subtitle:p.switchSpec,price:p.price,image:p.image,description:p.description,accent:p.accent,badge:p.badge},opts:{Profile:p.label,Sound:p.badge}}}return p?(0,x.jsxDEV)(`div`,{className:`animate-fade-up`,children:[(0,x.jsxDEV)(`div`,{className:`mb-6`,children:[(0,x.jsxDEV)(`h2`,{className:`text-3xl font-extrabold text-white tracking-tight`,style:{fontFamily:`var(--font-display)`},children:a(`switchesTitle`)},void 0,!1,{fileName:E,lineNumber:414,columnNumber:9},this),(0,x.jsxDEV)(`p`,{className:`text-[#999] text-sm mt-1`,children:a(`switchesSubtitle`)},void 0,!1,{fileName:E,lineNumber:417,columnNumber:9},this)]},void 0,!0,{fileName:E,lineNumber:413,columnNumber:7},this),(0,x.jsxDEV)(`div`,{className:`flex gap-3 mb-5 flex-wrap`,children:o.map(e=>{let t=s===e.id;return(0,x.jsxDEV)(`button`,{onClick:()=>m(e.id),className:[`relative rounded-2xl p-4 text-left transition-all duration-200 border min-w-[140px]`,t?`border-transparent`:`border-[#1a1a2a] bg-[#0d0d14] hover:border-[#2a2a3a]`].join(` `),style:t?{backgroundColor:e.accentDim,borderColor:e.accent+`60`}:{},children:[t&&(0,x.jsxDEV)(`div`,{className:`absolute inset-0 rounded-2xl opacity-20 pointer-events-none`,style:{background:`radial-gradient(circle at top left, ${e.accent}, transparent 70%)`}},void 0,!1,{fileName:E,lineNumber:435,columnNumber:17},this),(0,x.jsxDEV)(`div`,{className:`relative`,children:[(0,x.jsxDEV)(`div`,{className:`flex items-center justify-between mb-2`,children:[(0,x.jsxDEV)(`span`,{className:[`text-[9px] font-bold tracking-widest px-1.5 py-0.5 rounded-sm`,t?`text-[#06060a]`:`text-[#888] bg-[#111118]`].join(` `),style:{fontFamily:`var(--font-mono)`,backgroundColor:t?e.accent:void 0},children:e.badge},void 0,!1,{fileName:E,lineNumber:440,columnNumber:19},this),t&&(0,x.jsxDEV)(`div`,{className:`w-2 h-2 rounded-full`,style:{backgroundColor:e.accent}},void 0,!1,{fileName:E,lineNumber:444,columnNumber:30},this)]},void 0,!0,{fileName:E,lineNumber:439,columnNumber:17},this),(0,x.jsxDEV)(`p`,{className:[`leading-none`,t?`text-white`:`text-[#999]`].join(` `),style:{fontFamily:`var(--font-display)`,...getPersonaStyle(e,`label`,t?`#ffffff`:`#999999`,16,true,false)},children:e.label}),(0,x.jsxDEV)(`p`,{className:[`mt-1`,t?`text-[#888]`:`text-[#888]`].join(` `),style:{fontFamily:`var(--font-mono)`,...getPersonaStyle(e,`tagline`,`#888888`,11,false,false)},children:e.tagline})]},void 0,!0,{fileName:E,lineNumber:438,columnNumber:15},this)]},e.id,!0,{fileName:E,lineNumber:425,columnNumber:13},this)})},void 0,!1,{fileName:E,lineNumber:421,columnNumber:7},this),(0,x.jsxDEV)(`div`,{className:`grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-5 items-start`,children:[(0,x.jsxDEV)(`div`,{children:[(0,x.jsxDEV)(`div`,{className:`relative rounded-3xl overflow-hidden cursor-pointer`,style:{backgroundColor:`#0d0d14`,height:`440px`},onMouseEnter:()=>f(!0),onMouseLeave:()=>f(!1),children:[(0,x.jsxDEV)(`img`,{src:p.image,alt:p.switchName,className:`w-full h-full object-cover transition-all duration-700`,style:{opacity:l?.85:0,transform:l?`scale(1)`:`scale(1.03)`}},void 0,!1,{fileName:E,lineNumber:463,columnNumber:13},this),(0,x.jsxDEV)(`div`,{className:`absolute bottom-0 left-0 right-0 px-7 py-6 transition-opacity duration-300`,style:{background:`linear-gradient(to top, rgba(6,6,10,0.95) 0%, rgba(6,6,10,0.5) 60%, transparent 100%)`,opacity:d?0:1},children:(0,x.jsxDEV)(`div`,{className:`flex items-end justify-between`,children:[(0,x.jsxDEV)(`div`,{children:[(0,x.jsxDEV)(`div`,{className:`flex items-center gap-2 mb-1`,children:(0,x.jsxDEV)(`span`,{className:`text-[9px] font-bold tracking-widest px-1.5 py-0.5 rounded-sm text-[#06060a]`,style:{fontFamily:`var(--font-mono)`,backgroundColor:p.accent},children:p.badge},void 0,!1,{fileName:E,lineNumber:472,columnNumber:21},this)},void 0,!1,{fileName:E,lineNumber:471,columnNumber:19},this),(0,x.jsxDEV)(`h3`,{className:`leading-none`,style:{fontFamily:`var(--font-display)`,...getPersonaStyle(p,`switchName`,`#ffffff`,24,true,false)},children:p.switchName}),(0,x.jsxDEV)(`p`,{className:`mt-1`,style:{fontFamily:`var(--font-mono)`,...getPersonaStyle(p,`switchSpec`,`#999999`,12,false,false)},children:p.switchSpec})]},void 0,!0,{fileName:E,lineNumber:470,columnNumber:17},this),(0,x.jsxDEV)(`div`,{style:{fontFamily:`var(--font-mono)`,...getPersonaStyle(p,`price`,p.accent,30,true,false)},children:[`$`,p.price]})]},void 0,!0,{fileName:E,lineNumber:469,columnNumber:15},this)},void 0,!1,{fileName:E,lineNumber:467,columnNumber:13},this),(0,x.jsxDEV)(`div`,{className:`absolute inset-0 transition-opacity duration-300 flex flex-col justify-end`,style:{opacity:d?1:0,background:`linear-gradient(to top, rgba(6,6,10,0.97) 0%, rgba(6,6,10,0.75) 50%, rgba(6,6,10,0.3) 100%)`,pointerEvents:d?`auto`:`none`},children:(0,x.jsxDEV)(`div`,{className:`px-7 py-7`,children:[(0,x.jsxDEV)(`p`,{className:`leading-relaxed mb-4 max-w-lg`,style:{...getPersonaStyle(p,`description`,`#aaaaaa`,14,false,false)},children:p.description}),(0,x.jsxDEV)(`div`,{className:`flex flex-wrap gap-2 mb-6`,children:p.features.map(e=>(0,x.jsxDEV)(`span`,{className:`px-2.5 py-1 rounded-full border text-[10px] font-medium`,style:{fontFamily:`var(--font-mono)`,borderColor:p.accent+`50`,color:p.accent,backgroundColor:p.accentDim},children:e},e,!1,{fileName:E,lineNumber:493,columnNumber:21},this))},void 0,!1,{fileName:E,lineNumber:491,columnNumber:17},this),(0,x.jsxDEV)(`div`,{className:`flex items-center gap-3`,children:[(0,x.jsxDEV)(`button`,{onClick:()=>n(h()),className:`flex-1 py-3 rounded-xl font-bold text-sm text-[#06060a] transition-all duration-150 hover:brightness-110 active:scale-[0.98]`,style:{fontFamily:`var(--font-display)`,backgroundColor:p.accent},children:`Add to cart → Checkout`},void 0,!1,{fileName:E,lineNumber:500,columnNumber:19},this),(0,x.jsxDEV)(`button`,{onClick:r,className:`px-5 py-3 rounded-xl border border-[#2a2a3a] text-[#999] hover:text-[#888] hover:border-[#3a3a4a] text-sm font-semibold transition-all`,style:{fontFamily:`var(--font-display)`},children:`Skip →`},void 0,!1,{fileName:E,lineNumber:505,columnNumber:19},this)]},void 0,!0,{fileName:E,lineNumber:499,columnNumber:17},this)]},void 0,!0,{fileName:E,lineNumber:489,columnNumber:15},this)},void 0,!1,{fileName:E,lineNumber:483,columnNumber:13},this)]},void 0,!0,{fileName:E,lineNumber:461,columnNumber:11},this),(0,x.jsxDEV)(`button`,{onClick:()=>t(h()),className:`mt-3 w-full py-3.5 rounded-xl bg-[#CAFF00] text-[#06060a] font-bold text-sm hover:bg-[#d4ff00] active:scale-[0.99] transition-all`,style:{fontFamily:`var(--font-display)`},children:a(`addContinueBtn`,{name:p.switchName,next:`Keycaps`})},void 0,!1,{fileName:E,lineNumber:515,columnNumber:11},this)]},void 0,!0,{fileName:E,lineNumber:459,columnNumber:9},this),(0,x.jsxDEV)(`div`,{className:`space-y-4`,children:[(0,x.jsxDEV)(`div`,{className:`rounded-2xl p-5 border border-[#1a1a2a] transition-all duration-300`,style:{backgroundColor:`#0d0d14`},children:[...renderSidebarSpecs(p, a)]},void 0,!0,{fileName:E,lineNumber:524,columnNumber:11},this),(e.keycaps||e.cable)&&(0,x.jsxDEV)(`div`,{className:`rounded-2xl p-4 border border-[#111118] bg-[#0a0a10]`,children:[(0,x.jsxDEV)(`p`,{className:`text-[#888] text-[10px] font-semibold tracking-widest uppercase mb-3`,style:{fontFamily:`var(--font-mono)`},children:a(`buildSoFarLabel`)},void 0,!1,{fileName:E,lineNumber:546,columnNumber:15},this),e.keycaps&&(0,x.jsxDEV)(be,{entry:e.keycaps,label:`Keycaps`},void 0,!1,{fileName:E,lineNumber:547,columnNumber:32},this),e.cable&&(0,x.jsxDEV)(be,{entry:e.cable,label:`Cable`},void 0,!1,{fileName:E,lineNumber:548,columnNumber:30},this)]},void 0,!0,{fileName:E,lineNumber:545,columnNumber:13},this),renderBundleHint(a)]},void 0,!0,{fileName:E,lineNumber:523,columnNumber:9},this)]},void 0,!0,{fileName:E,lineNumber:458,columnNumber:7},this)]},void 0,!0,{fileName:E,lineNumber:412,columnNumber:5},this):null}function Se({product:e,selected:t,onSelect:n,onCustomize:r}){let i=fe();return(0,x.jsxDEV)(`div`,{className:[`group relative w-full rounded-2xl overflow-hidden transition-all duration-300`,t?`ring-2 ring-[#CAFF00] shadow-[0_0_32px_rgba(202,255,0,0.12)]`:`ring-1 ring-[#1a1a2a] hover:ring-[#2e2e44]`].join(` `),style:{backgroundColor:`#0d0d14`},children:[(0,x.jsxDEV)(`div`,{onClick:n,className:`product-card-info w-full text-left cursor-pointer block`,children:(0,x.jsxDEV)(`div`,{className:`relative h-44 overflow-hidden bg-[#0a0a12]`,children:[(0,x.jsxDEV)(`img`,{src:e.image,alt:e.name,className:`w-full h-full object-cover opacity-80 group-hover:opacity-95 group-hover:scale-[1.03] transition-all duration-500`},void 0,!1,{fileName:E,lineNumber:579,columnNumber:11},this),(0,x.jsxDEV)(`div`,{className:`absolute inset-0 bg-gradient-to-t from-[#0d0d14] via-transparent to-transparent`},void 0,!1,{fileName:E,lineNumber:581,columnNumber:11},this),e.badge&&(0,x.jsxDEV)(`div`,{className:`absolute top-3 left-3`,children:(0,x.jsxDEV)(_e,{text:e.badge},void 0,!1,{fileName:E,lineNumber:582,columnNumber:68},this)},void 0,!1,{fileName:E,lineNumber:582,columnNumber:29},this),t&&(0,x.jsxDEV)(`div`,{className:`absolute top-3 right-3 w-6 h-6 rounded-full bg-[#CAFF00] flex items-center justify-center`,children:(0,x.jsxDEV)(`span`,{className:`text-[#06060a] text-xs font-black`,children:`✓`},void 0,!1,{fileName:E,lineNumber:585,columnNumber:15},this)},void 0,!1,{fileName:E,lineNumber:584,columnNumber:13},this)]},void 0,!0,{fileName:E,lineNumber:578,columnNumber:9},this)},void 0,!1,{fileName:E,lineNumber:577,columnNumber:7},this),(0,x.jsxDEV)(`div`,{className:`p-4`,children:[(0,x.jsxDEV)(`div`,{onClick:n,className:`product-card-info w-full text-left cursor-pointer block`,children:[(0,x.jsxDEV)(`div`,{className:`flex items-start justify-between gap-2`,children:[(0,x.jsxDEV)(`div`,{children:[(0,x.jsxDEV)(`h3`,{className:`text-white font-bold text-base leading-tight`,style:{fontFamily:`var(--font-display)`},children:e.name},void 0,!1,{fileName:E,lineNumber:594,columnNumber:15},this),(0,x.jsxDEV)(`p`,{className:`text-[#999] text-xs mt-0.5`,style:{fontFamily:`var(--font-mono)`},children:e.subtitle},void 0,!1,{fileName:E,lineNumber:595,columnNumber:15},this)]},void 0,!0,{fileName:E,lineNumber:593,columnNumber:13},this),(0,x.jsxDEV)(`div`,{className:`text-[#CAFF00] font-bold text-lg shrink-0`,style:{fontFamily:`var(--font-mono)`},children:[`$`,e.price]},void 0,!0,{fileName:E,lineNumber:597,columnNumber:13},this)]},void 0,!0,{fileName:E,lineNumber:592,columnNumber:11},this),(0,x.jsxDEV)(`p`,{className:`text-[#999] text-xs leading-relaxed mt-2.5 line-clamp-2`,children:e.description},void 0,!1,{fileName:E,lineNumber:599,columnNumber:11},this)]},void 0,!0,{fileName:E,lineNumber:591,columnNumber:9},this),r&&(0,x.jsxDEV)(`button`,{onClick:r,className:`mt-3 w-full flex items-center justify-center gap-1.5 py-2 rounded-lg border border-dashed border-[#2a2a3e] text-[#999] hover:text-[#CAFF00] hover:border-[#CAFF00]/40 transition-all duration-200 group/cust`,children:[(0,x.jsxDEV)(`svg`,{width:`12`,height:`12`,viewBox:`0 0 12 12`,fill:`none`,className:`opacity-60 group-hover/cust:opacity-100 transition-opacity`,children:(0,x.jsxDEV)(`path`,{d:`M8.5 1.5a1.414 1.414 0 0 1 2 2L4 10H2v-2L8.5 1.5Z`,stroke:`currentColor`,strokeWidth:`1.2`,strokeLinecap:`round`,strokeLinejoin:`round`},void 0,!1,{fileName:E,lineNumber:605,columnNumber:15},this)},void 0,!1,{fileName:E,lineNumber:604,columnNumber:13},this),(0,x.jsxDEV)(`span`,{className:`text-[10px] font-semibold tracking-widest uppercase`,style:{fontFamily:`var(--font-mono)`},children:i(`customizeBtn`)},void 0,!1,{fileName:E,lineNumber:607,columnNumber:13},this)]},void 0,!0,{fileName:E,lineNumber:602,columnNumber:11},this)]},void 0,!0,{fileName:E,lineNumber:590,columnNumber:7},this)]},void 0,!0,{fileName:E,lineNumber:574,columnNumber:5},this)}function Ce({stepId:e,products:t,stepLabel:n,nextLabel:r,cart:i,onAdd:a,onAddOnly:o,onSkip:s,onCustomizeProduct:cstm}){
+},void 0,!0,{fileName:S,lineNumber:624,columnNumber:30},this),d&&(0,x.jsxDEV)(`span`,{className:`text-[#f59e0b] text-xs font-medium animate-fade-up`,style:{fontFamily:`var(--font-mono)`},children:`✓ Version saved`},void 0,!1,{fileName:S,lineNumber:625,columnNumber:13},this),s?(0,x.jsxDEV)(`div`,{className:`flex items-center gap-2`,children:[(0,x.jsxDEV)(`input`,{ref:p,autoFocus:!0,value:l,onChange:e=>u(e.target.value),onKeyDown:e=>{e.key===`Enter`&&g(),e.key===`Escape`&&c(!1)},placeholder:`Version ${n.length+1}`,className:`px-3 py-1.5 rounded-lg text-sm text-white placeholder-[#444] border border-[#f59e0b]/40 outline-none focus:border-[#f59e0b]/70 bg-[#0c0c14]`,style:{width:`200px`,fontFamily:`var(--font-display)`}},void 0,!1,{fileName:S,lineNumber:631,columnNumber:15},this),(0,x.jsxDEV)(`button`,{onClick:g,className:`px-3.5 py-1.5 rounded-lg bg-[#f59e0b] text-[#06060a] font-bold text-xs hover:bg-[#fbbf24] transition-all`,style:{fontFamily:`var(--font-display)`},children:`Save`},void 0,!1,{fileName:S,lineNumber:641,columnNumber:15},this),(0,x.jsxDEV)(`button`,{onClick:()=>c(!1),className:`px-3 py-1.5 rounded-lg border border-[#1a1a28] text-[#999] hover:text-white transition-all text-xs`,style:{fontFamily:`var(--font-mono)`},children:`✕`},void 0,!1,{fileName:S,lineNumber:646,columnNumber:15},this)]},void 0,!0,{fileName:S,lineNumber:630,columnNumber:13},this):(0,x.jsxDEV)(`button`,{onClick:()=>{c(!0),setTimeout(()=>p.current?.focus(),50)},className:`flex items-center gap-2 px-4 py-2 rounded-lg bg-[#f59e0b] text-[#06060a] font-bold text-xs hover:bg-[#fbbf24] transition-all`,style:{fontFamily:`var(--font-display)`},children:[(0,x.jsxDEV)(`svg`,{width:`12`,height:`12`,viewBox:`0 0 12 12`,fill:`none`,children:[(0,x.jsxDEV)(`rect`,{x:`1`,y:`1`,width:`10`,height:`10`,rx:`1.5`,stroke:`currentColor`,strokeWidth:`1.2`},void 0,!1,{fileName:S,lineNumber:657,columnNumber:17},this),(0,x.jsxDEV)(`path`,{d:`M3.5 7.5 6 10l2.5-2.5M6 3v7`,stroke:`currentColor`,strokeWidth:`1.2`,strokeLinecap:`round`,strokeLinejoin:`round`},void 0,!1,{fileName:S,lineNumber:658,columnNumber:17},this)]},void 0,!0,{fileName:S,lineNumber:656,columnNumber:15},this),`Save Version`]},void 0,!0,{fileName:S,lineNumber:653,columnNumber:13},this)]},void 0,!0,{fileName:S,lineNumber:623,columnNumber:9},this)]},void 0,!0,{fileName:S,lineNumber:599,columnNumber:7},this),(0,x.jsxDEV)(`div`,{className:`flex flex-1 min-h-0`,children:[(0,x.jsxDEV)(`nav`,{className:`w-52 shrink-0 border-r border-[#0f0f18] py-6 px-3`,style:{backgroundColor:`#080810`},children:h.map(e=>(0,x.jsxDEV)(`div`,{className:`mb-5`,children:[(0,x.jsxDEV)(`p`,{className:`text-[#888] text-[9px] font-bold tracking-widest uppercase px-3 mb-2`,style:{fontFamily:`var(--font-mono)`},children:e},void 0,!1,{fileName:S,lineNumber:672,columnNumber:15},this),m.filter(t=>t.group===e).map(e=>(0,x.jsxDEV)(`button`,{onClick:()=>{o(e.id);window.history.pushState(null,'','/admin/'+e.id);},className:[`w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-all mb-0.5`,a===e.id?`bg-[#f59e0b]/10 text-[#f59e0b] border border-[#f59e0b]/20`:`text-[#999] hover:text-[#888] hover:bg-[#0c0c14] border border-transparent`].join(` `),style:{fontFamily:`var(--font-display)`},children:[e.label,e.id===`versions`&&n.length>0&&(0,x.jsxDEV)(`span`,{className:`ml-auto float-right text-[10px] px-1.5 py-0.5 rounded bg-[#f59e0b]/20 text-[#f59e0b]`,style:{fontFamily:`var(--font-mono)`},children:n.length},void 0,!1,{fileName:S,lineNumber:687,columnNumber:21},this)]},e.id,!0,{fileName:S,lineNumber:677,columnNumber:17},this))]},e,!0,{fileName:S,lineNumber:671,columnNumber:13},this))},void 0,!1,{fileName:S,lineNumber:669,columnNumber:9},this),(0,x.jsxDEV)(`main`,{className:`flex-1 overflow-y-auto p-8`,children:[(0,x.jsxDEV)(`div`,{className:`mb-6 flex items-center justify-between`,children:(0,x.jsxDEV)(`div`,{children:[(0,x.jsxDEV)(`h1`,{className:`text-2xl font-extrabold text-white tracking-tight`,style:{fontFamily:`var(--font-display)`},children:{personas:`Switch Personas`,keycaps:`Keycap Sets`,cables:`Cable Options`,translations:`Translations`,versions:`Version History`,'3d-settings':`3D Setting`}[a]},void 0,!1,{fileName:S,lineNumber:702,columnNumber:15},this),(0,x.jsxDEV)(`p`,{className:`text-[#888] text-xs mt-1`,style:{fontFamily:`var(--font-mono)`},children:[a===`personas`&&`Edit or add switch persona option cards shown in Step 1`,a===`keycaps`&&`Edit or add keycap product cards shown in Step 2`,a===`cables`&&`Edit or add cable product cards shown in Step 3`,a===`translations`&&`Edit all static UI text — changes reflect immediately in the storefront`,a===`sidebar-specs`&&`Customize Sidebar Specs (Type, Actuation, Travel, Housing), Bundle Hint text and font colors, sizes, bold, italic with icons`,a===`versions`&&`Save snapshots of the current storefront state and restore previous versions`,a===`3d-settings`&&`Configure 3D rendering lighting, GMK & SA color presets, and model transforms`]},void 0,!0,{fileName:S,lineNumber:705,columnNumber:15},this)]},void 0,!0,{fileName:S,lineNumber:701,columnNumber:13},this)},void 0,!1,{fileName:S,lineNumber:700,columnNumber:11},this),(0,x.jsxDEV)(`div`,{style:{minHeight:`400px`},children:[a===`personas`&&(0,x.jsxDEV)(ae,{},void 0,!1,{fileName:S,lineNumber:716,columnNumber:40},this),a===`keycaps`&&(0,x.jsxDEV)(w,{type:`keycaps`},void 0,!1,{fileName:S,lineNumber:717,columnNumber:39},this),a===`cables`&&(0,x.jsxDEV)(w,{type:`cables`},void 0,!1,{fileName:S,lineNumber:718,columnNumber:38},this),a===`translations`&&(0,x.jsxDEV)(se,{},void 0,!1,{fileName:S,lineNumber:719,columnNumber:44},this),a===`sidebar-specs`&&(0,x.jsxDEV)(SidebarSpecsStylingPanel,{},void 0,!1,{},this),a===`versions`&&(0,x.jsxDEV)(T,{},void 0,!1,{fileName:S,lineNumber:720,columnNumber:40},this),a===`3d-settings`&&(0,x.jsxDEV)(Settings3DPanel,{},void 0,!1,{fileName:S,lineNumber:721,columnNumber:40},this)]},void 0,!0,{fileName:S,lineNumber:715,columnNumber:11},this)]},void 0,!0,{fileName:S,lineNumber:699,columnNumber:9},this)]},void 0,!0,{fileName:S,lineNumber:667,columnNumber:7},this)]},void 0,!0,{fileName:S,lineNumber:597,columnNumber:5},this)}var E=`/workspaces/.cached-preview/src/App.tsx`,le={switchPersonas:[{id:`office`,label:`Office`,tagline:`Silent & Focused`,switchName:`Gateron Silent Pink`,switchSpec:`Linear · 45g · Ultra-quiet`,badge:`SILENT`,price:45,description:`Engineered for open offices and focused deep work. Near-zero operating noise with a factory-dampened stem and pre-lubed bore. Long typing sessions feel effortless at 45g.`,features:[`45g actuation`,`Dampened stem`,`Pre-lubed`,`SMD LED compat.`],image:`/uploads/switch_office.jpg`,accent:`#60a5fa`,accentDim:`rgba(96,165,250,0.15)`},{id:`gamer`,label:`Gamer`,tagline:`Speed & Precision`,switchName:`Gateron Yellow Pro`,switchSpec:`Linear · 35g · 1.0mm pre-travel`,badge:`FAST`,price:45,description:`Lowest pre-travel actuation in its class. Factory-lubed linear motion eliminates any scratch. Built for competitive play where every millisecond of input lag matters.`,features:[`35g actuation`,`1.0mm pre-travel`,`Factory lubed`,`N-key rollover`],image:`/uploads/switch_gamer.jpg`,accent:`#f87171`,accentDim:`rgba(248,113,113,0.15)`},{id:`typist`,label:`Typist`,tagline:`Sound & Thock`,switchName:`Holy Panda X`,switchSpec:`Tactile · 67g · Thocky bump`,badge:`THOCK`,price:65,description:`The sound profile that sparked a thousand ASMR videos. A defined tactile bump at 2.0mm delivers auditory and physical confirmation of every keystroke.`,features:[`67g actuation`,`Rounded tactile bump`,`Long-pole stem`,`Thocky resonance`],image:`/uploads/switch_typist.jpg`,accent:`#a78bfa`,accentDim:`rgba(167,139,250,0.15)`},{id:`designer`,label:`Designer`,tagline:`Feedback & Flow`,switchName:`Boba U4T`,switchSpec:`Tactile · 62g · Fast + Feedback`,badge:`PRECISE`,price:55,description:`Sharp tactile bump that never interrupts flow state. Cerakote-coated housing creates a refined, muted sound signature — clean feedback without the drama.`,features:[`62g actuation`,`Sharp tactile bump`,`Cerakote housing`,`Muted sound sig.`],image:`/uploads/switch_designer.jpg`,accent:`#34d399`,accentDim:`rgba(52,211,153,0.15)`}],keycaps:[{id:`arctic-white`,name:`Arctic White`,subtitle:`PBT Double-shot · Cherry Profile`,price:89,image:`/uploads/keycap_arctic_white.jpg`,badge:`BESTSELLER`,description:`Ultra-clean legends with zero shine-through. PBT texture that only improves with age.`,accent:`#e8e8e8`},{id:`midnight-void`,name:`Midnight Void`,subtitle:`ABS · Laser-engraved · SA Profile`,price:79,image:`/uploads/cable_void_braided.jpg`,description:`Stealth matte finish with barely-there legends. For setups that prefer to disappear.`,accent:`#4a4a6a`},{id:`forest-sage`,name:`Forest Sage`,subtitle:`PBT Dye-sublimated · SA Profile`,price:95,image:`/uploads/keycap_forest_sage.jpg`,badge:`NEW`,description:`Muted earth tones with botanical-inspired colorway. Pairs beautifully with brass and walnut.`,accent:`#3d6b38`},{id:`neon-pulse`,name:`Neon Pulse`,subtitle:`ABS · Double-shot · OEM Profile`,price:85,image:`/uploads/keycap_neon_pulse.jpg`,description:`High-contrast RGB-transparent legends. Engineered for backlit builds that demand attention.`,accent:`#e84393`}],cables:[{id:`cosmos-coil`,name:`Cosmos Coil`,subtitle:`Coiled · Paracord Sleeved · USB-C`,price:55,image:`/uploads/cable_cosmos_coil.jpg`,badge:`ARTISAN`,description:`Hand-built coiled cable with custom GX16 aviator connector and milled brass barrel ends.`,accent:`#CAFF00`},{id:`void-braided`,name:`Void Braided`,subtitle:`Straight · Techflex · USB-C to USB-A`,price:28,image:`/uploads/cable_void_braided.jpg`,description:`No-frills quality. 1.8m techflex braid, triple-shielded core, zero cable drag.`,accent:`#6b7280`},{id:`aurora-coil`,name:`Aurora Coil`,subtitle:`Coiled · Transparent Sleeving · USB-C`,price:48,image:`/uploads/cable_aurora_coil.jpg`,badge:`NEW`,description:`Crystal-clear sleeving reveals the internal helix. Pairs with any keycap colorway seamlessly.`,accent:`#a5f3fc`}],translations:{brandName:`Keyhaus`,brandSubtitle:`Build Studio`,switchesTitle:`Choose your switches`,switchesSubtitle:`Four archetypes. Pick the one that fits how you work.`,keycapsTitle:`Choose your keycaps`,keycapsSubtitle:`Select one to customize and add to your build.`,cableTitle:`Choose your cable`,cableSubtitle:`Select one to customize and add to your build.`,bundleHintText:`Complete the full build and save 15% on your entire order.`,summaryTitle:`Your Build`,bundleDiscountTitle:`15% Bundle Discount Applied`,checkoutBtn:`Proceed to Checkout →`,startOverBtn:`Start Over`,addContinueBtn:`Add {name} + Continue to {next} →`,addOnlyBtn:`Add {item} only, exit flow`,skipBtn:`Skip {item}, continue without →`,customizeBtn:`Customize Design`,switchSpecsLabel:`Switch specs`,buildSoFarLabel:`Your build so far`,adminBtn:`Admin`}},ue=(0,b.createContext)(null);function de(){return(0,b.useContext)(ue)}function fe(){let{appData:e}=de();return(t,n)=>{let r=e.translations[t]??t;if(n)for(let[e,t]of Object.entries(n))r=r.replaceAll(`{${e}}`,t);return r}}var pe={keycaps:{Profile:[`Cherry`,`SA`,`OEM`,`XDA`,`MT3`],Material:[`PBT`,`ABS`],"Legend Style":[`Double-shot`,`Dye-sub`,`Laser-engraved`],Shine:[`Standard`,`Matte Coat`,`Glossy Coat`]},cable:{Connector:[`USB-C to USB-C`,`USB-C to USB-A`,`USB-C to USB-B Mini`],Length:[`0.8m`,`1.2m`,`1.5m`,`2.0m`],"Color Sleeve":[`Stock Color`,`Black`,`White`,`Custom (+$12)`],"Aviator Connector":[`None`,`GX16 Silver`,`GX16 Gold`,`GX16 Black`]}},me=.15;function he(e){return((e.keycaps?.product?.price??e.keycaps?.price??0)+(e.switches?.product?.price??e.switches?.price??0)+(Array.isArray(e.cables)&&e.cables.length>0?e.cables.reduce((s,it)=>s+(it?.product?.price??it?.price??0),0):(e.cable?.product?.price??e.cable?.price??0)))}function ge(e){let t={};for(let[n,r]of Object.entries(pe[e]??{}))t[n]=r[0];return t}function _e({text:e}){return(0,x.jsxDEV)(`span`,{className:`px-1.5 py-0.5 rounded-sm bg-[#CAFF00] text-[#06060a] font-semibold tracking-widest`,style:{fontFamily:`var(--font-mono)`,fontSize:`9px`},children:e},void 0,!1,{fileName:E,lineNumber:229,columnNumber:5},this)}function ve({current:e,cart:t,onStepClick:n}){let r=[`switches`,`keycaps`,`cable`,`summary`],i=r.indexOf(e),a=e=>e===`switches`?!!t.switches:e===`keycaps`?!!t.keycaps:e===`cable`?!!t.cable:!1,o=[{id:`switches`,label:a(`stepperSwitches`)||`Switches`,num:1},{id:`keycaps`,label:a(`stepperKeycaps`)||`Keycaps`,num:2},{id:`cable`,label:a(`stepperCable`)||`Cable`,num:3},{id:`summary`,label:a(`stepperSummary`)||`Summary`,num:4}];return(0,x.jsxDEV)(`div`,{className:`flex items-center`,children:o.map((t,s)=>{let c=r.indexOf(t.id),l=c<i,u=t.id===e,d=a(t.id);return(0,x.jsxDEV)(`div`,{className:`flex items-center`,children:[(0,x.jsxDEV)(`button`,{onClick:()=>n(t.id),className:`flex items-center gap-2.5 group/step cursor-pointer px-3.5 py-1.5 rounded-full transition-all border border-transparent`,children:[(0,x.jsxDEV)(`div`,{className:[`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-300`,u?`bg-[#CAFF00] text-[#06060a] ring-4 ring-[#CAFF00]/20 shadow-[0_0_12px_rgba(202,255,0,0.35)]`:d?`border-2 border-[#CAFF00] text-[#CAFF00] bg-[#CAFF00]/10`:`bg-[#1e1e2e] group-hover/step:bg-[#2a2a3e]`].join(` `),style:{fontFamily:`var(--font-mono)`,fontSize:`11px`,color:u?`#06060a`:d?`#CAFF00`:`#999999`},children:d&&!u?`✓`:t.num},void 0,!1,{fileName:E,lineNumber:274,columnNumber:15},this),(0,x.jsxDEV)(`span`,{className:[`text-sm font-semibold transition-colors`,u?`text-white`:`hover:text-white`].join(` `),style:{fontFamily:`var(--font-display)`,color:u?`#ffffff`:`#999999`},children:t.label},void 0,!1,{fileName:E,lineNumber:289,columnNumber:15},this)]},void 0,!0,{fileName:E,lineNumber:270,columnNumber:13},this),s<o.length-1&&(0,x.jsxDEV)(`div`,{className:`mx-3`,children:(0,x.jsxDEV)(`div`,{className:[`h-px w-12 transition-all duration-500`,c<i?`bg-[#CAFF00]/40`:`bg-[#1a1a2a]`].join(` `)},void 0,!1,{fileName:E,lineNumber:301,columnNumber:17},this)},void 0,!1,{fileName:E,lineNumber:300,columnNumber:15},this)]},t.id,!0,{fileName:E,lineNumber:269,columnNumber:11},this)})},void 0,!1,{fileName:E,lineNumber:261,columnNumber:5},this)}function ye({label:e,values:t,selected:n,onChange:r}){return(0,x.jsxDEV)(`div`,{children:[(0,x.jsxDEV)(`div`,{className:`flex items-center justify-between mb-2`,children:[(0,x.jsxDEV)(`span`,{className:`text-[#999] text-[10px] font-medium tracking-widest uppercase`,style:{fontFamily:`var(--font-mono)`},children:e},void 0,!1,{fileName:E,lineNumber:325,columnNumber:9},this),(0,x.jsxDEV)(`span`,{className:`text-[#CAFF00] text-[11px]`,style:{fontFamily:`var(--font-mono)`},children:n},void 0,!1,{fileName:E,lineNumber:328,columnNumber:9},this)]},void 0,!0,{fileName:E,lineNumber:324,columnNumber:7},this),(0,x.jsxDEV)(`div`,{className:`flex flex-wrap gap-1.5`,children:t.map(e=>(0,x.jsxDEV)(`button`,{onClick:()=>r(e),className:[`px-2.5 py-1 rounded-md text-[10px] font-medium transition-all duration-150`,n===e?`bg-[#CAFF00] text-[#06060a]`:`bg-[#111118] text-[#999] hover:text-[#888] border border-[#1e1e2e]`].join(` `),style:{fontFamily:`var(--font-mono)`},children:e},e,!1,{fileName:E,lineNumber:332,columnNumber:11},this))},void 0,!1,{fileName:E,lineNumber:330,columnNumber:7},this)]},void 0,!0,{fileName:E,lineNumber:323,columnNumber:5},this)}function be({entry:e,label:t}){let p=e?.product||e||{};return(0,x.jsxDEV)(`div`,{className:`flex items-center gap-3 py-3 border-b border-[#0f0f18] last:border-0`,children:[(0,x.jsxDEV)(`img`,{src:p.image,alt:p.name,className:`w-10 h-10 rounded-lg object-cover bg-[#0d0d14] shrink-0`},void 0,!1,{fileName:E,lineNumber:354,columnNumber:7},this),(0,x.jsxDEV)(`div`,{className:`flex-1 min-w-0`,children:[(0,x.jsxDEV)(`p`,{className:`text-[#999] text-[10px] font-medium tracking-widest uppercase`,style:{fontFamily:`var(--font-mono)`},children:t},void 0,!1,{fileName:E,lineNumber:356,columnNumber:9},this),(0,x.jsxDEV)(`p`,{className:`text-white text-sm font-semibold truncate`,style:{fontFamily:`var(--font-display)`},children:p.name},void 0,!1,{fileName:E,lineNumber:357,columnNumber:9},this)]},void 0,!0,{fileName:E,lineNumber:355,columnNumber:7},this),(0,x.jsxDEV)(`span`,{className:`text-white font-bold text-sm shrink-0`,style:{fontFamily:`var(--font-mono)`},children:[`$`,p.price??0]},void 0,!0,{fileName:E,lineNumber:359,columnNumber:7},this)]},void 0,!0,{fileName:E,lineNumber:353,columnNumber:5},this)}function xe({cart:e,onAdd:t,onAddOnly:n,onSkip:r}){let{appData:i}=de(),a=fe(),o=i.switchPersonas,[s,c]=(0,b.useState)(o[0]?.id??``),[l,u]=(0,b.useState)(!0),[d,f]=(0,b.useState)(!1),p=o.find(e=>e.id===s)??o[0];(0,b.useEffect)(()=>{!o.find(e=>e.id===s)&&o[0]&&c(o[0].id)},[o]);function m(e){e!==s&&(u(!1),setTimeout(()=>{c(e),u(!0)},180))}function h(){return{product:{id:p.id,name:p.switchName,subtitle:p.switchSpec,price:p.price,image:p.image,description:p.description,accent:p.accent,badge:p.badge},opts:{Profile:p.label,Sound:p.badge}}}return p?(0,x.jsxDEV)(`div`,{className:`animate-fade-up`,children:[(0,x.jsxDEV)(`div`,{className:`mb-6`,children:[(0,x.jsxDEV)(`h2`,{className:`text-3xl font-extrabold text-white tracking-tight`,style:{fontFamily:`var(--font-display)`},children:a(`switchesTitle`)},void 0,!1,{fileName:E,lineNumber:414,columnNumber:9},this),(0,x.jsxDEV)(`p`,{className:`text-[#999] text-sm mt-1`,children:a(`switchesSubtitle`)},void 0,!1,{fileName:E,lineNumber:417,columnNumber:9},this)]},void 0,!0,{fileName:E,lineNumber:413,columnNumber:7},this),(0,x.jsxDEV)(`div`,{className:`flex gap-3 mb-5 flex-wrap`,children:o.map(e=>{let t=s===e.id;return(0,x.jsxDEV)(`button`,{onClick:()=>m(e.id),className:[`relative rounded-2xl p-4 text-left transition-all duration-200 border min-w-[140px]`,t?`border-transparent`:`border-[#1a1a2a] bg-[#0d0d14] hover:border-[#2a2a3a]`].join(` `),style:t?{backgroundColor:e.accentDim,borderColor:e.accent+`60`}:{},children:[t&&(0,x.jsxDEV)(`div`,{className:`absolute inset-0 rounded-2xl opacity-20 pointer-events-none`,style:{background:`radial-gradient(circle at top left, ${e.accent}, transparent 70%)`}},void 0,!1,{fileName:E,lineNumber:435,columnNumber:17},this),(0,x.jsxDEV)(`div`,{className:`relative`,children:[(0,x.jsxDEV)(`div`,{className:`flex items-center justify-between mb-2`,children:[(0,x.jsxDEV)(`span`,{className:[`text-[9px] font-bold tracking-widest px-1.5 py-0.5 rounded-sm`,t?`text-[#06060a]`:`text-[#888] bg-[#111118]`].join(` `),style:{fontFamily:`var(--font-mono)`,backgroundColor:t?e.accent:void 0},children:e.badge},void 0,!1,{fileName:E,lineNumber:440,columnNumber:19},this),t&&(0,x.jsxDEV)(`div`,{className:`w-2 h-2 rounded-full`,style:{backgroundColor:e.accent}},void 0,!1,{fileName:E,lineNumber:444,columnNumber:30},this)]},void 0,!0,{fileName:E,lineNumber:439,columnNumber:17},this),(0,x.jsxDEV)(`p`,{className:[`leading-none`,t?`text-white`:`text-[#999]`].join(` `),style:{fontFamily:`var(--font-display)`,...getPersonaStyle(e,`label`,t?`#ffffff`:`#999999`,16,true,false)},children:e.label}),(0,x.jsxDEV)(`p`,{className:[`mt-1`,t?`text-[#888]`:`text-[#888]`].join(` `),style:{fontFamily:`var(--font-mono)`,...getPersonaStyle(e,`tagline`,`#888888`,11,false,false)},children:e.tagline})]},void 0,!0,{fileName:E,lineNumber:438,columnNumber:15},this)]},e.id,!0,{fileName:E,lineNumber:425,columnNumber:13},this)})},void 0,!1,{fileName:E,lineNumber:421,columnNumber:7},this),(0,x.jsxDEV)(`div`,{className:`grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-5 items-start`,children:[(0,x.jsxDEV)(`div`,{children:[(0,x.jsxDEV)(`div`,{className:`relative rounded-3xl overflow-hidden cursor-pointer`,style:{backgroundColor:`#0d0d14`,height:`440px`},onMouseEnter:()=>f(!0),onMouseLeave:()=>f(!1),children:[(0,x.jsxDEV)(`img`,{src:p.image,alt:p.switchName,className:`w-full h-full object-cover transition-all duration-700`,style:{opacity:l?.85:0,transform:l?`scale(1)`:`scale(1.03)`}},void 0,!1,{fileName:E,lineNumber:463,columnNumber:13},this),(0,x.jsxDEV)(`div`,{className:`absolute bottom-0 left-0 right-0 px-7 py-6 transition-opacity duration-300`,style:{background:`linear-gradient(to top, rgba(6,6,10,0.95) 0%, rgba(6,6,10,0.5) 60%, transparent 100%)`,opacity:d?0:1},children:(0,x.jsxDEV)(`div`,{className:`flex items-end justify-between`,children:[(0,x.jsxDEV)(`div`,{children:[(0,x.jsxDEV)(`div`,{className:`flex items-center gap-2 mb-1`,children:(0,x.jsxDEV)(`span`,{className:`text-[9px] font-bold tracking-widest px-1.5 py-0.5 rounded-sm text-[#06060a]`,style:{fontFamily:`var(--font-mono)`,backgroundColor:p.accent},children:p.badge},void 0,!1,{fileName:E,lineNumber:472,columnNumber:21},this)},void 0,!1,{fileName:E,lineNumber:471,columnNumber:19},this),(0,x.jsxDEV)(`h3`,{className:`leading-none`,style:{fontFamily:`var(--font-display)`,...getPersonaStyle(p,`switchName`,`#ffffff`,24,true,false)},children:p.switchName}),(0,x.jsxDEV)(`p`,{className:`mt-1`,style:{fontFamily:`var(--font-mono)`,...getPersonaStyle(p,`switchSpec`,`#999999`,12,false,false)},children:p.switchSpec})]},void 0,!0,{fileName:E,lineNumber:470,columnNumber:17},this),(0,x.jsxDEV)(`div`,{style:{fontFamily:`var(--font-mono)`,...getPersonaStyle(p,`price`,p.accent,30,true,false)},children:[`$`,p.price]})]},void 0,!0,{fileName:E,lineNumber:469,columnNumber:15},this)},void 0,!1,{fileName:E,lineNumber:467,columnNumber:13},this),(0,x.jsxDEV)(`div`,{className:`absolute inset-0 transition-opacity duration-300 flex flex-col justify-end`,style:{opacity:d?1:0,background:`linear-gradient(to top, rgba(6,6,10,0.97) 0%, rgba(6,6,10,0.75) 50%, rgba(6,6,10,0.3) 100%)`,pointerEvents:d?`auto`:`none`},children:(0,x.jsxDEV)(`div`,{className:`px-7 py-7`,children:[(0,x.jsxDEV)(`p`,{className:`leading-relaxed mb-4 max-w-lg`,style:{...getPersonaStyle(p,`description`,`#aaaaaa`,14,false,false)},children:p.description}),(0,x.jsxDEV)(`div`,{className:`flex flex-wrap gap-2 mb-6`,children:p.features.map(e=>(0,x.jsxDEV)(`span`,{className:`px-2.5 py-1 rounded-full border text-[10px] font-medium`,style:{fontFamily:`var(--font-mono)`,borderColor:p.accent+`50`,color:p.accent,backgroundColor:p.accentDim},children:e},e,!1,{fileName:E,lineNumber:493,columnNumber:21},this))},void 0,!1,{fileName:E,lineNumber:491,columnNumber:17},this),(0,x.jsxDEV)(`div`,{className:`flex items-center gap-3`,children:[(0,x.jsxDEV)(`button`,{onClick:()=>n(h()),className:`flex-1 py-3 rounded-xl font-bold text-sm text-[#06060a] transition-all duration-150 hover:brightness-110 active:scale-[0.98]`,style:{fontFamily:`var(--font-display)`,backgroundColor:p.accent},children:`Add to cart → Checkout`},void 0,!1,{fileName:E,lineNumber:500,columnNumber:19},this),(0,x.jsxDEV)(`button`,{onClick:r,className:`px-5 py-3 rounded-xl border border-[#2a2a3a] text-[#999] hover:text-[#888] hover:border-[#3a3a4a] text-sm font-semibold transition-all`,style:{fontFamily:`var(--font-display)`},children:`Skip →`},void 0,!1,{fileName:E,lineNumber:505,columnNumber:19},this)]},void 0,!0,{fileName:E,lineNumber:499,columnNumber:17},this)]},void 0,!0,{fileName:E,lineNumber:489,columnNumber:15},this)},void 0,!1,{fileName:E,lineNumber:483,columnNumber:13},this)]},void 0,!0,{fileName:E,lineNumber:461,columnNumber:11},this),(0,x.jsxDEV)(`button`,{onClick:()=>t(h()),className:`mt-3 w-full py-3.5 rounded-xl bg-[#CAFF00] text-[#06060a] font-bold text-sm hover:bg-[#d4ff00] active:scale-[0.99] transition-all`,style:{fontFamily:`var(--font-display)`},children:a(`addContinueBtn`,{name:p.switchName,next:`Keycaps`})},void 0,!1,{fileName:E,lineNumber:515,columnNumber:11},this)]},void 0,!0,{fileName:E,lineNumber:459,columnNumber:9},this),(0,x.jsxDEV)(`div`,{className:`space-y-4`,children:[(0,x.jsxDEV)(`div`,{className:`rounded-2xl p-5 border border-[#1a1a2a] transition-all duration-300`,style:{backgroundColor:`#0d0d14`},children:[...renderSidebarSpecs(p, a)]},void 0,!0,{fileName:E,lineNumber:524,columnNumber:11},this),(e.keycaps||e.cable)&&(0,x.jsxDEV)(`div`,{className:`rounded-2xl p-4 border border-[#111118] bg-[#0a0a10]`,children:[(0,x.jsxDEV)(`p`,{className:`text-[#888] text-[10px] font-semibold tracking-widest uppercase mb-3`,style:{fontFamily:`var(--font-mono)`},children:a(`buildSoFarLabel`)},void 0,!1,{fileName:E,lineNumber:546,columnNumber:15},this),e.keycaps&&(0,x.jsxDEV)(be,{entry:e.keycaps,label:`Keycaps`},void 0,!1,{fileName:E,lineNumber:547,columnNumber:32},this),e.cable&&(0,x.jsxDEV)(be,{entry:e.cable,label:`Cable`},void 0,!1,{fileName:E,lineNumber:548,columnNumber:30},this)]},void 0,!0,{fileName:E,lineNumber:545,columnNumber:13},this),renderBundleHint(a)]},void 0,!0,{fileName:E,lineNumber:523,columnNumber:9},this)]},void 0,!0,{fileName:E,lineNumber:458,columnNumber:7},this)]},void 0,!0,{fileName:E,lineNumber:412,columnNumber:5},this):null}function Se({product:e,selected:t,onSelect:n,onCustomize:r}){let i=fe();return(0,x.jsxDEV)(`div`,{className:[`group relative w-full rounded-2xl overflow-hidden transition-all duration-300`,t?`ring-2 ring-[#CAFF00] shadow-[0_0_32px_rgba(202,255,0,0.12)]`:`ring-1 ring-[#1a1a2a] hover:ring-[#2e2e44]`].join(` `),style:{backgroundColor:`#0d0d14`},children:[(0,x.jsxDEV)(`div`,{onClick:n,className:`product-card-info w-full text-left cursor-pointer block`,children:(0,x.jsxDEV)(`div`,{className:`relative h-44 overflow-hidden bg-[#0a0a12]`,children:[(0,x.jsxDEV)(`img`,{src:e.image,alt:e.name,className:`w-full h-full object-cover opacity-80 group-hover:opacity-95 group-hover:scale-[1.03] transition-all duration-500`},void 0,!1,{fileName:E,lineNumber:579,columnNumber:11},this),(0,x.jsxDEV)(`div`,{className:`absolute inset-0 bg-gradient-to-t from-[#0d0d14] via-transparent to-transparent`},void 0,!1,{fileName:E,lineNumber:581,columnNumber:11},this),e.badge&&(0,x.jsxDEV)(`div`,{className:`absolute top-3 left-3`,children:(0,x.jsxDEV)(_e,{text:e.badge},void 0,!1,{fileName:E,lineNumber:582,columnNumber:68},this)},void 0,!1,{fileName:E,lineNumber:582,columnNumber:29},this),t&&(0,x.jsxDEV)(`div`,{className:`absolute top-3 right-3 w-6 h-6 rounded-full bg-[#CAFF00] flex items-center justify-center`,children:(0,x.jsxDEV)(`span`,{className:`text-[#06060a] text-xs font-black`,children:`✓`},void 0,!1,{fileName:E,lineNumber:585,columnNumber:15},this)},void 0,!1,{fileName:E,lineNumber:584,columnNumber:13},this)]},void 0,!0,{fileName:E,lineNumber:578,columnNumber:9},this)},void 0,!1,{fileName:E,lineNumber:577,columnNumber:7},this),(0,x.jsxDEV)(`div`,{className:`p-4`,children:[(0,x.jsxDEV)(`div`,{onClick:n,className:`product-card-info w-full text-left cursor-pointer block`,children:[(0,x.jsxDEV)(`div`,{className:`flex items-start justify-between gap-2`,children:[(0,x.jsxDEV)(`div`,{children:[(0,x.jsxDEV)(`h3`,{className:`text-white font-bold text-base leading-tight`,style:{fontFamily:`var(--font-display)`},children:e.name},void 0,!1,{fileName:E,lineNumber:594,columnNumber:15},this),(0,x.jsxDEV)(`p`,{className:`text-[#999] text-xs mt-0.5`,style:{fontFamily:`var(--font-mono)`},children:e.subtitle},void 0,!1,{fileName:E,lineNumber:595,columnNumber:15},this)]},void 0,!0,{fileName:E,lineNumber:593,columnNumber:13},this),(0,x.jsxDEV)(`div`,{className:`text-[#CAFF00] font-bold text-lg shrink-0`,style:{fontFamily:`var(--font-mono)`},children:[`$`,e.price]},void 0,!0,{fileName:E,lineNumber:597,columnNumber:13},this)]},void 0,!0,{fileName:E,lineNumber:592,columnNumber:11},this),(0,x.jsxDEV)(`p`,{className:`text-[#999] text-xs leading-relaxed mt-2.5 line-clamp-2`,children:e.description},void 0,!1,{fileName:E,lineNumber:599,columnNumber:11},this)]},void 0,!0,{fileName:E,lineNumber:591,columnNumber:9},this),r&&(0,x.jsxDEV)(`button`,{onClick:r,className:`mt-3 w-full flex items-center justify-center gap-1.5 py-2 rounded-lg border border-dashed border-[#2a2a3e] text-[#999] hover:text-[#CAFF00] hover:border-[#CAFF00]/40 transition-all duration-200 group/cust`,children:[(0,x.jsxDEV)(`svg`,{width:`12`,height:`12`,viewBox:`0 0 12 12`,fill:`none`,className:`opacity-60 group-hover/cust:opacity-100 transition-opacity`,children:(0,x.jsxDEV)(`path`,{d:`M8.5 1.5a1.414 1.414 0 0 1 2 2L4 10H2v-2L8.5 1.5Z`,stroke:`currentColor`,strokeWidth:`1.2`,strokeLinecap:`round`,strokeLinejoin:`round`},void 0,!1,{fileName:E,lineNumber:605,columnNumber:15},this)},void 0,!1,{fileName:E,lineNumber:604,columnNumber:13},this),(0,x.jsxDEV)(`span`,{className:`text-[10px] font-semibold tracking-widest uppercase`,style:{fontFamily:`var(--font-mono)`},children:i(`customizeBtn`)},void 0,!1,{fileName:E,lineNumber:607,columnNumber:13},this)]},void 0,!0,{fileName:E,lineNumber:602,columnNumber:11},this)]},void 0,!0,{fileName:E,lineNumber:590,columnNumber:7},this)]},void 0,!0,{fileName:E,lineNumber:574,columnNumber:5},this)}function Ce({stepId:e,products:t,stepLabel:n,nextLabel:r,cart:i,onAdd:a,onAddOnly:o,onSkip:s,onCustomizeProduct:cstm}){
   let c=fe(),[l,u]=(0,b.useState)(null),[d,f]=(0,b.useState)(ge(e)),[customizingProduct,setCustomizingProduct]=(0,b.useState)(null),[isKeysimFullscreen,setIsKeysimFullscreen]=(0,b.useState)(!1);
   (0,b.useEffect)(()=>{
     const onKey=(ev)=>{if(ev.key==='Escape')setCustomizingProduct(null);};
@@ -2591,7 +2765,76 @@ function g(){let e=l.trim()||`Version ${n.length+1} — ${new Date().toLocaleDat
     window.addEventListener('keydown',onKey);
     window.addEventListener('message',onMsg);
     return()=>{window.removeEventListener('keydown',onKey);window.removeEventListener('message',onMsg);};
-  },[]);(0,b.useEffect)(()=>{u(null),f(ge(e))},[e]);let p=pe[e]??{},m=!!(i.keycaps||i.switches||i.cable),h=c(e===`keycaps`?`keycapsTitle`:`cableTitle`),g=c(e===`keycaps`?`keycapsSubtitle`:`cableSubtitle`);return(0,x.jsxDEV)(`div`,{className:`animate-fade-up grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-6 items-start`,children:[(0,x.jsxDEV)(`div`,{children:[(0,x.jsxDEV)(`div`,{className:`mb-5`,children:[(0,x.jsxDEV)(`h2`,{className:`text-3xl font-extrabold text-white tracking-tight`,style:{fontFamily:`var(--font-display)`},children:h},void 0,!1,{fileName:E,lineNumber:641,columnNumber:11},this),(0,x.jsxDEV)(`p`,{className:`text-[#999] text-sm mt-1.5`,children:g},void 0,!1,{fileName:E,lineNumber:642,columnNumber:11},this)]},void 0,!0,{fileName:E,lineNumber:640,columnNumber:9},this),(0,x.jsxDEV)(`div`,{className:`grid grid-cols-2 gap-4`,children:t.map(t=>(0,x.jsxDEV)(Se,{product:t,selected:l?.id===t.id,onSelect:()=>u(t),onCustomize:e===`keycaps`?()=>cstm&&cstm(t):void 0},t.id,!1,{fileName:E,lineNumber:646,columnNumber:13},this))},void 0,!1,{fileName:E,lineNumber:644,columnNumber:9},this)]},void 0,!0,{fileName:E,lineNumber:639,columnNumber:7},this),(0,x.jsxDEV)(`div`,{className:`space-y-4 sticky top-6`,children:[(0,x.jsxDEV)(`div`,{className:[`rounded-2xl p-5 border transition-all duration-300`,l?`border-[#1e1e2e] bg-[#0d0d14]`:`border-[#111118] bg-[#0a0a10] opacity-40 pointer-events-none`].join(` `),children:[(0,x.jsxDEV)(`div`,{className:`flex items-center gap-2 mb-4`,children:[(0,x.jsxDEV)(`div`,{className:`w-1 h-4 rounded-full bg-[#CAFF00]`},void 0,!1,{fileName:E,lineNumber:655,columnNumber:13},this),(0,x.jsxDEV)(`span`,{className:`text-white font-semibold text-sm`,style:{fontFamily:`var(--font-display)`},children:l?l.name:`Select a product first`},void 0,!1,{fileName:E,lineNumber:656,columnNumber:13},this)]},void 0,!0,{fileName:E,lineNumber:654,columnNumber:11},this),l&&(0,x.jsxDEV)(`div`,{className:`space-y-4`,children:Object.entries(p).map(([e,t])=>(0,x.jsxDEV)(ye,{label:e,values:t,selected:d[e]??t[0],onChange:t=>f(n=>({...n,[e]:t}))},e,!1,{fileName:E,lineNumber:663,columnNumber:17},this))},void 0,!1,{fileName:E,lineNumber:661,columnNumber:13},this)]},void 0,!0,{fileName:E,lineNumber:653,columnNumber:9},this),m&&(0,x.jsxDEV)(`div`,{className:`rounded-2xl p-4 border border-[#111118] bg-[#0a0a10]`,children:[(0,x.jsxDEV)(`p`,{className:`text-[#888] text-[10px] font-semibold tracking-widest uppercase mb-3`,style:{fontFamily:`var(--font-mono)`},children:c(`buildSoFarLabel`)},void 0,!1,{fileName:E,lineNumber:672,columnNumber:13},this),i.switches&&(0,x.jsxDEV)(be,{entry:i.switches,label:`Switches`},void 0,!1,{fileName:E,lineNumber:673,columnNumber:31},this),i.keycaps&&(0,x.jsxDEV)(be,{entry:i.keycaps,label:`Keycaps`},void 0,!1,{fileName:E,lineNumber:674,columnNumber:30},this),i.cable&&(0,x.jsxDEV)(be,{entry:i.cable,label:`Cable`},void 0,!1,{fileName:E,lineNumber:675,columnNumber:28},this)]},void 0,!0,{fileName:E,lineNumber:671,columnNumber:11},this),(0,x.jsxDEV)(`div`,{className:`rounded-xl px-4 py-3 border border-[#CAFF00]/20 bg-[#CAFF00]/5`,children:(0,x.jsxDEV)(`p`,{className:`text-[#CAFF00]/70 leading-relaxed`,style:{fontFamily:`var(--font-mono)`,fontSize:`11px`},children:[`◆ `,c(`bundleHintText`).replace(`15%`,``),(0,x.jsxDEV)(`span`,{className:`text-[#CAFF00] font-bold`,children:`15%`},void 0,!1,{fileName:E,lineNumber:681,columnNumber:55},this),`.`]},void 0,!0,{fileName:E,lineNumber:680,columnNumber:11},this)},void 0,!1,{fileName:E,lineNumber:679,columnNumber:9},this),(0,x.jsxDEV)(`div`,{className:`space-y-2`,children:[(0,x.jsxDEV)(`button`,{disabled:!l,onClick:()=>l&&a({product:l,opts:d}),className:[`w-full py-3.5 rounded-xl font-bold text-sm transition-all duration-200`,l?`bg-[#CAFF00] text-[#06060a] hover:bg-[#d4ff00] active:scale-[0.98]`:`bg-[#111118] text-[#888] cursor-not-allowed`].join(` `),style:{fontFamily:`var(--font-display)`},children:l?c(`addContinueBtn`,{name:l.name,next:r}):`Select a ${n} to continue`},void 0,!1,{fileName:E,lineNumber:686,columnNumber:11},this),l&&(0,x.jsxDEV)(`button`,{onClick:()=>l&&o({product:l,opts:d}),className:`w-full py-3 rounded-xl font-semibold text-sm text-[#999] hover:text-[#888] border border-[#111118] hover:border-[#1e1e2e] transition-all`,style:{fontFamily:`var(--font-display)`},children:c(`addOnlyBtn`,{item:n})},void 0,!1,{fileName:E,lineNumber:694,columnNumber:13},this),(0,x.jsxDEV)(`button`,{onClick:s,className:`w-full py-2.5 text-xs text-[#888] hover:text-[#999] transition-colors`,style:{fontFamily:`var(--font-mono)`,fontSize:`11px`},children:c(`skipBtn`,{item:n})},void 0,!1,{fileName:E,lineNumber:700,columnNumber:11},this)]},void 0,!0,{fileName:E,lineNumber:685,columnNumber:9},this)]},void 0,!0,{fileName:E,lineNumber:652,columnNumber:7},this)]},void 0,!0,{fileName:E,lineNumber:638,columnNumber:5},this)}function D({cart:e,onCheckout:t,onReset:n}){let r=fe(),i=he(e),a=!!(e.keycaps&&e.switches&&e.cable),o=a?i*me:0,s=i-o;return(0,x.jsxDEV)(`div`,{className:`animate-fade-up max-w-2xl mx-auto`,children:[(0,x.jsxDEV)(`div`,{className:`mb-8 text-center`,children:[(0,x.jsxDEV)(`h2`,{className:`text-4xl font-extrabold text-white tracking-tight`,style:{fontFamily:`var(--font-display)`},children:r(`summaryTitle`)},void 0,!1,{fileName:E,lineNumber:727,columnNumber:9},this),a&&(0,x.jsxDEV)(`p`,{className:`mt-2 text-sm text-[#999]`,children:`Full bundle — 15% discount applied`},void 0,!1,{fileName:E,lineNumber:728,columnNumber:22},this)]},void 0,!0,{fileName:E,lineNumber:726,columnNumber:7},this),a&&(0,x.jsxDEV)(`div`,{className:`mb-6 rounded-2xl border border-[#CAFF00]/30 bg-[#CAFF00]/5 px-6 py-4 flex items-center justify-between`,children:[(0,x.jsxDEV)(`div`,{children:[(0,x.jsxDEV)(`p`,{className:`discount-shimmer text-xl font-black`,style:{fontFamily:`var(--font-display)`},children:r(`bundleDiscountTitle`)},void 0,!1,{fileName:E,lineNumber:734,columnNumber:13},this),(0,x.jsxDEV)(`p`,{className:`text-[#999] text-xs mt-0.5`,style:{fontFamily:`var(--font-mono)`},children:[`You saved $`,o.toFixed(2),` by completing the full build`]},void 0,!0,{fileName:E,lineNumber:735,columnNumber:13},this)]},void 0,!0,{fileName:E,lineNumber:733,columnNumber:11},this),(0,x.jsxDEV)(`div`,{className:`text-[#CAFF00] text-3xl font-black shrink-0`,style:{fontFamily:`var(--font-display)`},children:[`−$`,o.toFixed(2)]},void 0,!0,{fileName:E,lineNumber:737,columnNumber:11},this)]},void 0,!0,{fileName:E,lineNumber:732,columnNumber:9},this),(0,x.jsxDEV)(`div`,{className:`rounded-2xl border border-[#1a1a2a] bg-[#0d0d14] overflow-hidden mb-4`,children:[{key:`switches`,label:`Switches`},{key:`keycaps`,label:`Keycaps`},{key:`cable`,label:`Cable`}].map(({key:t,label:n})=>{let r=e[t];let prod=r?.product||r||{},opts=r?.opts||{};return r?(0,x.jsxDEV)(`div`,{className:`flex items-center gap-4 px-6 py-4 border-b border-[#111118] last:border-0`,children:[(0,x.jsxDEV)(`img`,{src:prod.image,alt:prod.name,className:`w-16 h-16 rounded-xl object-cover bg-[#0a0a10] shrink-0`},void 0,!1,{fileName:E,lineNumber:755,columnNumber:15},this),(0,x.jsxDEV)(`div`,{className:`flex-1 min-w-0`,children:[(0,x.jsxDEV)(`p`,{className:`text-[#999] text-[10px] tracking-widest uppercase font-medium`,style:{fontFamily:`var(--font-mono)`},children:n},void 0,!1,{fileName:E,lineNumber:757,columnNumber:17},this),(0,x.jsxDEV)(`p`,{className:`text-white font-bold text-base mt-0.5`,style:{fontFamily:`var(--font-display)`},children:prod.name},void 0,!1,{fileName:E,lineNumber:758,columnNumber:17},this),(0,x.jsxDEV)(`p`,{className:`text-[#888] text-xs mt-1 truncate`,style:{fontFamily:`var(--font-mono)`},children:Object.entries(opts).map(([e,t])=>`${e}: ${t}`).join(` · `)},void 0,!1,{fileName:E,lineNumber:759,columnNumber:17},this),
+  },[]);(0,b.useEffect)(()=>{u(null),f(ge(e))},[e]);let p=pe[e]??{},m=!!(i.keycaps||i.switches||i.cable),h=c(e===`keycaps`?`keycapsTitle`:`cableTitle`),g=c(e===`keycaps`?`keycapsSubtitle`:`cableSubtitle`);return(0,x.jsxDEV)(`div`,{className:`animate-fade-up grid grid-cols-1 lg:grid-cols-[1fr_360px] gap-6 items-start`,children:[(0,x.jsxDEV)(`div`,{children:[(0,x.jsxDEV)(`div`,{className:`mb-5`,children:[(0,x.jsxDEV)(`h2`,{className:`text-3xl font-extrabold text-white tracking-tight`,style:{fontFamily:`var(--font-display)`},children:h},void 0,!1,{fileName:E,lineNumber:641,columnNumber:11},this),(0,x.jsxDEV)(`p`,{className:`text-[#999] text-sm mt-1.5`,children:g},void 0,!1,{fileName:E,lineNumber:642,columnNumber:11},this)]},void 0,!0,{fileName:E,lineNumber:640,columnNumber:9},this),(0,x.jsxDEV)(`div`,{className:`grid grid-cols-2 gap-4`,children:(()=>{
+  let list=[...t];
+  if(e==='keycaps'){
+    let customDraft=null;
+    try{
+      let raw=localStorage.getItem('keyhaus_custom_keycap_draft');
+      if(raw) customDraft=JSON.parse(raw);
+    }catch(err){}
+    let draftCard={
+      id:'custom-keycap-draft',
+      name:c('customKeycapName')||'Bản thiết kế của bạn',
+      subtitle:customDraft?'Custom 3D · Đang tạo dở':'Custom 3D · Thiết kế riêng',
+      price:99,
+      image:c('customKeycapImage')||'/uploads/keycap_arctic_white.jpg',
+      badge:'CUSTOM',
+      description:c('customKeycapDesc')||'Bản phối màu sắc và nghệ thuật phím cơ được tùy biến riêng của bạn trong không gian 3D.',
+      accent:'#CAFF00',
+      layoutCode:customDraft?.layoutCode||'CUSTOM-3D',
+      freeSpecs:'Bản phối tùy biến cá nhân hóa theo phong cách riêng của bạn.'
+    };
+    list.unshift(draftCard);
+  }
+  return list.map(item=>(0,x.jsxDEV)(Se,{
+    product:item,
+    selected:l?.id===item.id,
+    onSelect:()=>u(item),
+    onCustomize:e==='keycaps'?()=>cstm&&cstm(item):void 0
+  },item.id));
+})()},void 0,!1,{fileName:E,lineNumber:644,columnNumber:9},this)]},void 0,!0,{fileName:E,lineNumber:639,columnNumber:7},this),(0,x.jsxDEV)(`div`,{className:`space-y-4 sticky top-6`,children:[(0,x.jsxDEV)(`div`,{className:[`rounded-2xl p-5 border transition-all duration-300`,l?`border-[#1e1e2e] bg-[#0d0d14]`:`border-[#111118] bg-[#0a0a10] opacity-40 pointer-events-none`].join(` `),children:[(0,x.jsxDEV)(`div`,{className:`flex items-center gap-2 mb-4`,children:[(0,x.jsxDEV)(`div`,{className:`w-1 h-4 rounded-full bg-[#CAFF00]`},void 0,!1,{fileName:E,lineNumber:655,columnNumber:13},this),(0,x.jsxDEV)(`span`,{className:`text-white font-semibold text-sm`,style:{fontFamily:`var(--font-display)`},children:l?l.name:`Select a product first`},void 0,!1,{fileName:E,lineNumber:656,columnNumber:13},this)]},void 0,!0,{fileName:E,lineNumber:654,columnNumber:11},this),l&&(0,x.jsxDEV)(`div`,{className:`space-y-4`,children:[
+  e==='keycaps'?(0,x.jsxDEV)(`div`,{className:`space-y-4`,children:[
+    (0,x.jsxDEV)(`div`,{className:`p-3.5 rounded-xl bg-[#0a0a12] border border-[#1a1a28] space-y-2`,children:[
+      (0,x.jsxDEV)(`span`,{className:`text-[#888] text-[10px] font-semibold tracking-widest uppercase font-mono block`,children:`Thông Số & Mô Tả Chi Tiết`}),
+      (0,x.jsxDEV)(`p`,{className:`text-[#ddd] text-xs leading-relaxed whitespace-pre-line`,children:l.freeSpecs||l.description||l.subtitle})
+    ]}),
+    (0,x.jsxDEV)(`div`,{className:`p-3.5 rounded-xl bg-[#0a0a12] border border-[#1a1a28] space-y-2`,children:[
+      (0,x.jsxDEV)(`div`,{className:`flex items-center justify-between`,children:[
+        (0,x.jsxDEV)(`span`,{className:`text-[#888] text-[10px] font-semibold tracking-widest uppercase font-mono`,children:`Mã Bố Cục (Layout Code)`}),
+        (0,x.jsxDEV)(`span`,{className:`px-2 py-0.5 rounded bg-[#CAFF00]/15 text-[#CAFF00] font-mono font-bold text-[10px]`,children:l.layoutCode||`STD-75-KEYCAP`})
+      ]}),
+      (0,x.jsxDEV)(`button`,{type:`button`,onClick:()=>{navigator.clipboard.writeText(l.layoutCode||`STD-75-KEYCAP`);alert(`✓ Đã sao chép mã bố cục: `+(l.layoutCode||`STD-75-KEYCAP`));},className:`w-full py-1.5 rounded-lg bg-[#161624] hover:bg-[#202034] text-white text-xs font-mono font-semibold flex items-center justify-center gap-1.5 border border-[#26263a] cursor-pointer transition-all`,children:`📋 Sao Chép Mã Bố Cục`})
+    ]}),
+    (0,x.jsxDEV)(`button`,{type:`button`,onClick:()=>cstm&&cstm(l),className:`w-full py-2.5 rounded-xl bg-gradient-to-r from-[#CAFF00] to-[#a3e635] text-black font-bold text-xs flex items-center justify-center gap-2 cursor-pointer shadow-lg hover:brightness-110 transition-all`,children:`🎨 Tùy Biến Keycap Trong 3D`})
+  ]}):(
+    e==='cable'?(0,x.jsxDEV)(`div`,{className:`space-y-4`,children:[
+      (l.variants&&l.variants.length>0)?(0,x.jsxDEV)(`div`,{className:`space-y-2`,children:[
+        (0,x.jsxDEV)(`span`,{className:`text-[#888] text-[10px] font-semibold tracking-widest uppercase font-mono block`,children:`Chọn Biến Thể Sản Phẩm (Shopee Style):`}),
+        (0,x.jsxDEV)(`div`,{className:`flex flex-wrap gap-2`,children:l.variants.map(v=>{
+          let isSel=(l.activeVariant?.id||l.variants[0]?.id)===v.id;
+          return (0,x.jsxDEV)(`button`,{type:`button`,onClick:()=>{u({...l,activeVariant:v,image:v.image||l.image,description:v.description||l.description});},className:[`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all cursor-pointer`,isSel?`bg-[#CAFF00] text-black border-[#CAFF00] font-bold shadow-md`:`bg-[#141420] text-[#ccc] border-[#222234] hover:border-[#444]`].join(` `),children:v.name+(v.price?` ($${v.price})`:``)},v.id);
+        })}),
+        (l.activeVariant?.description||l.description)&&(0,x.jsxDEV)(`p`,{className:`text-[#aaa] text-xs mt-2 italic bg-[#0a0a12] p-2.5 rounded-lg border border-[#161624]`,children:l.activeVariant?.description||l.description})
+      ]}):(
+        Object.entries(p).map(([k,vals])=>(0,x.jsxDEV)(ye,{label:k,values:vals,selected:d[k]??vals[0],onChange:val=>f(prev=>({...prev,[k]:val}))},k,!1,{fileName:E,lineNumber:663,columnNumber:17},this))
+      ),
+      (0,x.jsxDEV)(`button`,{type:`button`,onClick:()=>{
+        let addedItem={
+          id:(l.activeVariant?l.id+`-`+l.activeVariant.id:l.id)+`-`+Date.now(),
+          name:l.name+(l.activeVariant?` - `+l.activeVariant.name:``),
+          price:l.activeVariant?.price??l.price,
+          image:l.activeVariant?.image||l.image,
+          opts:d
+        };
+        if(typeof a===`function`){a(addedItem);}
+        alert(`✓ Đã thêm "`+addedItem.name+`" vào giỏ hàng!`);
+      },className:`w-full py-2.5 rounded-xl bg-[#CAFF00] text-black font-bold text-xs flex items-center justify-center gap-1.5 cursor-pointer shadow-lg hover:bg-[#d4ff00] transition-all`,children:`🛒 Thêm Phụ Kiện Này Vào Cấu Hình`})
+    ]}):(
+      Object.entries(p).map(([k,vals])=>(0,x.jsxDEV)(ye,{label:k,values:vals,selected:d[k]??vals[0],onChange:val=>f(prev=>({...prev,[k]:val}))},k,!1,{fileName:E,lineNumber:663,columnNumber:17},this))
+    )
+  )
+]},void 0,!1,{fileName:E,lineNumber:661,columnNumber:13},this)]},void 0,!0,{fileName:E,lineNumber:653,columnNumber:9},this),m&&(0,x.jsxDEV)(`div`,{className:`rounded-2xl p-4 border border-[#111118] bg-[#0a0a10]`,children:[(0,x.jsxDEV)(`p`,{className:`text-[#888] text-[10px] font-semibold tracking-widest uppercase mb-3`,style:{fontFamily:`var(--font-mono)`},children:c(`buildSoFarLabel`)},void 0,!1,{fileName:E,lineNumber:672,columnNumber:13},this),i.switches&&(0,x.jsxDEV)(be,{entry:i.switches,label:`Switches`},void 0,!1,{fileName:E,lineNumber:673,columnNumber:31},this),i.keycaps&&(0,x.jsxDEV)(be,{entry:i.keycaps,label:`Keycaps`},void 0,!1,{fileName:E,lineNumber:674,columnNumber:30},this),i.cable&&(0,x.jsxDEV)(be,{entry:i.cable,label:`Cable`},void 0,!1,{fileName:E,lineNumber:675,columnNumber:28},this)]},void 0,!0,{fileName:E,lineNumber:671,columnNumber:11},this),(0,x.jsxDEV)(`div`,{className:`rounded-xl px-4 py-3 border border-[#CAFF00]/20 bg-[#CAFF00]/5`,children:(0,x.jsxDEV)(`p`,{className:`text-[#CAFF00]/70 leading-relaxed`,style:{fontFamily:`var(--font-mono)`,fontSize:`11px`},children:[`◆ `,c(`bundleHintText`).replace(`15%`,``),(0,x.jsxDEV)(`span`,{className:`text-[#CAFF00] font-bold`,children:`15%`},void 0,!1,{fileName:E,lineNumber:681,columnNumber:55},this),`.`]},void 0,!0,{fileName:E,lineNumber:680,columnNumber:11},this)},void 0,!1,{fileName:E,lineNumber:679,columnNumber:9},this),(0,x.jsxDEV)(`div`,{className:`space-y-2`,children:[(0,x.jsxDEV)(`button`,{disabled:!l,onClick:()=>l&&a({product:l,opts:d}),className:[`w-full py-3.5 rounded-xl font-bold text-sm transition-all duration-200`,l?`bg-[#CAFF00] text-[#06060a] hover:bg-[#d4ff00] active:scale-[0.98]`:`bg-[#111118] text-[#888] cursor-not-allowed`].join(` `),style:{fontFamily:`var(--font-display)`},children:l?c(`addContinueBtn`,{name:l.name,next:r}):`Select a ${n} to continue`},void 0,!1,{fileName:E,lineNumber:686,columnNumber:11},this),l&&(0,x.jsxDEV)(`button`,{onClick:()=>l&&o({product:l,opts:d}),className:`w-full py-3 rounded-xl font-semibold text-sm text-[#999] hover:text-[#888] border border-[#111118] hover:border-[#1e1e2e] transition-all`,style:{fontFamily:`var(--font-display)`},children:c(`addOnlyBtn`,{item:n})},void 0,!1,{fileName:E,lineNumber:694,columnNumber:13},this),(0,x.jsxDEV)(`button`,{onClick:s,className:`w-full py-2.5 text-xs text-[#888] hover:text-[#999] transition-colors`,style:{fontFamily:`var(--font-mono)`,fontSize:`11px`},children:c(`skipBtn`,{item:n})},void 0,!1,{fileName:E,lineNumber:700,columnNumber:11},this)]},void 0,!0,{fileName:E,lineNumber:685,columnNumber:9},this)]},void 0,!0,{fileName:E,lineNumber:652,columnNumber:7},this)]},void 0,!0,{fileName:E,lineNumber:638,columnNumber:5},this)}function D({cart:e,onCheckout:t,onReset:n}){let r=fe(),i=he(e),a=!!(e.keycaps&&e.switches&&e.cable),o=a?i*me:0,s=i-o;return(0,x.jsxDEV)(`div`,{className:`animate-fade-up max-w-2xl mx-auto`,children:[(0,x.jsxDEV)(`div`,{className:`mb-8 text-center`,children:[(0,x.jsxDEV)(`h2`,{className:`text-4xl font-extrabold text-white tracking-tight`,style:{fontFamily:`var(--font-display)`},children:r(`summaryTitle`)},void 0,!1,{fileName:E,lineNumber:727,columnNumber:9},this),a&&(0,x.jsxDEV)(`p`,{className:`mt-2 text-sm text-[#999]`,children:`Full bundle — 15% discount applied`},void 0,!1,{fileName:E,lineNumber:728,columnNumber:22},this)]},void 0,!0,{fileName:E,lineNumber:726,columnNumber:7},this),a&&(0,x.jsxDEV)(`div`,{className:`mb-6 rounded-2xl border border-[#CAFF00]/30 bg-[#CAFF00]/5 px-6 py-4 flex items-center justify-between`,children:[(0,x.jsxDEV)(`div`,{children:[(0,x.jsxDEV)(`p`,{className:`discount-shimmer text-xl font-black`,style:{fontFamily:`var(--font-display)`},children:r(`bundleDiscountTitle`)},void 0,!1,{fileName:E,lineNumber:734,columnNumber:13},this),(0,x.jsxDEV)(`p`,{className:`text-[#999] text-xs mt-0.5`,style:{fontFamily:`var(--font-mono)`},children:[`You saved $`,o.toFixed(2),` by completing the full build`]},void 0,!0,{fileName:E,lineNumber:735,columnNumber:13},this)]},void 0,!0,{fileName:E,lineNumber:733,columnNumber:11},this),(0,x.jsxDEV)(`div`,{className:`text-[#CAFF00] text-3xl font-black shrink-0`,style:{fontFamily:`var(--font-display)`},children:[`−$`,o.toFixed(2)]},void 0,!0,{fileName:E,lineNumber:737,columnNumber:11},this)]},void 0,!0,{fileName:E,lineNumber:732,columnNumber:9},this),(0,x.jsxDEV)(`div`,{className:`rounded-2xl border border-[#1a1a2a] bg-[#0d0d14] overflow-hidden mb-4`,children:[{key:`switches`,label:`Switches`},{key:`keycaps`,label:`Keycaps`},{key:`cable`,label:`Cable`}].map(({key:t,label:n})=>{let r=e[t];let prod=r?.product||r||{},opts=r?.opts||{};return r?(0,x.jsxDEV)(`div`,{className:`flex items-center gap-4 px-6 py-4 border-b border-[#111118] last:border-0`,children:[(0,x.jsxDEV)(`img`,{src:prod.image,alt:prod.name,className:`w-16 h-16 rounded-xl object-cover bg-[#0a0a10] shrink-0`},void 0,!1,{fileName:E,lineNumber:755,columnNumber:15},this),(0,x.jsxDEV)(`div`,{className:`flex-1 min-w-0`,children:[(0,x.jsxDEV)(`p`,{className:`text-[#999] text-[10px] tracking-widest uppercase font-medium`,style:{fontFamily:`var(--font-mono)`},children:n},void 0,!1,{fileName:E,lineNumber:757,columnNumber:17},this),(0,x.jsxDEV)(`p`,{className:`text-white font-bold text-base mt-0.5`,style:{fontFamily:`var(--font-display)`},children:prod.name},void 0,!1,{fileName:E,lineNumber:758,columnNumber:17},this),(0,x.jsxDEV)(`p`,{className:`text-[#888] text-xs mt-1 truncate`,style:{fontFamily:`var(--font-mono)`},children:Object.entries(opts).map(([e,t])=>`${e}: ${t}`).join(` · `)},void 0,!1,{fileName:E,lineNumber:759,columnNumber:17},this),
               r.qrDataUrl && (0,x.jsxDEV)("div", {
                 className: "summary-qr-box mt-2.5 pt-2 border-t border-[#1f1f30] flex items-center gap-3",
                 children: [

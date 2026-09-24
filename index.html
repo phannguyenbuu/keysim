@@ -5,10 +5,23 @@
     <link rel="icon" type="image/svg+xml" href="/logo.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Keyhaus — Customizable Purchase Flow</title>
-    <!-- Fonts -->
+    <!-- Fonts with full Vietnamese support -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300..800;1,300..800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" crossorigin="" href="/assets/index-CAZL5QXK.css">
+    <style>
+      :root {
+        --font-display: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+        --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+      }
+      body, button, input, select, textarea, h1, h2, h3, h4, h5, h6, p, span, a {
+        font-family: var(--font-display);
+      }
+      .font-mono, [style*="var(--font-mono)"] {
+        font-family: var(--font-mono), 'JetBrains Mono', monospace !important;
+      }
+    </style>
     <script>
       (function(){
         try{
