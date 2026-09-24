@@ -2773,14 +2773,20 @@ function g(){let e=l.trim()||`Version ${n.length+1} — ${new Date().toLocaleDat
       let raw=localStorage.getItem('keyhaus_custom_keycap_draft');
       if(raw) customDraft=JSON.parse(raw);
     }catch(err){}
+    let cName=c('customKeycapName');
+    if(!cName||cName==='customKeycapName')cName='Thiết kế Keycap riêng của bạn';
+    let cDesc=c('customKeycapDesc');
+    if(!cDesc||cDesc==='customKeycapDesc')cDesc='Bản phối màu sắc và nghệ thuật phím cơ được tùy biến riêng của bạn trong không gian 3D.';
+    let cImg=c('customKeycapImage');
+    if(!cImg||cImg==='customKeycapImage')cImg=customDraft?.image||'/uploads/keycap_arctic_white.jpg';
     let draftCard={
       id:'custom-keycap-draft',
-      name:c('customKeycapName')||'Bản thiết kế của bạn',
+      name:cName,
       subtitle:customDraft?'Custom 3D · Đang tạo dở':'Custom 3D · Thiết kế riêng',
       price:99,
-      image:c('customKeycapImage')||'/uploads/keycap_arctic_white.jpg',
+      image:cImg,
       badge:'CUSTOM',
-      description:c('customKeycapDesc')||'Bản phối màu sắc và nghệ thuật phím cơ được tùy biến riêng của bạn trong không gian 3D.',
+      description:cDesc,
       accent:'#CAFF00',
       layoutCode:customDraft?.layoutCode||'CUSTOM-3D',
       freeSpecs:'Bản phối tùy biến cá nhân hóa theo phong cách riêng của bạn.'
