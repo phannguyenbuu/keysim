@@ -1,0 +1,30 @@
+{
+  "base": {
+    "x": -0.6,
+    "y": -0.35,
+    "z": 0.1,
+    "rxDeg": 6,
+    "scaleX": 1.14,
+    "scaleZ": 1.14,
+    "rx": 0.10471975511965978
+  },
+  "clusterOffsets": {
+    "nav_cluster": {
+      "x": -0.42,
+      "z": 0
+    },
+    "arrow_cluster": {
+      "x": -0.16,
+      "z": -0.09
+    },
+    "rctl": {
+      "x": -0.67,
+      "z": 0
+    }
+  },
+  "newModelKeyMapping": {
+    "KC_HOME": "KC_DEL",
+    "KC_END": "KC_PGUP",
+    "KC_PGUP": "KC_PGDN"
+  }
+}

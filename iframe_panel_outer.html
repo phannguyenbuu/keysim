@@ -1,0 +1,92 @@
+<div class="react-tabs__tab-panel" role="tabpanel" id="panel_r_0_2" aria-labelledby="tab_r_0_2" style="overflow-y: auto; max-height: calc(-65px + 100vh); padding-right: 6px; padding-bottom: 32px;"><section id="keysim-3d-light-panel" class="CollapsibleSection_section__zRkc7" style="margin-top: 18px; border-top: 1px solid rgba(255, 255, 255, 0.12); padding-top: 14px;">
+        <header tabindex="0" id="light-panel-header" style="
+          display: flex; justify-content: space-between; align-items: center;
+          cursor: pointer; font-weight: 700; font-size: 13px; color: #fff;
+          text-transform: uppercase; letter-spacing: 0.8px; margin-bottom: 12px;
+          user-select: none;
+        ">
+          <span style="display: flex; align-items: center; gap: 8px;">
+            <span style="font-size: 16px;">💡</span> 3D Light Setting
+          </span>
+          <span id="light-panel-arrow" style="font-size: 11px; color: #94a3b8; transition: transform 0.2s;">▼</span>
+        </header>
+
+        <div id="light-panel-body" style="display: flex; flex-direction: column; gap: 12px;">
+          <div style="font-size: 11px; color: #94a3b8; line-height: 1.4;">
+            Live interactive lighting &amp; tone adjustment for 3D viewport.
+          </div>
+
+          <div class="light-control-row" style="display:flex; flex-direction:column; gap:4px;">
+            <div style="display:flex; justify-content:space-between; font-size:12px; color:#e2e8f0;">
+              <span>Light Intensity</span>
+              <span id="val-lightIntensity" style="font-weight:600; color:#38bdf8;">1.25x</span>
+            </div>
+            <input type="range" id="slider-lightIntensity" min="0.1" max="3.0" step="0.05" value="1.25" style="accent-color:#38bdf8; cursor:pointer;">
+          </div>
+
+          <div class="light-control-row" style="display:flex; flex-direction:column; gap:4px;">
+            <div style="display:flex; justify-content:space-between; font-size:12px; color:#e2e8f0;">
+              <span>Brightness</span>
+              <span id="val-brightness" style="font-weight:600; color:#38bdf8;">1.05x</span>
+            </div>
+            <input type="range" id="slider-brightness" min="0.1" max="2.5" step="0.05" value="1.05" style="accent-color:#38bdf8; cursor:pointer;">
+          </div>
+
+          <div class="light-control-row" style="display:flex; flex-direction:column; gap:4px;">
+            <div style="display:flex; justify-content:space-between; font-size:12px; color:#e2e8f0;">
+              <span>Contrast</span>
+              <span id="val-contrast" style="font-weight:600; color:#38bdf8;">1.15x</span>
+            </div>
+            <input type="range" id="slider-contrast" min="0.1" max="2.5" step="0.05" value="1.15" style="accent-color:#38bdf8; cursor:pointer;">
+          </div>
+
+          <div class="light-control-row" style="display:flex; flex-direction:column; gap:4px;">
+            <div style="display:flex; justify-content:space-between; font-size:12px; color:#e2e8f0;">
+              <span>Hue Shift</span>
+              <span id="val-hue" style="font-weight:600; color:#38bdf8;">0°</span>
+            </div>
+            <input type="range" id="slider-hue" min="-180" max="180" step="1" value="0" style="accent-color:#38bdf8; cursor:pointer;">
+          </div>
+
+          <div class="light-control-row" style="display:flex; flex-direction:column; gap:4px;">
+            <div style="display:flex; justify-content:space-between; font-size:12px; color:#e2e8f0;">
+              <span>Saturation</span>
+              <span id="val-saturation" style="font-weight:600; color:#38bdf8;">1.18x</span>
+            </div>
+            <input type="range" id="slider-saturation" min="0.0" max="3.0" step="0.05" value="1.18" style="accent-color:#38bdf8; cursor:pointer;">
+          </div>
+
+          <div class="light-control-row" style="display:flex; flex-direction:column; gap:4px;">
+            <div style="display:flex; justify-content:space-between; font-size:12px; color:#e2e8f0;">
+              <span>Lightness</span>
+              <span id="val-lightness" style="font-weight:600; color:#38bdf8;">1.00x</span>
+            </div>
+            <input type="range" id="slider-lightness" min="0.1" max="2.5" step="0.05" value="1" style="accent-color:#38bdf8; cursor:pointer;">
+          </div>
+
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span style="font-size:12px; color:#e2e8f0;">Ambient Light Color</span>
+            <input type="color" id="picker-ambientColor" value="#ffffff" style="width:34px; height:24px; border:none; border-radius:4px; cursor:pointer; background:transparent;">
+          </div>
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span style="font-size:12px; color:#e2e8f0;">Sun/Key Light Color</span>
+            <input type="color" id="picker-primaryColor" value="#fffdf5" style="width:34px; height:24px; border:none; border-radius:4px; cursor:pointer; background:transparent;">
+          </div>
+
+          <div style="margin-top:4px;">
+            <div style="font-size:11px; text-transform:uppercase; color:#94a3b8; font-weight:600; margin-bottom:6px;">Presets</div>
+            <div style="display:grid; grid-template-columns:1fr 1fr; gap:6px;">
+              <button type="button" class="preset-btn" data-preset="studio" style="padding:6px 8px; font-size:11px; font-weight:600; background:#1e293b; color:#e2e8f0; border:1px solid #334155; border-radius:6px; cursor:pointer;">Studio Clean</button>
+              <button type="button" class="preset-btn" data-preset="warm" style="padding:6px 8px; font-size:11px; font-weight:600; background:#1e293b; color:#e2e8f0; border:1px solid #334155; border-radius:6px; cursor:pointer;">Warm Sunset</button>
+              <button type="button" class="preset-btn" data-preset="vibrant" style="padding:6px 8px; font-size:11px; font-weight:600; background:#1e293b; color:#e2e8f0; border:1px solid #334155; border-radius:6px; cursor:pointer;">Vibrant Pop</button>
+              <button type="button" class="preset-btn" data-preset="cyberpunk" style="padding:6px 8px; font-size:11px; font-weight:600; background:#1e293b; color:#e2e8f0; border:1px solid #334155; border-radius:6px; cursor:pointer;">Cyberpunk</button>
+            </div>
+          </div>
+
+          <div style="display:flex; gap:8px; margin-top:8px;">
+            <button type="button" id="btn-reset-light" style="flex:1; padding:8px; font-size:12px; font-weight:600; background:#334155; color:#fff; border:none; border-radius:6px; cursor:pointer;">↺ Reset</button>
+            <button type="button" id="btn-save-light" style="flex:1.3; padding:8px; font-size:12px; font-weight:700; background:#0ea5e9; color:#fff; border:none; border-radius:6px; cursor:pointer;">💾 Save Settings</button>
+          </div>
+          <div id="light-toast-msg" style="font-size:11px; text-align:center; color:#10b981; min-height:16px;"></div>
+        </div>
+      </section></div>

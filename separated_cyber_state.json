@@ -1,0 +1,9 @@
+{
+  "ambNum": "1.15",
+  "ambHex": "#d8b4fe",
+  "primNum": "1.55",
+  "primHex": "#38bdf8",
+  "threeAmbientColor": "#d8b4fe",
+  "threePrimaryColor": "#38bdf8",
+  "canvasFilter": "brightness(1) brightness(0.95) contrast(1.35) saturate(1.6) hue-rotate(-25deg)"
+}

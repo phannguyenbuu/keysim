@@ -1,0 +1,51 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    /* Native crisp scale */
+    zoom: 0.9;
+  }
+
+  body {
+    @apply bg-[#0c0d12] text-slate-100 font-sans antialiased;
+    font-feature-settings: "cv02", "cv03", "cv04", "cv11";
+    overflow-x: hidden;
+  }
+
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #0c0d12;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #1e2230;
+    border-radius: 9999px;
+  }
+}
+
+@layer utilities {
+  .figma-card {
+    background: #131620;
+    border: 1px solid #1e2330;
+  }
+
+  .figma-card-active {
+    background: #151a28;
+    border: 1.5px solid #2563eb;
+    box-shadow: 0 0 20px -3px rgba(37, 99, 235, 0.35);
+  }
+
+  .figma-btn-lime {
+    background-color: #d4ff00;
+    color: #000000;
+  }
+
+  .figma-btn-lime:hover {
+    background-color: #c0ea00;
+  }
+}

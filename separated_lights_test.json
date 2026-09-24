@@ -1,0 +1,14 @@
+{
+  "hasAmbCard": true,
+  "ambHex": "#ffffff",
+  "ambNum": "1.25",
+  "ambSlider": "1.25",
+  "hasPrimCard": true,
+  "primHex": "#fffdf5",
+  "primNum": "1.25",
+  "primSlider": "1.25",
+  "threeAmbientIntensity": 2.75,
+  "threePrimaryIntensity": 1.75,
+  "threeAmbientColor": "#ffffff",
+  "threePrimaryColor": "#fffdf5"
+}

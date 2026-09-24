@@ -1,0 +1,29 @@
+{
+  "panelExists": true,
+  "panelRect": {
+    "x": 0,
+    "y": -392.5,
+    "width": 354,
+    "height": 643.390625,
+    "top": -392.5,
+    "right": 354,
+    "bottom": 250.890625,
+    "left": 0
+  },
+  "testPanelRect": {
+    "x": 0,
+    "y": 75.5,
+    "width": 360,
+    "height": 586.5,
+    "top": 75.5,
+    "right": 360,
+    "bottom": 662,
+    "left": 0
+  },
+  "testPanelScrollTop": 486,
+  "testPanelScrollHeight": 1073,
+  "testPanelClientHeight": 587,
+  "testPanelOverflow": "auto",
+  "sidebarOverflow": "hidden",
+  "sidebarHeight": 662
+}

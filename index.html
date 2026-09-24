@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en" class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/logo.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Keyhaus — Customizable Purchase Flow</title>
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" crossorigin="" href="/assets/index-CAZL5QXK.css">
+    <script>
+      (function(){
+        try{
+          const t=localStorage.getItem('keyhaus_theme');
+          if(t==='light'){document.documentElement.classList.remove('dark');document.documentElement.classList.add('light');document.documentElement.setAttribute('data-theme','light');}
+          var d = {
+            primaryIntensity: 1.0, primaryColor: "#fffdf5", sunAngle: -60, sunHeight: 6.0,
+            secIntensity: 0.8, secColor: "#dbeafe", secAngle: -5, secHeight: 7.0,
+            ambientIntensity: 0.1, ambientColor: "#ffffff",
+            lightIntensity: 1.0, brightness: 1.0, contrast: 1.25, hue: 0, saturation: 1.0, lightness: 1.0
+          };
+          var s = localStorage.getItem('keysim_render_settings');
+          if (!s) {
+            localStorage.setItem('keysim_render_settings', JSON.stringify(d));
+          } else {
+            try {
+              var parsed = JSON.parse(s);
+              var merged = Object.assign({}, d, parsed);
+              localStorage.setItem('keysim_render_settings', JSON.stringify(merged));
+            } catch(e) {}
+          }
+        }catch(e){}
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" crossorigin="" src="/assets/index-ByonQEPZ.js"></script>
+  </body>
+</html>

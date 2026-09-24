@@ -1,0 +1,46 @@
+{
+  "headingText": "3D LIGHT SETTING",
+  "sunTitleText": "Sun / Key Light",
+  "secTitleText": "Secondary / Fill Light",
+  "ambTitleText": "Ambient Light",
+  "headingFont": "Outfit, Inter, sans-serif",
+  "panelFont": "Inter, system-ui, -apple-system, sans-serif",
+  "numFont": "\"JetBrains Mono\", monospace",
+  "sun": {
+    "hasIntensity": true,
+    "intensityVal": "1.25",
+    "hasAngle": true,
+    "angleVal": "30",
+    "hasHeight": true,
+    "heightVal": "14.0",
+    "hasColor": true,
+    "colorVal": "#fffdf5"
+  },
+  "sec": {
+    "hasIntensity": true,
+    "intensityVal": "0.85",
+    "hasAngle": true,
+    "angleVal": "-150",
+    "hasHeight": true,
+    "heightVal": "8.0",
+    "hasColor": true,
+    "colorVal": "#dbeafe"
+  },
+  "amb": {
+    "hasIntensity": true,
+    "intensityVal": "1.25",
+    "hasColor": true,
+    "colorVal": "#ffffff"
+  },
+  "threePrimaryPos": {
+    "x": 8.999999999999998,
+    "y": 14,
+    "z": 15.588457268119896
+  },
+  "threeShadowPos": {
+    "x": -6.999999999999999,
+    "y": 8,
+    "z": -12.124355652982143
+  },
+  "threeAmbientIntensity": 2.75
+}
