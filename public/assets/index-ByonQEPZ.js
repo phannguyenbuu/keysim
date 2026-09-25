@@ -102,7 +102,202 @@ function TextStyleBar({ style, defaultColor, defaultSize, defaultBold, defaultIt
   });
 }
 
-function ImageCropModal({ onCropComplete, aspectRatio = 16 / 10, buttonText = "Crop Image", buttonClass = "" }) {
+
+function ImageFieldWithCrop({ value, onChange, aspectRatio = 16/10 }) {
+  const [cropOpen, setCropOpen] = (0, b.useState)(false);
+  const uploadRef = (0, b.useRef)(null);
+
+  const handleUploadNew = (ev) => {
+    const file = ev.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      // After picking new file, open crop modal with the new image data
+      onChange("__PENDING_CROP__"); // placeholder
+      window.__pendingCropSrc = reader.result;
+      window.__pendingCropName = file.name;
+      setCropOpen(true);
+    };
+    reader.readAsDataURL(file);
+    ev.target.value = ""; // reset so same file can be picked again
+  };
+
+  const handleCropComplete = (url) => {
+    onChange(url);
+    setCropOpen(false);
+    window.__pendingCropSrc = null;
+    showToast("✓ Image cropped & saved!");
+  };
+
+  return (0, x.jsxDEV)("div", {
+    className: "space-y-3",
+    children: [
+      // Row: thumbnail + URL input
+      (0, x.jsxDEV)("div", {
+        className: "flex gap-3 items-center",
+        children: [
+          // Clickable thumbnail -> opens crop modal
+          (0, x.jsxDEV)("div", {
+            className: "relative w-14 h-14 shrink-0 rounded-lg overflow-hidden border border-[#1a1a28] bg-[#080810] cursor-pointer group",
+            onClick: () => { if (value && value !== "__PENDING_CROP__") setCropOpen(true); },
+            title: value ? "Click to crop & adjust" : "No image",
+            children: [
+              value && value !== "__PENDING_CROP__"
+                ? (0, x.jsxDEV)("img", { src: value, alt: "preview", className: "w-full h-full object-cover" })
+                : (0, x.jsxDEV)("div", { className: "w-full h-full flex items-center justify-center text-[#444] text-[10px] font-mono", children: "No img" }),
+              value && value !== "__PENDING_CROP__" && (0, x.jsxDEV)("div", {
+                className: "absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center",
+                children: (0, x.jsxDEV)("svg", {
+                  width: "18", height: "18", viewBox: "0 0 24 24", fill: "none", stroke: "#f59e0b", strokeWidth: "2",
+                  children: [
+                    (0, x.jsxDEV)("circle", { cx: "6", cy: "6", r: "3" }),
+                    (0, x.jsxDEV)("circle", { cx: "6", cy: "18", r: "3" }),
+                    (0, x.jsxDEV)("line", { x1: "20", y1: "4", x2: "8.12", y2: "15.88" }),
+                    (0, x.jsxDEV)("line", { x1: "14.47", y1: "14.48", x2: "20", y2: "20" }),
+                    (0, x.jsxDEV)("line", { x1: "8.12", y1: "8.12", x2: "12", y2: "12" })
+                  ]
+                })
+              })
+            ]
+          }),
+          (0, x.jsxDEV)(te, { value: value === "__PENDING_CROP__" ? "" : (value || ""), onChange: onChange, placeholder: "/uploads/image.jpg" })
+        ]
+      }),
+      // Row: upload new button only (no separate crop button)
+      (0, x.jsxDEV)("div", {
+        className: "flex items-center gap-2",
+        children: [
+          (0, x.jsxDEV)("input", { ref: uploadRef, type: "file", accept: "image/*", className: "hidden", onChange: handleUploadNew }),
+          (0, x.jsxDEV)("button", {
+            type: "button",
+            onClick: () => uploadRef.current?.click(),
+            className: "flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#1a1a28] bg-[#0c0c14] hover:bg-[#141422] text-[#ccc] hover:text-white text-xs font-mono transition-all cursor-pointer",
+            children: [
+              (0, x.jsxDEV)("svg", {
+                width: "12", height: "12", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", className: "text-[#f59e0b]",
+                children: [
+                  (0, x.jsxDEV)("path", { d: "M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" }),
+                  (0, x.jsxDEV)("polyline", { points: "17 8 12 3 7 8" }),
+                  (0, x.jsxDEV)("line", { x1: "12", y1: "3", x2: "12", y2: "15" })
+                ]
+              }),
+              "Upload New Image"
+            ]
+          })
+        ]
+      }),
+      // Crop modal - triggered by thumbnail click OR after picking new file
+      cropOpen && (0, x.jsxDEV)(ImageCropModalDirect, {
+        imageSrc: (window.__pendingCropSrc) || value,
+        fileName: (window.__pendingCropName) || "image.jpg",
+        aspectRatio: aspectRatio,
+        onCropComplete: handleCropComplete,
+        onClose: () => { setCropOpen(false); window.__pendingCropSrc = null; if (value === "__PENDING_CROP__") onChange(""); }
+      })
+    ]
+  });
+}
+
+function ImageCropModalDirect({ imageSrc, fileName, aspectRatio, onCropComplete, onClose }) {
+  const [zoom, setZoom] = (0, b.useState)(1.0);
+  const [offset, setOffset] = (0, b.useState)({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = (0, b.useState)(false);
+  const [dragStart, setDragStart] = (0, b.useState)({ x: 0, y: 0 });
+  const [isUploading, setIsUploading] = (0, b.useState)(false);
+  const imgRef = (0, b.useRef)(null);
+
+  const handleMouseDown = (e) => { e.preventDefault(); setIsDragging(true); setDragStart({ x: e.clientX - offset.x, y: e.clientY - offset.y }); };
+  const handleMouseMove = (e) => { if (!isDragging) return; setOffset({ x: e.clientX - dragStart.x, y: e.clientY - dragStart.y }); };
+  const handleMouseUp = () => setIsDragging(false);
+
+  const handleSave = async () => {
+    if (!imgRef.current) return;
+    setIsUploading(true);
+    try {
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d");
+      const cropW = 800;
+      const cropH = Math.round(cropW / aspectRatio);
+      canvas.width = cropW; canvas.height = cropH;
+      const img = imgRef.current;
+      ctx.fillStyle = "#0c0c14";
+      ctx.fillRect(0, 0, cropW, cropH);
+      const renderScale = cropW / 480;
+      const drawW = img.naturalWidth * (cropW / (img.naturalWidth / zoom));
+      const drawH = img.naturalHeight * (cropH / (img.naturalHeight / zoom));
+      const drawX = (cropW - drawW) / 2 + (offset.x * renderScale);
+      const drawY = (cropH - drawH) / 2 + (offset.y * renderScale);
+      ctx.drawImage(img, drawX, drawY, drawW, drawH);
+      const blob = await new Promise((resolve) => canvas.toBlob(resolve, "image/jpeg", 0.92));
+      const formData = new FormData();
+      formData.append("file", blob, (fileName || "image").replace(/\.[^/.]+$/, "") + "_cropped.jpg");
+      const res = await fetch("/api/upload", { method: "POST", body: formData });
+      const data = await res.json();
+      if (data.url) {
+        onCropComplete(data.url);
+      } else {
+        showToast("\u2717 Upload error: " + (data.error || "Unknown"), "error");
+      }
+    } catch (err) {
+      showToast("\u2717 Error: " + err.message, "error");
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  return (0, x.jsxDEV)("div", {
+    className: "fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/85 backdrop-blur-md",
+    onClick: () => !isUploading && onClose(),
+    children: (0, x.jsxDEV)("div", {
+      className: "bg-[#0d0d16] border border-[#2a2a3e] rounded-2xl p-5 max-w-2xl w-full shadow-2xl flex flex-col gap-3",
+      onClick: e => e.stopPropagation(),
+      children: [
+        (0, x.jsxDEV)("div", {
+          className: "flex items-center justify-between border-b border-[#1f1f30] pb-3",
+          children: [
+            (0, x.jsxDEV)("div", {
+              children: [
+                (0, x.jsxDEV)("h3", { className: "text-white font-bold text-base", style: { fontFamily: "var(--font-display)" }, children: "Crop & Adjust Image" }),
+                (0, x.jsxDEV)("p", { className: "text-[#888] text-xs font-mono mt-0.5", children: "Aspect Ratio " + aspectRatio.toFixed(2) + ":1 — Drag to pan, slider to zoom" })
+              ]
+            }),
+            (0, x.jsxDEV)("button", { onClick: onClose, className: "text-[#888] hover:text-white text-lg font-mono p-1", children: "✕" })
+          ]
+        }),
+        (0, x.jsxDEV)("div", {
+          className: "relative overflow-hidden rounded-xl border border-[#222234] bg-black select-none cursor-grab active:cursor-grabbing flex items-center justify-center",
+          style: { width: "100%", height: "340px" },
+          onMouseDown: handleMouseDown, onMouseMove: handleMouseMove, onMouseUp: handleMouseUp, onMouseLeave: handleMouseUp,
+          children: [
+            (0, x.jsxDEV)("img", {
+              ref: imgRef, src: imageSrc, alt: "Crop", draggable: false,
+              style: { transform: "translate(" + offset.x + "px," + offset.y + "px) scale(" + zoom + ")", transition: isDragging ? "none" : "transform 0.1s ease-out", maxHeight: "100%", maxWidth: "100%", objectFit: "contain", pointerEvents: "none" }
+            }),
+            (0, x.jsxDEV)("div", { className: "absolute inset-0 pointer-events-none border-2 border-dashed border-[#f59e0b]/60 rounded-xl" })
+          ]
+        }),
+        (0, x.jsxDEV)("div", {
+          className: "flex items-center gap-4 bg-[#080810] border border-[#1a1a28] rounded-xl px-4 py-2.5",
+          children: [
+            (0, x.jsxDEV)("span", { className: "text-xs font-mono text-[#888]", children: "Zoom" }),
+            (0, x.jsxDEV)("input", { type: "range", min: "0.5", max: "3.0", step: "0.05", value: zoom, onChange: e => setZoom(parseFloat(e.target.value)), className: "flex-1 accent-[#f59e0b] cursor-pointer" }),
+            (0, x.jsxDEV)("span", { className: "text-xs font-mono text-[#f59e0b] w-12 text-right", children: Math.round(zoom * 100) + "%" }),
+            (0, x.jsxDEV)("button", { type: "button", onClick: () => { setZoom(1.0); setOffset({ x: 0, y: 0 }); }, className: "text-[11px] font-mono text-[#888] hover:text-white px-2 py-1 bg-[#141420] rounded border border-[#222234]", children: "Reset" })
+          ]
+        }),
+        (0, x.jsxDEV)("div", {
+          className: "flex items-center justify-end gap-3 pt-2 border-t border-[#1f1f30]",
+          children: [
+            (0, x.jsxDEV)("button", { type: "button", onClick: onClose, className: "px-4 py-2 rounded-xl border border-[#2a2a3e] text-[#aaa] hover:text-white text-xs font-semibold font-mono", children: "Cancel" }),
+            (0, x.jsxDEV)("button", { type: "button", onClick: handleSave, disabled: isUploading, className: "px-5 py-2 rounded-xl bg-[#f59e0b] hover:bg-[#fbbf24] text-[#06060a] font-bold text-xs font-mono transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50", children: isUploading ? "Uploading..." : "Crop & Save to VPS" })
+          ]
+        })
+      ]
+    })
+  });
+}
+
+function ImageCropModal({ onCropComplete, aspectRatio = 16 / 10, buttonText = null, buttonClass = "", currentImageUrl = null, externalOpen = false, onExternalClose = null }) {
   const [isOpen, setIsOpen] = (0, b.useState)(false);
   const [imageSrc, setImageSrc] = (0, b.useState)(null);
   const [fileName, setFileName] = (0, b.useState)("image.jpg");
@@ -113,6 +308,24 @@ function ImageCropModal({ onCropComplete, aspectRatio = 16 / 10, buttonText = "C
   const [isUploading, setIsUploading] = (0, b.useState)(false);
   const imgRef = (0, b.useRef)(null);
   const fileInputRef = (0, b.useRef)(null);
+
+  // Open modal externally with existing image URL (e.g. clicking thumbnail)
+  (0, b.useEffect)(() => {
+    if (externalOpen && currentImageUrl) {
+      setImageSrc(currentImageUrl);
+      setFileName("existing_image.jpg");
+      setZoom(1.0);
+      setOffset({ x: 0, y: 0 });
+      setIsOpen(true);
+    }
+  }, [externalOpen, currentImageUrl]);
+
+  // Notify parent when closed externally
+  (0, b.useEffect)(() => {
+    if (!isOpen && onExternalClose) {
+      onExternalClose();
+    }
+  }, [isOpen]);
 
   const handleFileChange = (e) => {
     const file = e.target.files?.[0];
@@ -201,7 +414,7 @@ function ImageCropModal({ onCropComplete, aspectRatio = 16 / 10, buttonText = "C
         onChange: handleFileChange,
         className: "hidden"
       }),
-      (0, x.jsxDEV)("button", {
+      buttonText !== null && (0, x.jsxDEV)("button", {
         type: "button",
         onClick: () => fileInputRef.current?.click(),
         className: buttonClass || "flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#1a1a28] bg-[#0c0c14] hover:bg-[#141422] text-[#ccc] hover:text-white text-xs font-mono transition-all cursor-pointer",
@@ -649,7 +862,7 @@ React keys must be passed directly to JSX without using spread:
 
   function c(itemId) {
     if (r.length <= 1) {
-      alert("You must keep at least one product in this category.");
+      showToast("You must keep at least one product in this category.");
       return;
     }
     let remaining = r.filter(x => x.id !== itemId);
@@ -879,60 +1092,10 @@ React keys must be passed directly to JSX without using spread:
           }),
           (0, x.jsxDEV)(ee, {
             label: "Image URL",
-            children: (0, x.jsxDEV)("div", {
-              className: "space-y-3",
-              children: [
-                (0, x.jsxDEV)("div", {
-                  className: "flex gap-3 items-center",
-                  children: [
-                    o.image && (0, x.jsxDEV)("img", { src: o.image, alt: o.name, className: "w-14 h-14 rounded-lg object-cover bg-[#080810] border border-[#1a1a28] shrink-0" }),
-                    (0, x.jsxDEV)(te, { value: o.image, onChange: e => l("image", e), placeholder: "/uploads/image.jpg" })
-                  ]
-                }),
-                (0, x.jsxDEV)("div", {
-                  className: "flex items-center gap-2",
-                  children: [
-                    (0, x.jsxDEV)("label", {
-                      className: "flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#1a1a28] bg-[#0c0c14] hover:bg-[#141422] text-[#ccc] hover:text-white text-xs font-mono transition-all cursor-pointer",
-                      children: [
-                        (0, x.jsxDEV)("svg", {
-                          width: "12", height: "12", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", className: "text-[#f59e0b]",
-                          children: [
-                            (0, x.jsxDEV)("path", { d: "M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" }),
-                            (0, x.jsxDEV)("polyline", { points: "17 8 12 3 7 8" }),
-                            (0, x.jsxDEV)("line", { x1: "12", y1: "3", x2: "12", y2: "15" })
-                          ]
-                        }),
-                        "Upload New Image to VPS",
-                        (0, x.jsxDEV)("input", {
-                          type: "file",
-                          accept: "image/*",
-                          className: "hidden",
-                          onChange: ev => {
-                            const file = ev.target.files?.[0];
-                            if (!file) return;
-                            const fd = new FormData();
-                            fd.append("file", file);
-                            fetch("/api/upload", { method: "POST", body: fd })
-                              .then(r => r.json())
-                              .then(d => {
-                                if (d.url) { l("image", d.url); showToast("✓ Uploaded: " + d.url); }
-                                else showToast("\u2717 Upload error: " + (d.error || "failed"), "error");
-                              })
-                              .catch(err => showToast("\u2717 Error: " + err.message, "error"));
-                          }
-                        })
-                      ]
-                    }),
-                    (0, x.jsxDEV)(ImageCropModal, {
-                      aspectRatio: 16 / 10,
-                      onCropComplete: url => l("image", url),
-                      buttonText: "Crop / Chỉnh tỉ lệ",
-                      buttonClass: "flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#1a1a28] bg-[#0c0c14] hover:bg-[#141422] text-[#ccc] hover:text-white text-xs font-mono transition-all cursor-pointer"
-                    })
-                  ]
-                })
-              ]
+            children: (0, x.jsxDEV)(ImageFieldWithCrop, {
+              value: o.image,
+              onChange: e => l("image", e),
+              aspectRatio: 16 / 10
             })
           }),
           (0, x.jsxDEV)(ee, { label: "Accent Color", children: (0, x.jsxDEV)(ie, { value: o.accent, onChange: e => l("accent", e) }) }),
@@ -1962,13 +2125,13 @@ function g(){let e=l.trim()||`Version ${n.length+1} — ${new Date().toLocaleDat
     const onMsg=(ev)=>{
       if(ev?.data?.type==='KEYSIM_QR_IMPORT_RESULT'){
         if(ev.data.success){
-          alert(`Successfully restored design "${ev.data.name||'Custom'}" from QR code!`);
+          showToast(`Successfully restored design "${ev.data.name||'Custom'}" from QR code!`);
         }else{
-          alert(ev.data.message||'No valid QR code found in the image!');
+          showToast(ev.data.message||'No valid QR code found in the image!', "error");
         }
       }
       if(ev?.data?.type==='KEYSIM_ACTION_NOTIFY'){
-        if(ev.data.message)alert(ev.data.message);
+        if(ev.data.message)showToast(ev.data.message);
       }
     };
     window.addEventListener('keydown',onKey);
@@ -2019,7 +2182,7 @@ function g(){let e=l.trim()||`Version ${n.length+1} — ${new Date().toLocaleDat
         (0,x.jsxDEV)(`span`,{className:`text-[#888] text-[10px] font-semibold tracking-widest uppercase font-mono`,children:`Mã Bố Cục (Layout Code)`}),
         (0,x.jsxDEV)(`span`,{className:`px-2 py-0.5 rounded bg-[#CAFF00]/15 text-[#CAFF00] font-mono font-bold text-[10px]`,children:l.layoutCode||`STD-75-KEYCAP`})
       ]}),
-      (0,x.jsxDEV)(`button`,{type:`button`,onClick:()=>{navigator.clipboard.writeText(l.layoutCode||`STD-75-KEYCAP`);alert(`✓ Đã sao chép mã bố cục: `+(l.layoutCode||`STD-75-KEYCAP`));},className:`w-full py-1.5 rounded-lg bg-[#161624] hover:bg-[#202034] text-white text-xs font-mono font-semibold flex items-center justify-center gap-1.5 border border-[#26263a] cursor-pointer transition-all`,children:`📋 Sao Chép Mã Bố Cục`})
+      (0,x.jsxDEV)(`button`,{type:`button`,onClick:()=>{navigator.clipboard.writeText(l.layoutCode||`STD-75-KEYCAP`);showToast(`✓ Đã sao chép mã bố cục: `+(l.layoutCode||`STD-75-KEYCAP`));},className:`w-full py-1.5 rounded-lg bg-[#161624] hover:bg-[#202034] text-white text-xs font-mono font-semibold flex items-center justify-center gap-1.5 border border-[#26263a] cursor-pointer transition-all`,children:`📋 Sao Chép Mã Bố Cục`})
     ]}),
     (0,x.jsxDEV)(`button`,{type:`button`,onClick:()=>cstm&&cstm(l),className:`w-full py-2.5 rounded-xl bg-gradient-to-r from-[#CAFF00] to-[#a3e635] text-black font-bold text-xs flex items-center justify-center gap-2 cursor-pointer shadow-lg hover:brightness-110 transition-all`,children:`🎨 Tùy Biến Keycap Trong 3D`})
   ]}):(
@@ -2043,7 +2206,7 @@ function g(){let e=l.trim()||`Version ${n.length+1} — ${new Date().toLocaleDat
           opts:d
         };
         if(typeof a===`function`){a(addedItem);}
-        alert(`✓ Đã thêm "`+addedItem.name+`" vào giỏ hàng!`);
+        showToast(`✓ Đã thêm "`+addedItem.name+`" vào giỏ hàng!`);
       },className:`w-full py-2.5 rounded-xl bg-[#CAFF00] text-black font-bold text-xs flex items-center justify-center gap-1.5 cursor-pointer shadow-lg hover:bg-[#d4ff00] transition-all`,children:`🛒 Thêm Phụ Kiện Này Vào Cấu Hình`})
     ]}):(
       Object.entries(p).map(([k,vals])=>(0,x.jsxDEV)(ye,{label:k,values:vals,selected:d[k]??vals[0],onChange:val=>f(prev=>({...prev,[k]:val}))},k,!1,{fileName:E,lineNumber:663,columnNumber:17},this))
@@ -2183,7 +2346,7 @@ function handleCheckout(){
   })
   .catch(err=>{
     setIsSubmitting(!1);
-    alert("Checkout error: "+err);
+    showToast("Checkout error: "+err, "error");
   });
 }
 function h(e){const next=p?p.id:`summary`;l(t=>({...t,[o]:e})),s(next);window.history.pushState(null,'','/'+next);}function g(e){l(t=>({...t,[o]:e})),s(`summary`);window.history.pushState(null,'','/summary');}function _(){const next=p?p.id:`summary`;s(next);window.history.pushState(null,'','/'+next);}function v(){l({}),s(`switches`);window.history.pushState(null,'','/switches');}return(0,x.jsxDEV)(ue.Provider,{value:{appData:e,setAppData:t,versions:n,setVersions:r},children:i?(0,x.jsxDEV)(ce,{onExit:()=>{a(!1);window.history.pushState(null,'','/'+o);}},void 0,!1,{fileName:E,lineNumber:841,columnNumber:9},this):(0,x.jsxDEV)(`div`,{className:`min-h-screen`,style:{backgroundColor:`#06060a`,fontFamily:`var(--font-display)`},children:[(0,x.jsxDEV)(`header`,{className:`border-b border-[#0f0f18] px-8 py-5 flex items-center justify-between sticky top-0 z-50`,style:{backgroundColor:`rgba(6,6,10,0.92)`,backdropFilter:`blur(20px)`},children:[(0,x.jsxDEV)(`div`,{className:`flex items-center gap-3`,children:[(0,x.jsxDEV)(`div`,{className:`w-7 h-7 rounded-md bg-[#CAFF00] flex items-center justify-center`,children:(0,x.jsxDEV)(`span`,{className:`text-[#06060a] text-xs font-black`,children:`K`},void 0,!1,{fileName:E,lineNumber:848,columnNumber:17},this)},void 0,!1,{fileName:E,lineNumber:847,columnNumber:15},this),(0,x.jsxDEV)(`span`,{className:`text-white font-bold text-lg tracking-tight`,style:{fontFamily:`var(--font-display)`},children:e.translations.brandName},void 0,!1,{fileName:E,lineNumber:850,columnNumber:15},this),(0,x.jsxDEV)(`span`,{className:`text-[#1e1e2e] mx-1 text-xl font-thin`,children:`|`},void 0,!1,{fileName:E,lineNumber:853,columnNumber:15},this),(0,x.jsxDEV)(`span`,{className:`text-[#888] text-sm`,style:{fontFamily:`var(--font-mono)`,fontSize:`12px`},children:e.translations.brandSubtitle},void 0,!1,{fileName:E,lineNumber:854,columnNumber:15},this)]},void 0,!0,{fileName:E,lineNumber:846,columnNumber:13},this),(0,x.jsxDEV)(ve,{current:o,cart:c,onStepClick:e=>{s(e);window.history.pushState(null,'','/'+e);}},void 0,!1,{fileName:E,lineNumber:859,columnNumber:13},this),(0,x.jsxDEV)(`div`,{className:`flex items-center gap-3`,children:[(c.keycaps||c.switches||c.cable)&&(0,x.jsxDEV)(`div`,{className:`flex items-center gap-2 px-3 py-1.5 rounded-full border border-[#1e1e2e] bg-[#0d0d14]`,children:[(0,x.jsxDEV)(`span`,{className:`text-[#CAFF00] text-xs font-medium`,style:{fontFamily:`var(--font-mono)`,fontSize:`11px`},children:[[c.keycaps,c.switches,c.cable].filter(Boolean).length,`/3 items`]},void 0,!0,{fileName:E,lineNumber:864,columnNumber:19},this),(0,x.jsxDEV)(`span`,{className:`text-white font-bold text-sm`,style:{fontFamily:`var(--font-mono)`},children:[`$`,he(c)]},void 0,!0,{fileName:E,lineNumber:867,columnNumber:19},this)]},void 0,!0,{fileName:E,lineNumber:863,columnNumber:17},this),(0,x.jsxDEV)(`button`,{onClick:()=>{a(!0);window.history.pushState(null,'','/admin/personas');},className:`flex items-center gap-1.5 px-3.5 py-2 rounded-lg border border-[#1e1e2e] text-[#999] hover:text-white hover:border-[#2a2a3a] transition-all text-xs font-medium cursor-pointer`,style:{fontFamily:`var(--font-mono)`},children:[(0,x.jsxDEV)(`svg`,{width:`12`,height:`12`,viewBox:`0 0 12 12`,fill:`none`,children:[(0,x.jsxDEV)(`circle`,{cx:`6`,cy:`4`,r:`2`,stroke:`currentColor`,strokeWidth:`1.2`},void 0,!1,{fileName:E,lineNumber:876,columnNumber:19},this),(0,x.jsxDEV)(`path`,{d:`M2 10c0-2.21 1.79-4 4-4s4 1.79 4 4`,stroke:`currentColor`,strokeWidth:`1.2`,strokeLinecap:`round`},void 0,!1,{fileName:E,lineNumber:877,columnNumber:19},this)]},void 0,!0,{fileName:E,lineNumber:875,columnNumber:17},this),e.translations.adminBtn]},void 0,!0,{fileName:E,lineNumber:870,columnNumber:15},this),
@@ -2607,9 +2770,9 @@ function h(e){const next=p?p.id:`summary`;l(t=>({...t,[o]:e})),s(next);window.hi
                   } catch(err) {}
                   if (code) {
                     navigator.clipboard.writeText(code);
-                    alert("✓ Đã sao chép mã bố cục Keycaps vào clipboard!\n\nMã: " + code.slice(0, 36) + "...");
+                    showToast("✓ Đã sao chép mã bố cục Keycaps vào clipboard!\n\nMã: " + code.slice(0, 36) + "...");
                   } else {
-                    alert("Chưa thể lấy mã thiết kế 3D. Hãy thử chọn hoặc chỉnh một màu trên phím trước nhé!");
+                    showToast("Chưa thể lấy mã thiết kế 3D. Hãy thử chọn hoặc chỉnh một màu trên phím trước nhé!", "error");
                   }
                 },
                 className: "px-3.5 py-2 rounded-xl bg-[#161624] hover:bg-[#222236] text-[#CAFF00] border border-[#CAFF00]/30 font-bold text-xs flex items-center gap-1.5 transition-all cursor-pointer font-mono",
