@@ -1,3 +1,294 @@
+
+function getPersonaStyle(p, field, defColor, defSize, defBold, defItalic) {
+  let s = p?.styles?.[field] || p?.specs?.styles?.[field] || {};
+  return {
+    color: s.color || defColor,
+    fontSize: (s.size ? s.size + "px" : (defSize ? defSize + "px" : undefined)),
+    fontWeight: (s.bold !== undefined ? (s.bold ? "bold" : "normal") : (defBold ? "bold" : "normal")),
+    fontStyle: (s.italic !== undefined ? (s.italic ? "italic" : "normal") : (defItalic ? "italic" : "normal"))
+  };
+}
+
+function TextStyleBar({ style, defaultColor, defaultSize, defaultBold, defaultItalic, onStyleChange }) {
+  const current = style || {};
+  const color = current.color || defaultColor || "#ffffff";
+  const size = current.size !== undefined ? current.size : (defaultSize || 14);
+  const isBold = current.bold !== undefined ? current.bold : !!defaultBold;
+  const isItalic = current.italic !== undefined ? current.italic : !!defaultItalic;
+
+  return (0, x.jsxDEV)("div", {
+    className: "flex items-center gap-1.5 bg-[#0a0a12] border border-[#1a1a28] rounded-lg px-2 py-1 shrink-0",
+    onClick: e => e.stopPropagation(),
+    children: [
+      (0, x.jsxDEV)("div", {
+        className: "flex items-center gap-1 relative",
+        title: "Font color",
+        children: [
+          (0, x.jsxDEV)("svg", {
+            width: "11", height: "11", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", className: "text-[#888]",
+            children: [
+              (0, x.jsxDEV)("path", { d: "M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z" }),
+              (0, x.jsxDEV)("path", { d: "M12 22.5V14" })
+            ]
+          }),
+          (0, x.jsxDEV)("input", {
+            type: "color",
+            value: color,
+            onChange: e => onStyleChange({ ...current, color: e.target.value }),
+            className: "w-4 h-4 rounded cursor-pointer border-0 p-0 bg-transparent"
+          })
+        ]
+      }),
+      (0, x.jsxDEV)("div", { className: "w-px h-3 bg-[#1a1a28]" }),
+      (0, x.jsxDEV)("div", {
+        className: "flex items-center gap-0.5",
+        title: "Font size",
+        children: [
+          (0, x.jsxDEV)("span", { className: "text-[10px] text-[#888] font-mono select-none mr-0.5", children: "T" }),
+          (0, x.jsxDEV)("input", {
+            type: "number",
+            min: "8",
+            max: "48",
+            value: size,
+            onChange: e => onStyleChange({ ...current, size: parseInt(e.target.value) || defaultSize || 14 }),
+            className: "w-7 bg-transparent text-[11px] text-white font-mono text-center border border-[#1a1a28] rounded px-0.5 py-0.5 outline-none focus:border-[#f59e0b]/50"
+          }),
+          (0, x.jsxDEV)("span", { className: "text-[9px] text-[#999] font-mono select-none", children: "px" })
+        ]
+      }),
+      (0, x.jsxDEV)("div", { className: "w-px h-3 bg-[#1a1a28]" }),
+      (0, x.jsxDEV)("button", {
+        type: "button",
+        title: "Bold",
+        onClick: () => onStyleChange({ ...current, bold: !isBold }),
+        className: ["w-4 h-4 rounded flex items-center justify-center text-[10px] font-bold font-serif transition-colors", isBold ? "bg-[#f59e0b] text-[#06060a]" : "text-[#888] hover:text-white"].join(" "),
+        children: "B"
+      }),
+      (0, x.jsxDEV)("button", {
+        type: "button",
+        title: "Italic",
+        onClick: () => onStyleChange({ ...current, italic: !isItalic }),
+        className: ["w-4 h-4 rounded flex items-center justify-center text-[10px] italic font-serif transition-colors", isItalic ? "bg-[#f59e0b] text-[#06060a]" : "text-[#888] hover:text-white"].join(" "),
+        children: "I"
+      })
+    ]
+  });
+}
+
+function ImageCropModal({ onCropComplete, aspectRatio = 16 / 10, buttonText = "Crop Image", buttonClass = "" }) {
+  const [isOpen, setIsOpen] = (0, b.useState)(false);
+  const [imageSrc, setImageSrc] = (0, b.useState)(null);
+  const [fileName, setFileName] = (0, b.useState)("image.jpg");
+  const [zoom, setZoom] = (0, b.useState)(1.0);
+  const [offset, setOffset] = (0, b.useState)({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = (0, b.useState)(false);
+  const [dragStart, setDragStart] = (0, b.useState)({ x: 0, y: 0 });
+  const [isUploading, setIsUploading] = (0, b.useState)(false);
+  const imgRef = (0, b.useRef)(null);
+  const fileInputRef = (0, b.useRef)(null);
+
+  const handleFileChange = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setFileName(file.name);
+    const reader = new FileReader();
+    reader.onload = () => {
+      setImageSrc(reader.result);
+      setZoom(1.0);
+      setOffset({ x: 0, y: 0 });
+      setIsOpen(true);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleMouseDown = (e) => {
+    e.preventDefault();
+    setIsDragging(true);
+    setDragStart({ x: e.clientX - offset.x, y: e.clientY - offset.y });
+  };
+
+  const handleMouseMove = (e) => {
+    if (!isDragging) return;
+    setOffset({ x: e.clientX - dragStart.x, y: e.clientY - dragStart.y });
+  };
+
+  const handleMouseUp = () => setIsDragging(false);
+
+  const handleSaveAndUpload = async () => {
+    if (!imgRef.current) return;
+    setIsUploading(true);
+    try {
+      const canvas = document.createElement("canvas");
+      const ctx = canvas.getContext("2d");
+      const cropW = 800;
+      const cropH = Math.round(cropW / aspectRatio);
+      canvas.width = cropW;
+      canvas.height = cropH;
+
+      const img = imgRef.current;
+      const displayW = 480;
+      const displayH = Math.round(displayW / aspectRatio);
+      const scaleX = img.naturalWidth / (displayW * zoom);
+      const scaleY = img.naturalHeight / (displayH * zoom);
+
+      ctx.fillStyle = "#0c0c14";
+      ctx.fillRect(0, 0, cropW, cropH);
+
+      const renderScale = cropW / displayW;
+      const drawW = img.naturalWidth * (cropW / (img.naturalWidth / zoom));
+      const drawH = img.naturalHeight * (cropH / (img.naturalHeight / zoom));
+      const drawX = (cropW - drawW) / 2 + (offset.x * renderScale);
+      const drawY = (cropH - drawH) / 2 + (offset.y * renderScale);
+
+      ctx.drawImage(img, drawX, drawY, drawW, drawH);
+
+      const blob = await new Promise((resolve) => canvas.toBlob(resolve, "image/jpeg", 0.92));
+      const formData = new FormData();
+      formData.append("file", blob, fileName.replace(/\.[^/.]+$/, "") + "_cropped.jpg");
+
+      const res = await fetch("/api/upload", {
+        method: "POST",
+        body: formData
+      });
+      const data = await res.json();
+      if (data.url) {
+        onCropComplete(data.url);
+        setIsOpen(false);
+        setImageSrc(null);
+      } else {
+        alert("Upload error: " + (data.error || "Unknown"));
+      }
+    } catch (err) {
+      alert("Error saving cropped image: " + err.message);
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  return (0, x.jsxDEV)(x.Fragment, {
+    children: [
+      (0, x.jsxDEV)("input", {
+        type: "file",
+        ref: fileInputRef,
+        accept: "image/*",
+        onChange: handleFileChange,
+        className: "hidden"
+      }),
+      (0, x.jsxDEV)("button", {
+        type: "button",
+        onClick: () => fileInputRef.current?.click(),
+        className: buttonClass || "flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#1a1a28] bg-[#0c0c14] hover:bg-[#141422] text-[#ccc] hover:text-white text-xs font-mono transition-all cursor-pointer",
+        children: [
+          (0, x.jsxDEV)("svg", {
+            width: "12", height: "12", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", className: "text-[#f59e0b]",
+            children: [
+              (0, x.jsxDEV)("circle", { cx: "6", cy: "6", r: "3" }),
+              (0, x.jsxDEV)("circle", { cx: "6", cy: "18", r: "3" }),
+              (0, x.jsxDEV)("line", { x1: "20", y1: "4", x2: "8.12", y2: "15.88" }),
+              (0, x.jsxDEV)("line", { x1: "14.47", y1: "14.48", x2: "20", y2: "20" }),
+              (0, x.jsxDEV)("line", { x1: "8.12", y1: "8.12", x2: "12", y2: "12" })
+            ]
+          }),
+          buttonText
+        ]
+      }),
+      isOpen && (0, x.jsxDEV)("div", {
+        className: "fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-fade-in",
+        onClick: () => !isUploading && setIsOpen(false),
+        children: (0, x.jsxDEV)("div", {
+          className: "bg-[#0d0d16] border border-[#2a2a3e] rounded-2xl p-6 max-w-xl w-full shadow-2xl flex flex-col gap-4",
+          onClick: e => e.stopPropagation(),
+          children: [
+            (0, x.jsxDEV)("div", {
+              className: "flex items-center justify-between border-b border-[#1f1f30] pb-3",
+              children: [
+                (0, x.jsxDEV)("div", {
+                  children: [
+                    (0, x.jsxDEV)("h3", { className: "text-white font-bold text-base", style: { fontFamily: "var(--font-display)" }, children: "Crop & Adjust Image" }),
+                    (0, x.jsxDEV)("p", { className: "text-[#888] text-xs font-mono mt-0.5", children: `Target Aspect Ratio: ${aspectRatio.toFixed(2)}:1 (Drag to pan, slider to zoom)` })
+                  ]
+                }),
+                (0, x.jsxDEV)("button", {
+                  onClick: () => setIsOpen(false),
+                  className: "text-[#888] hover:text-white text-lg font-mono p-1",
+                  children: "✕"
+                })
+              ]
+            }),
+            (0, x.jsxDEV)("div", {
+              className: "relative overflow-hidden rounded-xl border border-[#222234] bg-black select-none cursor-grab active:cursor-grabbing flex items-center justify-center",
+              style: { width: "100%", height: "300px" },
+              onMouseDown: handleMouseDown,
+              onMouseMove: handleMouseMove,
+              onMouseUp: handleMouseUp,
+              onMouseLeave: handleMouseUp,
+              children: [
+                (0, x.jsxDEV)("img", {
+                  ref: imgRef,
+                  src: imageSrc,
+                  alt: "Crop target",
+                  draggable: false,
+                  style: {
+                    transform: `translate(${offset.x}px, ${offset.y}px) scale(${zoom})`,
+                    transition: isDragging ? "none" : "transform 0.1s ease-out",
+                    maxHeight: "100%",
+                    maxWidth: "100%",
+                    objectFit: "contain",
+                    pointerEvents: "none"
+                  }
+                }),
+                (0, x.jsxDEV)("div", {
+                  className: "absolute inset-0 pointer-events-none border-2 border-dashed border-[#f59e0b]/60 rounded-xl"
+                })
+              ]
+            }),
+            (0, x.jsxDEV)("div", {
+              className: "flex items-center gap-4 bg-[#080810] border border-[#1a1a28] rounded-xl px-4 py-2.5",
+              children: [
+                (0, x.jsxDEV)("span", { className: "text-xs font-mono text-[#888]", children: "Zoom" }),
+                (0, x.jsxDEV)("input", {
+                  type: "range",
+                  min: "0.5",
+                  max: "3.0",
+                  step: "0.05",
+                  value: zoom,
+                  onChange: e => setZoom(parseFloat(e.target.value)),
+                  className: "flex-1 accent-[#f59e0b] cursor-pointer"
+                }),
+                (0, x.jsxDEV)("span", { className: "text-xs font-mono text-[#f59e0b] w-12 text-right", children: `${Math.round(zoom * 100)}%` }),
+                (0, x.jsxDEV)("button", {
+                  type: "button",
+                  onClick: () => { setZoom(1.0); setOffset({ x: 0, y: 0 }); },
+                  className: "text-[11px] font-mono text-[#888] hover:text-white px-2 py-1 bg-[#141420] rounded border border-[#222234]",
+                  children: "Reset"
+                })
+              ]
+            }),
+            (0, x.jsxDEV)("div", {
+              className: "flex items-center justify-end gap-3 pt-2 border-t border-[#1f1f30]",
+              children: [
+                (0, x.jsxDEV)("button", {
+                  type: "button",
+                  onClick: () => setIsOpen(false),
+                  className: "px-4 py-2 rounded-xl border border-[#2a2a3e] text-[#aaa] hover:text-white text-xs font-semibold font-mono",
+                  children: "Cancel"
+                }),
+                (0, x.jsxDEV)("button", {
+                  type: "button",
+                  onClick: handleSaveAndUpload,
+                  disabled: isUploading,
+                  className: "px-5 py-2 rounded-xl bg-[#f59e0b] hover:bg-[#fbbf24] text-[#06060a] font-bold text-xs font-mono transition-all flex items-center gap-2 cursor-pointer disabled:opacity-50",
+                  children: isUploading ? "Uploading..." : "Crop & Save to VPS"
+                })
+              ]
+            })
+          ]
+        })
+      })
+    ]
+  });
+}
+
 var e=Object.create,t=Object.defineProperty,n=Object.getOwnPropertyDescriptor,r=Object.getOwnPropertyNames,i=Object.getPrototypeOf,a=Object.prototype.hasOwnProperty,o=(e,t)=>()=>(t||e((t={exports:{}}).exports,t),t.exports),s=(e,i,o,s)=>{if(i&&typeof i==`object`||typeof i==`function`)for(var c=r(i),l=0,u=c.length,d;l<u;l++)d=c[l],!a.call(e,d)&&d!==o&&t(e,d,{get:(e=>i[e]).bind(null,d),enumerable:!(s=n(i,d))||s.enumerable});return e},c=(n,r,a)=>(a=n==null?{}:e(i(n)),s(r||!n||!n.__esModule?t(a,`default`,{value:n,enumerable:!0}):a,n));(function(){let e=document.createElement(`link`).relList;if(e&&e.supports&&e.supports(`modulepreload`))return;for(let e of document.querySelectorAll(`link[rel="modulepreload"]`))n(e);new MutationObserver(e=>{for(let t of e)if(t.type===`childList`)for(let e of t.addedNodes)e.tagName===`LINK`&&e.rel===`modulepreload`&&n(e)}).observe(document,{childList:!0,subtree:!0});function t(e){let t={};return e.integrity&&(t.integrity=e.integrity),e.referrerPolicy&&(t.referrerPolicy=e.referrerPolicy),e.crossOrigin===`use-credentials`?t.credentials=`include`:e.crossOrigin===`anonymous`?t.credentials=`omit`:t.credentials=`same-origin`,t}function n(e){if(e.ep)return;e.ep=!0;let n=t(e);fetch(e.href,n)}})();var l=o(((e,t)=>{(function(){function n(e,t){Object.defineProperty(a.prototype,e,{get:function(){console.warn(`%s(...) is deprecated in plain JavaScript React classes. %s`,t[0],t[1])}})}function r(e){return typeof e!=`object`||!e?null:(e=xe&&e[xe]||e[`@@iterator`],typeof e==`function`?e:null)}function i(e,t){e=(e=e.constructor)&&(e.displayName||e.name)||`ReactClass`;var n=e+`.`+t;Se[n]||(console.error("Can't call %s on a component that is not yet mounted. This is a no-op, but it might indicate a bug in your application. Instead, assign to `this.state` directly or define a `state = {};` class property with the desired state in the %s component.",t,e),Se[n]=!0)}function a(e,t,n){this.props=e,this.context=t,this.refs=we,this.updater=n||Ce}function o(){}function s(e,t,n){this.props=e,this.context=t,this.refs=we,this.updater=n||Ce}function c(){}function l(e){return``+e}function u(e){try{l(e);var t=!1}catch{t=!0}if(t){t=console;var n=t.error,r=typeof Symbol==`function`&&Symbol.toStringTag&&e[Symbol.toStringTag]||e.constructor.name||`Object`;return n.call(t,`The provided key is an unsupported type %s. This value must be coerced to a string before using it here.`,r),l(e)}}function d(e){if(e==null)return null;if(typeof e==`function`)return e.$$typeof===De?null:e.displayName||e.name||null;if(typeof e==`string`)return e;switch(e){case ue:return`Fragment`;case fe:return`Profiler`;case de:return`StrictMode`;case ge:return`Suspense`;case _e:return`SuspenseList`;case be:return`Activity`}if(typeof e==`object`)switch(typeof e.tag==`number`&&console.error(`Received an unexpected object in getComponentNameFromType(). This is likely a bug in React. Please file an issue.`),e.$$typeof){case le:return`Portal`;case me:return e.displayName||`Context`;case pe:return(e._context.displayName||`Context`)+`.Consumer`;case he:var t=e.render;return e=e.displayName,e||=(e=t.displayName||t.name||``,e===``?`ForwardRef`:`ForwardRef(`+e+`)`),e;case ve:return t=e.displayName||null,t===null?d(e.type)||`Memo`:t;case ye:t=e._payload,e=e._init;try{return d(e(t))}catch{}}return null}function f(e){if(e===ue)return`<>`;if(typeof e==`object`&&e&&e.$$typeof===ye)return`<...>`;try{var t=d(e);return t?`<`+t+`>`:`<...>`}catch{return`<...>`}}function p(){var e=O.A;return e===null?null:e.getOwner()}function m(){return Error(`react-stack-top-frame`)}function h(e){if(Oe.call(e,`key`)){var t=Object.getOwnPropertyDescriptor(e,`key`).get;if(t&&t.isReactWarning)return!1}return e.key!==void 0}function g(e,t){function n(){Ae||(Ae=!0,console.error("%s: `key` is not a prop. Trying to access it will result in `undefined` being returned. If you need to access the same value within the child component, you should pass it as a different prop. (https://react.dev/link/special-props)",t))}n.isReactWarning=!0,Object.defineProperty(e,`key`,{get:n,configurable:!0})}function _(){var e=d(this.type);return Me[e]||(Me[e]=!0,console.error(`Accessing element.ref was removed in React 19. ref is now a regular prop. It will be removed from the JSX Element type in a future release.`)),e=this.props.ref,e===void 0?null:e}function v(e,t,n,r,i,a){var o=n.ref;return e={$$typeof:E,type:e,key:t,props:n,_owner:r},(o===void 0?null:o)===null?Object.defineProperty(e,`ref`,{enumerable:!1,value:null}):Object.defineProperty(e,`ref`,{enumerable:!1,get:_}),e._store={},Object.defineProperty(e._store,`validated`,{configurable:!1,enumerable:!1,writable:!0,value:0}),Object.defineProperty(e,`_debugInfo`,{configurable:!1,enumerable:!1,writable:!0,value:null}),Object.defineProperty(e,`_debugStack`,{configurable:!1,enumerable:!1,writable:!0,value:i}),Object.defineProperty(e,`_debugTask`,{configurable:!1,enumerable:!1,writable:!0,value:a}),Object.freeze&&(Object.freeze(e.props),Object.freeze(e)),e}function y(e,t){return t=v(e.type,t,e.props,e._owner,e._debugStack,e._debugTask),e._store&&(t._store.validated=e._store.validated),t}function b(e){x(e)?e._store&&(e._store.validated=1):typeof e==`object`&&e&&e.$$typeof===ye&&(e._payload.status===`fulfilled`?x(e._payload.value)&&e._payload.value._store&&(e._payload.value._store.validated=1):e._store&&(e._store.validated=1))}function x(e){return typeof e==`object`&&!!e&&e.$$typeof===E}function S(e){var t={"=":`=0`,":":`=2`};return`$`+e.replace(/[=:]/g,function(e){return t[e]})}function ee(e,t){return typeof e==`object`&&e&&e.key!=null?(u(e.key),S(``+e.key)):t.toString(36)}function te(e){switch(e.status){case`fulfilled`:return e.value;case`rejected`:throw e.reason;default:switch(typeof e.status==`string`?e.then(c,c):(e.status=`pending`,e.then(function(t){e.status===`pending`&&(e.status=`fulfilled`,e.value=t)},function(t){e.status===`pending`&&(e.status=`rejected`,e.reason=t)})),e.status){case`fulfilled`:return e.value;case`rejected`:throw e.reason}}throw e}function ne(e,t,n,i,a){var o=typeof e;(o===`undefined`||o===`boolean`)&&(e=null);var s=!1;if(e===null)s=!0;else switch(o){case`bigint`:case`string`:case`number`:s=!0;break;case`object`:switch(e.$$typeof){case E:case le:s=!0;break;case ye:return s=e._init,ne(s(e._payload),t,n,i,a)}}if(s){s=e,a=a(s);var c=i===``?`.`+ee(s,0):i;return Ee(a)?(n=``,c!=null&&(n=c.replace(Ie,`$&/`)+`/`),ne(a,t,n,``,function(e){return e})):a!=null&&(x(a)&&(a.key!=null&&(s&&s.key===a.key||u(a.key)),n=y(a,n+(a.key==null||s&&s.key===a.key?``:(``+a.key).replace(Ie,`$&/`)+`/`)+c),i!==``&&s!=null&&x(s)&&s.key==null&&s._store&&!s._store.validated&&(n._store.validated=2),a=n),t.push(a)),1}if(s=0,c=i===``?`.`:i+`:`,Ee(e))for(var l=0;l<e.length;l++)i=e[l],o=c+ee(i,l),s+=ne(i,t,n,o,a);else if(l=r(e),typeof l==`function`)for(l===e.entries&&(Fe||console.warn(`Using Maps as children is not supported. Use an array of keyed ReactElements instead.`),Fe=!0),e=l.call(e),l=0;!(i=e.next()).done;)i=i.value,o=c+ee(i,l++),s+=ne(i,t,n,o,a);else if(o===`object`){if(typeof e.then==`function`)return ne(te(e),t,n,i,a);throw t=String(e),Error(`Objects are not valid as a React child (found: `+(t===`[object Object]`?`object with keys {`+Object.keys(e).join(`, `)+`}`:t)+`). If you meant to render a collection of children, use an array instead.`)}return s}function re(e,t,n){if(e==null)return e;var r=[],i=0;return ne(e,r,``,``,function(e){return t.call(n,e,i++)}),r}function ie(e){if(e._status===-1){var t=e._ioInfo;t!=null&&(t.start=t.end=performance.now()),t=e._result;var n=t();if(n.then(function(t){if(e._status===0||e._status===-1){e._status=1,e._result=t;var r=e._ioInfo;r!=null&&(r.end=performance.now()),n.status===void 0&&(n.status=`fulfilled`,n.value=t)}},function(t){if(e._status===0||e._status===-1){e._status=2,e._result=t;var r=e._ioInfo;r!=null&&(r.end=performance.now()),n.status===void 0&&(n.status=`rejected`,n.reason=t)}}),t=e._ioInfo,t!=null){t.value=n;var r=n.displayName;typeof r==`string`&&(t.name=r)}e._status===-1&&(e._status=0,e._result=n)}if(e._status===1)return t=e._result,t===void 0&&console.error(`lazy: Expected the result of a dynamic import() call. Instead received: %s
 
 Your code should look like: 
@@ -236,1282 +527,60 @@ You might need to use a local HTTP server (instead of file://): https://react.de
   <%s {...props} />
 React keys must be passed directly to JSX without using spread:
   let props = %s;
-  <%s key={someKey} {...props} />`,o,f,m,f),de[f+o]=!0)}if(f=null,i!==void 0&&(r(i),f=``+i),s(n)&&(r(n.key),f=``+n.key),`key`in n)for(var h in i={},n)h!==`key`&&(i[h]=n[h]);else i=n;return f&&c(i,typeof e==`function`?e.displayName||e.name||`Unknown`:e),d(e,f,i,a(),l,u)}function p(e){m(e)?e._store&&(e._store.validated=1):typeof e==`object`&&e&&e.$$typeof===ie&&(e._payload.status===`fulfilled`?m(e._payload.value)&&e._payload.value._store&&(e._payload.value._store.validated=1):e._store&&(e._store.validated=1))}function m(e){return typeof e==`object`&&!!e&&e.$$typeof===g}var h=u(),g=Symbol.for(`react.transitional.element`),_=Symbol.for(`react.portal`),v=Symbol.for(`react.fragment`),y=Symbol.for(`react.strict_mode`),b=Symbol.for(`react.profiler`),x=Symbol.for(`react.consumer`),S=Symbol.for(`react.context`),ee=Symbol.for(`react.forward_ref`),te=Symbol.for(`react.suspense`),ne=Symbol.for(`react.suspense_list`),re=Symbol.for(`react.memo`),ie=Symbol.for(`react.lazy`),C=Symbol.for(`react.activity`),ae=Symbol.for(`react.client.reference`),w=h.__CLIENT_INTERNALS_DO_NOT_USE_OR_WARN_USERS_THEY_CANNOT_UPGRADE,oe=Object.prototype.hasOwnProperty,se=Array.isArray,T=console.createTask?console.createTask:function(){return null};h={react_stack_bottom_frame:function(e){return e()}};var ce,E={},le=h.react_stack_bottom_frame.bind(h,o)(),ue=T(i(o)),de={};e.Fragment=v,e.jsxDEV=function(e,t,n,r){var a=1e4>w.recentlyCreatedOwnerStacks++;return f(e,t,n,r,a?Error(`react-stack-top-frame`):le,a?T(i(e)):ue)}})()})),v=o(((e,t)=>{t.exports=_()})),y=c(g(),1),b=c(u(),1),x=v(),S=`/workspaces/.cached-preview/src/AdminPanel.tsx`;
-function getPersonaStyle(p, field, defColor, defSize, defBold, defItalic) {
-  let s = p?.styles?.[field] || p?.specs?.styles?.[field] || {};
-  return {
-    color: s.color || defColor,
-    fontSize: (s.size ? s.size + "px" : (defSize ? defSize + "px" : undefined)),
-    fontWeight: (s.bold !== undefined ? (s.bold ? "bold" : "normal") : (defBold ? "bold" : "normal")),
-    fontStyle: (s.italic !== undefined ? (s.italic ? "italic" : "normal") : (defItalic ? "italic" : "normal"))
-  };
-}
-
-function TextStyleBar({ style, defaultColor, defaultSize, defaultBold, defaultItalic, onStyleChange }) {
-  const current = style || {};
-  const color = current.color || defaultColor || "#ffffff";
-  const size = current.size !== undefined ? current.size : (defaultSize || 14);
-  const isBold = current.bold !== undefined ? current.bold : !!defaultBold;
-  const isItalic = current.italic !== undefined ? current.italic : !!defaultItalic;
-
-  return (0, x.jsxDEV)("div", {
-    className: "flex items-center gap-1.5 bg-[#0a0a12] border border-[#1a1a28] rounded-lg px-2 py-1 shrink-0",
-    onClick: e => e.stopPropagation(),
-    children: [
-      (0, x.jsxDEV)("div", {
-        className: "flex items-center gap-1 relative",
-        title: "Font color",
-        children: [
-          (0, x.jsxDEV)("svg", {
-            width: "11", height: "11", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", className: "text-[#888]",
-            children: [
-              (0, x.jsxDEV)("path", { d: "M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z" }),
-              (0, x.jsxDEV)("path", { d: "M12 22.5V14" })
-            ]
-          }),
-          (0, x.jsxDEV)("input", {
-            type: "color",
-            value: color,
-            onChange: e => onStyleChange({ ...current, color: e.target.value }),
-            className: "w-4 h-4 rounded cursor-pointer border-0 p-0 bg-transparent"
-          })
-        ]
-      }),
-      (0, x.jsxDEV)("div", { className: "w-px h-3 bg-[#1a1a28]" }),
-      (0, x.jsxDEV)("div", {
-        className: "flex items-center gap-0.5",
-        title: "Font size (px)",
-        children: [
-          (0, x.jsxDEV)("span", { className: "text-[10px] text-[#666] font-mono select-none", children: "T" }),
-          (0, x.jsxDEV)("input", {
-            type: "number",
-            min: 8,
-            max: 72,
-            value: size,
-            onChange: e => onStyleChange({ ...current, size: parseInt(e.target.value) || defaultSize }),
-            className: "w-9 px-1 py-0.5 rounded text-[11px] text-white bg-[#13131e] border border-[#1a1a28] outline-none text-center font-mono"
-          }),
-          (0, x.jsxDEV)("span", { className: "text-[9px] text-[#666] select-none", children: "px" })
-        ]
-      }),
-      (0, x.jsxDEV)("div", { className: "w-px h-3 bg-[#1a1a28]" }),
-      (0, x.jsxDEV)("button", {
-        type: "button",
-        title: "Bold",
-        onClick: () => onStyleChange({ ...current, bold: !isBold }),
-        className: "p-1 rounded transition-colors " + (isBold ? "bg-[#f59e0b] text-black" : "text-[#888] hover:text-white hover:bg-[#1a1a28]"),
-        children: (0, x.jsxDEV)("svg", {
-          width: "10", height: "10", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "3",
-          children: [
-            (0, x.jsxDEV)("path", { d: "M6 4h8a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z" }),
-            (0, x.jsxDEV)("path", { d: "M6 12h9a4 4 0 0 1 4 4 4 4 0 0 1-4 4H6z" })
-          ]
-        })
-      }),
-      (0, x.jsxDEV)("button", {
-        type: "button",
-        title: "Italic",
-        onClick: () => onStyleChange({ ...current, italic: !isItalic }),
-        className: "p-1 rounded transition-colors " + (isItalic ? "bg-[#f59e0b] text-black" : "text-[#888] hover:text-white hover:bg-[#1a1a28]"),
-        children: (0, x.jsxDEV)("svg", {
-          width: "10", height: "10", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2.5",
-          children: [
-            (0, x.jsxDEV)("line", { x1: "19", y1: "4", x2: "10", y2: "4" }),
-            (0, x.jsxDEV)("line", { x1: "14", y1: "20", x2: "5", y2: "20" }),
-            (0, x.jsxDEV)("line", { x1: "15", y1: "4", x2: "9", y2: "20" })
-          ]
-        })
-      })
-    ]
-  });
-}
-
-function SidebarSpecsStylingPanel() {
-  const { appData, setAppData } = de();
-  const tr = appData.translations || {};
-
-  let styles = {};
-  try {
-    if (tr.sidebar_specs_styles && tr.sidebar_specs_styles.startsWith("{")) {
-      styles = JSON.parse(tr.sidebar_specs_styles);
-    }
-  } catch(e) {}
-
-  function updateStyle(field, newSt) {
-    const nextStyles = { ...styles, [field]: newSt };
-    setAppData(prev => ({
-      ...prev,
-      translations: {
-        ...prev.translations,
-        sidebar_specs_styles: JSON.stringify(nextStyles)
-      }
-    }));
-  }
-
-  function updateTrans(key, val) {
-    setAppData(prev => ({
-      ...prev,
-      translations: {
-        ...prev.translations,
-        [key]: val
-      }
-    }));
-  }
-
-  const titleText = tr.switchSpecsLabel || "Switch specs";
-  const typeText = tr.typeLabel || "Type";
-  const actuationText = tr.actuationLabel || "Actuation";
-  const travelText = tr.travelLabel || "Travel";
-  const housingText = tr.housingLabel || "Housing";
-  const bundleText = tr.bundleHintText || "Complete the full build and save 15% on your entire order.";
-
-  return (0, x.jsxDEV)("div", {
-    className: "grid grid-cols-1 lg:grid-cols-12 gap-6 max-w-5xl",
-    children: [
-      (0, x.jsxDEV)("div", {
-        className: "lg:col-span-7 space-y-4",
-        children: [
-          (0, x.jsxDEV)("div", {
-            className: "p-4 rounded-xl border border-[#1a1a28] bg-[#0c0c14] space-y-3",
-            children: [
-              (0, x.jsxDEV)("p", { className: "text-[#f59e0b] text-xs font-bold uppercase tracking-wider", children: "1. Specs Card Title" }),
-              (0, x.jsxDEV)("div", {
-                className: "flex flex-col sm:flex-row gap-2 items-start sm:items-center justify-between",
-                children: [
-                  (0, x.jsxDEV)("input", {
-                    type: "text",
-                    value: titleText,
-                    onChange: e => updateTrans("switchSpecsLabel", e.target.value),
-                    placeholder: "Switch specs",
-                    className: "flex-1 px-3 py-1.5 rounded-lg text-sm text-white bg-[#13131e] border border-[#1a1a28] outline-none focus:border-[#f59e0b]"
-                  }),
-                  (0, x.jsxDEV)(TextStyleBar, {
-                    style: styles.title,
-                    defaultColor: "#ffffff",
-                    defaultSize: 14,
-                    defaultBold: true,
-                    onStyleChange: st => updateStyle("title", st)
-                  })
-                ]
-              })
-            ]
-          }),
-
-          (0, x.jsxDEV)("div", {
-            className: "p-4 rounded-xl border border-[#1a1a28] bg-[#0c0c14] space-y-4",
-            children: [
-              (0, x.jsxDEV)("p", { className: "text-[#f59e0b] text-xs font-bold uppercase tracking-wider", children: "2. Specs Rows (Label & Value Styles)" }),
-              [
-                { id: "type", key: "typeLabel", text: typeText, defText: "Type", labelSt: styles.typeLabel, valSt: styles.typeValue, defValColor: "#60a5fa" },
-                { id: "actuation", key: "actuationLabel", text: actuationText, defText: "Actuation", labelSt: styles.actuationLabel, valSt: styles.actuationValue, defValColor: "#60a5fa" },
-                { id: "travel", key: "travelLabel", text: travelText, defText: "Travel", labelSt: styles.travelLabel, valSt: styles.travelValue, defValColor: "#60a5fa" },
-                { id: "housing", key: "housingLabel", text: housingText, defText: "Housing", labelSt: styles.housingLabel, valSt: styles.housingValue, defValColor: "#60a5fa" }
-              ].map(item => (0, x.jsxDEV)("div", {
-                className: "p-3 rounded-lg border border-[#161622] bg-[#0a0a10] space-y-2.5",
-                children: [
-                  (0, x.jsxDEV)("div", {
-                    className: "flex flex-col sm:flex-row gap-2 items-start sm:items-center justify-between",
-                    children: [
-                      (0, x.jsxDEV)("div", {
-                        className: "flex items-center gap-2 flex-1",
-                        children: [
-                          (0, x.jsxDEV)("span", { className: "text-[#888] text-xs font-mono w-14 shrink-0", children: "Label:" }),
-                          (0, x.jsxDEV)("input", {
-                            type: "text",
-                            value: item.text,
-                            onChange: e => updateTrans(item.key, e.target.value),
-                            placeholder: item.defText,
-                            className: "flex-1 px-2.5 py-1 rounded text-xs text-white bg-[#13131e] border border-[#1a1a28] outline-none focus:border-[#f59e0b]"
-                          })
-                        ]
-                      }),
-                      (0, x.jsxDEV)(TextStyleBar, {
-                        style: item.labelSt,
-                        defaultColor: "#999999",
-                        defaultSize: 11,
-                        defaultBold: false,
-                        onStyleChange: st => updateStyle(item.id + "Label", st)
-                      })
-                    ]
-                  }),
-                  (0, x.jsxDEV)("div", {
-                    className: "flex items-center justify-between pl-2 border-t border-[#13131e] pt-2",
-                    children: [
-                      (0, x.jsxDEV)("span", { className: "text-[#666] text-[11px] font-mono", children: "Value Style:" }),
-                      (0, x.jsxDEV)(TextStyleBar, {
-                        style: item.valSt,
-                        defaultColor: item.defValColor,
-                        defaultSize: 11,
-                        defaultBold: true,
-                        onStyleChange: st => updateStyle(item.id + "Value", st)
-                      })
-                    ]
-                  })
-                ]
-              }, item.id))
-            ]
-          }),
-
-          (0, x.jsxDEV)("div", {
-            className: "p-4 rounded-xl border border-[#1a1a28] bg-[#0c0c14] space-y-3",
-            children: [
-              (0, x.jsxDEV)("p", { className: "text-[#f59e0b] text-xs font-bold uppercase tracking-wider", children: "3. Bundle Discount Hint Box" }),
-              (0, x.jsxDEV)("textarea", {
-                rows: 2,
-                value: bundleText,
-                onChange: e => updateTrans("bundleHintText", e.target.value),
-                placeholder: "Complete the full build and save 15% on your entire order.",
-                className: "w-full px-3 py-2 rounded-lg text-xs text-white bg-[#13131e] border border-[#1a1a28] outline-none focus:border-[#f59e0b] resize-none"
-              }),
-              (0, x.jsxDEV)("div", {
-                className: "flex items-center justify-between",
-                children: [
-                  (0, x.jsxDEV)("span", { className: "text-[#888] text-xs", children: "Text style for hint:" }),
-                  (0, x.jsxDEV)(TextStyleBar, {
-                    style: styles.bundleHint,
-                    defaultColor: "#a3e635",
-                    defaultSize: 11,
-                    defaultBold: false,
-                    onStyleChange: st => updateStyle("bundleHint", st)
-                  })
-                ]
-              })
-            ]
-          })
-        ]
-      }),
-
-      (0, x.jsxDEV)("div", {
-        className: "lg:col-span-5 space-y-3",
-        children: [
-          (0, x.jsxDEV)("p", { className: "text-[#888] text-xs font-mono font-bold uppercase tracking-wider", children: "Live Preview (Storefront)" }),
-          (0, x.jsxDEV)("div", {
-            className: "rounded-2xl p-5 border border-[#1e1e2e] bg-[#0d0d14] space-y-4 shadow-xl",
-            children: [
-              (0, x.jsxDEV)("div", {
-                className: "flex items-center gap-2",
-                children: [
-                  (0, x.jsxDEV)("div", { className: "w-1 h-4 rounded-full bg-[#CAFF00]" }),
-                  (0, x.jsxDEV)("span", {
-                    style: { fontFamily: "var(--font-display)", ...getPersonaStyle({ styles }, "title", "#ffffff", 14, true, false) },
-                    children: titleText
-                  })
-                ]
-              }),
-              (0, x.jsxDEV)("div", {
-                className: "space-y-2.5 pt-1",
-                children: [
-                  { label: typeText, val: "Linear", labelSt: styles.typeLabel, valSt: styles.typeValue },
-                  { label: actuationText, val: "45g", labelSt: styles.actuationLabel, valSt: styles.actuationValue },
-                  { label: travelText, val: "4.0mm", labelSt: styles.travelLabel, valSt: styles.travelValue },
-                  { label: housingText, val: "Nylon", labelSt: styles.housingLabel, valSt: styles.housingValue }
-                ].map((row, rIdx) => (0, x.jsxDEV)("div", {
-                  className: "flex justify-between items-center text-xs py-1 border-b border-[#141420]",
-                  children: [
-                    (0, x.jsxDEV)("span", { style: { fontFamily: "var(--font-mono)", ...getPersonaStyle({ styles }, row.labelSt ? undefined : "label", "#999999", 11, false, false), ...row.labelSt }, children: row.label }),
-                    (0, x.jsxDEV)("span", { style: { fontFamily: "var(--font-mono)", ...getPersonaStyle({ styles }, row.valSt ? undefined : "val", "#60a5fa", 11, true, false), ...row.valSt }, children: row.val })
-                  ]
-                }, rIdx))
-              }),
-              (0, x.jsxDEV)("div", {
-                className: "rounded-xl px-4 py-3 border border-[#CAFF00]/20 bg-[#CAFF00]/5 mt-4",
-                children: (0, x.jsxDEV)("p", {
-                  style: { fontFamily: "var(--font-mono)", ...getPersonaStyle({ styles }, "bundleHint", "#a3e635", 11, false, false) },
-                  children: ["◆ ", bundleText]
-                })
-              })
-            ]
-          })
-        ]
-      })
-    ]
-  });
-}
-
-function renderSidebarSpecs(p, a) {
-  let { appData } = de();
-  let tr = appData.translations || {};
-  let styles = {};
-  try {
-    if (tr.sidebar_specs_styles && tr.sidebar_specs_styles.startsWith("{")) {
-      styles = JSON.parse(tr.sidebar_specs_styles);
-    }
-  } catch(e) {}
-
-  let titleStyle = { fontFamily: "var(--font-display)", ...getPersonaStyle({ styles }, "title", "#ffffff", 14, true, false) };
-  let typeLabelStyle = { fontFamily: "var(--font-mono)", ...getPersonaStyle({ styles }, "typeLabel", "#999999", 11, false, false), ...styles.typeLabel };
-  let typeValStyle = { fontFamily: "var(--font-mono)", ...getPersonaStyle({ styles }, "typeValue", "#60a5fa", 11, true, false), ...styles.typeValue };
-  let actLabelStyle = { fontFamily: "var(--font-mono)", ...getPersonaStyle({ styles }, "actuationLabel", "#999999", 11, false, false), ...styles.actuationLabel };
-  let actValStyle = { fontFamily: "var(--font-mono)", ...getPersonaStyle({ styles }, "actuationValue", "#60a5fa", 11, true, false), ...styles.actuationValue };
-  let travelLabelStyle = { fontFamily: "var(--font-mono)", ...getPersonaStyle({ styles }, "travelLabel", "#999999", 11, false, false), ...styles.travelLabel };
-  let travelValStyle = { fontFamily: "var(--font-mono)", ...getPersonaStyle({ styles }, "travelValue", "#60a5fa", 11, true, false), ...styles.travelValue };
-  let housingLabelStyle = { fontFamily: "var(--font-mono)", ...getPersonaStyle({ styles }, "housingLabel", "#999999", 11, false, false), ...styles.housingLabel };
-  let housingValStyle = { fontFamily: "var(--font-mono)", ...getPersonaStyle({ styles }, "housingValue", "#60a5fa", 11, true, false), ...styles.housingValue };
-
-  let specs = p.specs || {};
-  let items = [
-    { label: a("typeLabel") || "Type", value: specs.type || p.badge || "Linear", labelSt: typeLabelStyle, valSt: typeValStyle },
-    { label: a("actuationLabel") || "Actuation", value: specs.actuation || "45g", labelSt: actLabelStyle, valSt: actValStyle },
-    { label: a("travelLabel") || "Travel", value: specs.travel || "4.0mm", labelSt: travelLabelStyle, valSt: travelValStyle },
-    { label: a("housingLabel") || "Housing", value: specs.housing || "Nylon", labelSt: housingLabelStyle, valSt: housingValStyle }
-  ];
-
-  return [
-    (0, x.jsxDEV)("div", {
-      className: "flex items-center gap-2 mb-4",
-      children: [
-        (0, x.jsxDEV)("div", { className: "w-1 h-4 rounded-full bg-[#CAFF00]" }),
-        (0, x.jsxDEV)("span", {
-          style: titleStyle,
-          children: a("switchSpecsLabel") || "Switch specs"
-        })
-      ]
-    }, "specs-title"),
-    (0, x.jsxDEV)("div", {
-      className: "space-y-3",
-      children: items.map(item => (0, x.jsxDEV)("div", {
-        className: "flex justify-between items-center text-xs",
-        children: [
-          (0, x.jsxDEV)("span", { style: item.labelSt, children: item.label }),
-          (0, x.jsxDEV)("span", { style: item.valSt, children: item.value })
-        ]
-      }, item.label))
-    }, "specs-list")
-  ];
-}
-
-function renderBundleHint(a) {
-  let { appData } = de();
-  let tr = appData.translations || {};
-  let styles = {};
-  try {
-    if (tr.sidebar_specs_styles && tr.sidebar_specs_styles.startsWith("{")) {
-      styles = JSON.parse(tr.sidebar_specs_styles);
-    }
-  } catch(e) {}
-
-  let hintText = a("bundleHintText") || "Complete the full build and save 15% on your entire order.";
-  let st = { fontFamily: "var(--font-mono)", ...getPersonaStyle({ styles }, "bundleHint", "#a3e635", 11, false, false) };
-
-  return (0, x.jsxDEV)("div", {
-    className: "rounded-xl px-4 py-3 border border-[#CAFF00]/20 bg-[#CAFF00]/5",
-    children: (0, x.jsxDEV)("p", {
-      style: st,
-      children: ["◆ ", hintText]
-    })
-  });
-}
-
-function ImageCropModal({ src, fileName, onConfirm, onCancel }) {
-  const [currentRatio, setCurrentRatio] = (0, b.useState)(1.818);
-  const [box, setBox] = (0, b.useState)({ x: 0, y: 0, w: 100, h: 100 });
-  const [imgDims, setImgDims] = (0, b.useState)({ w: 520, h: 320 });
-  const [isUploading, setIsUploading] = (0, b.useState)(false);
-  const imgRef = (0, b.useRef)(null);
-  const canvasRef = (0, b.useRef)(null);
-  const dragRef = (0, b.useRef)(null);
-
-  const initBox = (dispW, dispH, ratio) => {
-    let w = dispW * 0.94;
-    let h = ratio ? w / ratio : dispH * 0.94;
-    if (h > dispH * 0.96) {
-      h = dispH * 0.96;
-      w = ratio ? h * ratio : dispW * 0.94;
-    }
-    setBox({
-      w,
-      h,
-      x: Math.max(0, (dispW - w) / 2),
-      y: Math.max(0, (dispH - h) / 2)
-    });
-  };
-
-  const handleImageLoad = (e) => {
-    const el = e.target;
-    const dispW = el.offsetWidth || 520;
-    const dispH = el.offsetHeight || 320;
-    setImgDims({ w: dispW, h: dispH });
-    initBox(dispW, dispH, currentRatio);
-  };
-
-  (0, b.useEffect)(() => {
-    if (!imgRef.current || !canvasRef.current) return;
-    const img = imgRef.current;
-    const canvas = canvasRef.current;
-    const ctx = canvas.getContext("2d");
-    if (!ctx || !img.naturalWidth || !imgDims.w || !imgDims.h) return;
-
-    const scaleX = img.naturalWidth / imgDims.w;
-    const scaleY = img.naturalHeight / imgDims.h;
-
-    const sx = Math.max(0, box.x * scaleX);
-    const sy = Math.max(0, box.y * scaleY);
-    const sw = Math.min(img.naturalWidth - sx, box.w * scaleX);
-    const sh = Math.min(img.naturalHeight - sy, box.h * scaleY);
-
-    ctx.fillStyle = "#0d0d14";
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    if (sw > 0 && sh > 0) {
-      ctx.drawImage(img, sx, sy, sw, sh, 0, 0, canvas.width, canvas.height);
-    }
-  }, [box, imgDims]);
-
-  (0, b.useEffect)(() => {
-    const onMouseMove = (e) => {
-      if (!dragRef.current) return;
-      const d = dragRef.current;
-      const dx = e.clientX - d.startX;
-      const dy = e.clientY - d.startY;
-
-      if (d.type === "move") {
-        const nx = Math.max(0, Math.min(imgDims.w - d.boxW, d.boxX + dx));
-        const ny = Math.max(0, Math.min(imgDims.h - d.boxH, d.boxY + dy));
-        setBox(b => ({ ...b, x: nx, y: ny }));
-      } else if (d.type === "resize") {
-        let nw = d.boxW;
-        let nh = d.boxH;
-        let nx = d.boxX;
-        let ny = d.boxY;
-
-        if (d.handle === "br") {
-          nw = Math.max(60, d.boxW + dx);
-          nh = currentRatio ? nw / currentRatio : Math.max(40, d.boxH + dy);
-        } else if (d.handle === "tr") {
-          nw = Math.max(60, d.boxW + dx);
-          nh = currentRatio ? nw / currentRatio : Math.max(40, d.boxH - dy);
-          ny = d.boxY + (d.boxH - nh);
-        } else if (d.handle === "bl") {
-          nw = Math.max(60, d.boxW - dx);
-          nh = currentRatio ? nw / currentRatio : Math.max(40, d.boxH + dy);
-          nx = d.boxX + (d.boxW - nw);
-        } else if (d.handle === "tl") {
-          nw = Math.max(60, d.boxW - dx);
-          nh = currentRatio ? nw / currentRatio : Math.max(40, d.boxH - dy);
-          nx = d.boxX + (d.boxW - nw);
-          ny = d.boxY + (d.boxH - nh);
-        }
-
-        if (nx >= 0 && ny >= 0 && nx + nw <= imgDims.w + 1 && ny + nh <= imgDims.h + 1) {
-          setBox({ x: nx, y: ny, w: nw, h: nh });
-        }
-      }
-    };
-
-    const onMouseUp = () => {
-      dragRef.current = null;
-    };
-
-    window.addEventListener("mousemove", onMouseMove);
-    window.addEventListener("mouseup", onMouseUp);
-    return () => {
-      window.removeEventListener("mousemove", onMouseMove);
-      window.removeEventListener("mouseup", onMouseUp);
-    };
-  }, [imgDims, currentRatio]);
-
-  const handleRatioClick = (r) => {
-    setCurrentRatio(r);
-    initBox(imgDims.w, imgDims.h, r);
-  };
-
-  const handleConfirm = () => {
-    if (!imgRef.current) return;
-    setIsUploading(true);
-
-    const img = imgRef.current;
-    const scaleX = img.naturalWidth / (imgDims.w || 1);
-    const scaleY = img.naturalHeight / (imgDims.h || 1);
-
-    const sx = Math.max(0, box.x * scaleX);
-    const sy = Math.max(0, box.y * scaleY);
-    const sw = Math.min(img.naturalWidth - sx, box.w * scaleX);
-    const sh = Math.min(img.naturalHeight - sy, box.h * scaleY);
-
-    const targetW = Math.min(1600, Math.max(800, Math.round(sw)));
-    const targetH = Math.round(targetW / (currentRatio || (sw / sh)));
-
-    const outCanvas = document.createElement("canvas");
-    outCanvas.width = targetW;
-    outCanvas.height = targetH;
-    const ctx = outCanvas.getContext("2d");
-    ctx.imageSmoothingEnabled = true;
-    ctx.imageSmoothingQuality = "high";
-
-    ctx.drawImage(img, sx, sy, sw, sh, 0, 0, targetW, targetH);
-
-    outCanvas.toBlob((blob) => {
-      if (!blob) {
-        setIsUploading(false);
-        return;
-      }
-      const safeName = (fileName || "image.jpg").replace(/\.[^/.]+$/, "") + "_cropped.jpg";
-      const fd = new FormData();
-      fd.append("file", blob, safeName);
-
-      fetch("/api/upload", {
-        method: "POST",
-        body: fd
-      })
-      .then(r => r.json())
-      .then(res => {
-        setIsUploading(false);
-        if (res && res.url) {
-          onConfirm(res.url);
-        } else {
-          alert("Error uploading image: " + (res?.detail || "Unknown error"));
-        }
-      })
-      .catch(err => {
-        setIsUploading(false);
-        alert("Network error while uploading: " + err);
-      });
-    }, "image/jpeg", 0.92);
-  };
-
-  const handleBoxMouseDown = (e) => {
-    if (e.target && e.target.dataset && e.target.dataset.handle) return;
-    dragRef.current = {
-      type: "move",
-      startX: e.clientX,
-      startY: e.clientY,
-      boxX: box.x,
-      boxY: box.y,
-      boxW: box.w,
-      boxH: box.h
-    };
-    e.preventDefault();
-  };
-
-  const handleHandleMouseDown = (e, handlePos) => {
-    dragRef.current = {
-      type: "resize",
-      handle: handlePos,
-      startX: e.clientX,
-      startY: e.clientY,
-      boxX: box.x,
-      boxY: box.y,
-      boxW: box.w,
-      boxH: box.h
-    };
-    e.stopPropagation();
-    e.preventDefault();
-  };
-
-  return (0, x.jsxDEV)("div", {
-    style: {
-      position: "fixed",
-      top: 0, left: 0, right: 0, bottom: 0,
-      zIndex: 999999,
-      display: "flex",
-      alignItems: "center",
-      justifyContent: "center",
-      backgroundColor: "rgba(0, 0, 0, 0.85)",
-      backdropFilter: "blur(8px)",
-      padding: "16px"
-    },
-    onClick: onCancel,
-    children: (0, x.jsxDEV)("div", {
-      style: {
-        width: "100%",
-        maxWidth: "920px",
-        backgroundColor: "#0e0e17",
-        borderRadius: "18px",
-        border: "1px solid #262638",
-        padding: "24px",
-        boxShadow: "0 25px 50px rgba(0, 0, 0, 0.9)",
-        color: "#ffffff",
-        textAlign: "left",
-        position: "relative"
-      },
-      onClick: ev => ev.stopPropagation(),
-      children: [
-        (0, x.jsxDEV)("div", {
-          style: { display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "16px", borderBottom: "1px solid #1a1a28", paddingBottom: "12px" },
-          children: [
-            (0, x.jsxDEV)("div", {
-              children: [
-                (0, x.jsxDEV)("h3", {
-                  style: { fontFamily: "var(--font-display)", color: "#ffffff", fontSize: "17px", fontWeight: "bold", margin: 0 },
-                  children: "✂️ CROP & ADJUST SWITCH IMAGE"
-                }),
-                (0, x.jsxDEV)("p", {
-                  style: { fontFamily: "var(--font-mono)", color: "#888888", fontSize: "12px", margin: "4px 0 0 0" },
-                  children: "Drag the amber crop box or corner handles to choose the exact display frame for the Storefront"
-                })
-              ]
-            }),
-            (0, x.jsxDEV)("button", {
-              type: "button",
-              onClick: onCancel,
-              style: { background: "none", border: "none", color: "#888888", fontSize: "22px", cursor: "pointer", lineHeight: 1 },
-              children: "×"
-            })
-          ]
-        }),
-
-        (0, x.jsxDEV)("div", {
-          style: { display: "flex", alignItems: "center", gap: "8px", marginBottom: "14px", flexWrap: "wrap" },
-          children: [
-            (0, x.jsxDEV)("span", {
-              style: { fontFamily: "var(--font-mono)", fontSize: "11px", color: "#888888", fontWeight: "bold", textTransform: "uppercase", letterSpacing: "0.05em", marginRight: "4px" },
-              children: "CROP RATIO:"
-            }),
-            [
-              { label: "Card Storefront (1.82:1)", ratio: 1.818 },
-              { label: "16:9", ratio: 16 / 9 },
-              { label: "4:3", ratio: 4 / 3 },
-              { label: "1:1", ratio: 1 },
-              { label: "Free", ratio: null }
-            ].map(r => (0, x.jsxDEV)("button", {
-              type: "button",
-              onClick: () => handleRatioClick(r.ratio),
-              style: {
-                padding: "4px 10px",
-                borderRadius: "6px",
-                fontSize: "11px",
-                fontFamily: "var(--font-mono)",
-                cursor: "pointer",
-                fontWeight: currentRatio === r.ratio ? "bold" : "normal",
-                backgroundColor: currentRatio === r.ratio ? "#f59e0b" : "#141420",
-                color: currentRatio === r.ratio ? "#000000" : "#aaaaaa",
-                border: currentRatio === r.ratio ? "1px solid #f59e0b" : "1px solid #222234"
-              },
-              children: r.label
-            }, r.label))
-          ]
-        }),
-
-        (0, x.jsxDEV)("div", {
-          style: { display: "grid", gridTemplateColumns: "1fr 310px", gap: "20px", alignItems: "start" },
-          children: [
-            (0, x.jsxDEV)("div", {
-              children: [
-                (0, x.jsxDEV)("div", {
-                  style: {
-                    position: "relative",
-                    width: "100%",
-                    minHeight: "320px",
-                    backgroundColor: "#07070b",
-                    borderRadius: "12px",
-                    overflow: "hidden",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    border: "1px solid #1a1a28",
-                    userSelect: "none"
-                  },
-                  children: (0, x.jsxDEV)("div", {
-                    style: { position: "relative", display: "inline-block" },
-                    children: [
-                      (0, x.jsxDEV)("img", {
-                        ref: imgRef,
-                        src: src,
-                        onLoad: handleImageLoad,
-                        style: { display: "block", maxWidth: "540px", maxHeight: "350px", userSelect: "none", pointerEvents: "none" }
-                      }),
-                      (0, x.jsxDEV)("div", {
-                        onMouseDown: handleBoxMouseDown,
-                        style: {
-                          position: "absolute",
-                          left: box.x + "px",
-                          top: box.y + "px",
-                          width: box.w + "px",
-                          height: box.h + "px",
-                          border: "2px solid #f59e0b",
-                          boxShadow: "0 0 0 9999px rgba(0, 0, 0, 0.65)",
-                          cursor: "move",
-                          boxSizing: "border-box"
-                        },
-                        children: [
-                          (0, x.jsxDEV)("div", { style: { position: "absolute", left: 0, right: 0, top: "33.33%", height: "1px", background: "rgba(255,255,255,0.25)", pointerEvents: "none" } }),
-                          (0, x.jsxDEV)("div", { style: { position: "absolute", left: 0, right: 0, top: "66.66%", height: "1px", background: "rgba(255,255,255,0.25)", pointerEvents: "none" } }),
-                          (0, x.jsxDEV)("div", { style: { position: "absolute", top: 0, bottom: 0, left: "33.33%", width: "1px", background: "rgba(255,255,255,0.25)", pointerEvents: "none" } }),
-                          (0, x.jsxDEV)("div", { style: { position: "absolute", top: 0, bottom: 0, left: "66.66%", width: "1px", background: "rgba(255,255,255,0.25)", pointerEvents: "none" } }),
-                          ["tl", "tr", "bl", "br"].map(handlePos => {
-                            const isTop = handlePos.includes("t");
-                            const isLeft = handlePos.includes("l");
-                            return (0, x.jsxDEV)("div", {
-                              "data-handle": handlePos,
-                              onMouseDown: (ev) => handleHandleMouseDown(ev, handlePos),
-                              style: {
-                                position: "absolute",
-                                width: "12px",
-                                height: "12px",
-                                backgroundColor: "#f59e0b",
-                                border: "2px solid #ffffff",
-                                borderRadius: "50%",
-                                boxShadow: "0 0 4px rgba(0,0,0,0.8)",
-                                top: isTop ? "-6px" : "auto",
-                                bottom: !isTop ? "-6px" : "auto",
-                                left: isLeft ? "-6px" : "auto",
-                                right: !isLeft ? "-6px" : "auto",
-                                cursor: (isTop && isLeft) || (!isTop && !isLeft) ? "nwse-resize" : "nesw-resize",
-                                zIndex: 10
-                              }
-                            }, handlePos);
-                          })
-                        ]
-                      })
-                    ]
-                  })
-                }),
-                (0, x.jsxDEV)("div", {
-                  style: { display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "10px", fontSize: "11px", color: "#888888" },
-                  children: [
-                    (0, x.jsxDEV)("span", { children: "💡 Drag box to move · Pull corner handles to resize" }),
-                    (0, x.jsxDEV)("button", {
-                      type: "button",
-                      onClick: () => initBox(imgDims.w, imgDims.h, currentRatio),
-                      style: { background: "none", border: "none", color: "#f59e0b", cursor: "pointer", fontWeight: "bold", textDecoration: "underline" },
-                      children: "Reset Frame"
-                    })
-                  ]
-                })
-              ]
-            }),
-
-            (0, x.jsxDEV)("div", {
-              children: [
-                (0, x.jsxDEV)("div", {
-                  style: { fontFamily: "var(--font-mono)", fontSize: "11px", fontWeight: "bold", color: "#aaaaaa", textTransform: "uppercase", letterSpacing: "0.05em", marginBottom: "10px" },
-                  children: "STOREFRONT PREVIEW"
-                }),
-                (0, x.jsxDEV)("div", {
-                  style: { width: "100%", height: "154px", borderRadius: "14px", overflow: "hidden", position: "relative", backgroundColor: "#0d0d14", border: "1px solid #2a2a3e" },
-                  children: [
-                    (0, x.jsxDEV)("canvas", { ref: canvasRef, width: 280, height: 154, style: { width: "100%", height: "100%", objectFit: "cover" } }),
-                    (0, x.jsxDEV)("div", {
-                      style: { position: "absolute", bottom: 0, left: 0, right: 0, padding: "16px 12px 8px 12px", background: "linear-gradient(to top, rgba(6,6,10,0.95) 0%, rgba(6,6,10,0.6) 70%, transparent 100%)", pointerEvents: "none" },
-                      children: [
-                        (0, x.jsxDEV)("span", { style: { fontSize: "8px", fontWeight: "bold", backgroundColor: "#60a5fa", color: "#000000", padding: "1px 5px", borderRadius: "2px", fontFamily: "var(--font-mono)" }, children: "SILENT" }),
-                        (0, x.jsxDEV)("div", {
-                          style: { display: "flex", justifyContent: "space-between", alignItems: "baseline", marginTop: "3px" },
-                          children: [
-                            (0, x.jsxDEV)("span", { style: { fontFamily: "var(--font-display)", fontSize: "12px", fontWeight: "bold", color: "#ffffff" }, children: "Gateron Silent Pink" }),
-                            (0, x.jsxDEV)("span", { style: { fontFamily: "var(--font-mono)", fontSize: "13px", fontWeight: "900", color: "#60a5fa" }, children: "$650" })
-                          ]
-                        })
-                      ]
-                    })
-                  ]
-                }),
-                (0, x.jsxDEV)("div", {
-                  style: { marginTop: "14px", backgroundColor: "#141420", border: "1px solid #1f1f30", borderRadius: "10px", padding: "12px", fontSize: "11px", color: "#999999", lineHeight: 1.5 },
-                  children: [
-                    "Standard ",
-                    (0, x.jsxDEV)("strong", { style: { color: "#f59e0b" }, children: "1.82:1" }),
-                    " aspect ratio matches Storefront card framing perfectly without cutting keys."
-                  ]
-                }),
-                (0, x.jsxDEV)("div", {
-                  style: { marginTop: "20px", display: "flex", flexDirection: "column", gap: "10px" },
-                  children: [
-                    (0, x.jsxDEV)("button", {
-                      type: "button",
-                      disabled: isUploading,
-                      onClick: handleConfirm,
-                      style: {
-                        backgroundColor: isUploading ? "#785010" : "#f59e0b",
-                        color: "#000000",
-                        border: "none",
-                        padding: "12px",
-                        borderRadius: "10px",
-                        fontWeight: "bold",
-                        fontSize: "13px",
-                        cursor: isUploading ? "not-allowed" : "pointer",
-                        boxShadow: "0 4px 14px rgba(245,158,11,0.35)",
-                        transition: "all 0.15s"
-                      },
-                      children: isUploading ? "⏳ Uploading..." : "✓ Crop & Save Image to VPS"
-                    }),
-                    (0, x.jsxDEV)("button", {
-                      type: "button",
-                      onClick: onCancel,
-                      style: { backgroundColor: "#1a1a28", color: "#aaaaaa", border: "1px solid #2a2a3e", padding: "10px", borderRadius: "10px", fontWeight: "600", fontSize: "12px", cursor: "pointer" },
-                      children: "Cancel"
-                    })
-                  ]
-                })
-              ]
-            })
-          ]
-        })
-      ]
-    })
-  });
-}
-
-function ee({label:e,children:t,toolbar:tb}){
-  return (0,x.jsxDEV)(`div`,{
-    className:`space-y-1.5`,
-    children:[
-      (0,x.jsxDEV)(`div`,{
-        className:`flex items-center justify-between gap-2`,
-        children:[
-          (0,x.jsxDEV)(`label`,{
-            className:`block text-[#999] text-[10px] font-semibold tracking-widest uppercase truncate`,
-            style:{fontFamily:`var(--font-mono)`},
-            children:e
-          }),
-          tb
-        ]
-      }),
-      t
-    ]
-  });
-}function te({value:e,onChange:t,placeholder:n,type:r=`text`}){return(0,x.jsxDEV)(`input`,{type:r,value:e,onChange:e=>t(e.target.value),placeholder:n,className:`w-full px-3 py-2 rounded-lg text-sm text-white placeholder-[#333] border border-[#1a1a28] outline-none focus:border-[#f59e0b]/60 focus:ring-1 focus:ring-[#f59e0b]/20 transition-all`,style:{backgroundColor:`#0c0c14`,fontFamily:`var(--font-display)`}},void 0,!1,{fileName:S,lineNumber:29,columnNumber:5},this)}function ne({value:e,onChange:t,placeholder:n,rows:r=3}){return(0,x.jsxDEV)(`textarea`,{value:e,rows:r,onChange:e=>t(e.target.value),placeholder:n,className:`w-full px-3 py-2 rounded-lg text-sm text-white placeholder-[#333] border border-[#1a1a28] outline-none focus:border-[#f59e0b]/60 focus:ring-1 focus:ring-[#f59e0b]/20 transition-all resize-none`,style:{backgroundColor:`#0c0c14`,fontFamily:`var(--font-display)`}},void 0,!1,{fileName:S,lineNumber:47,columnNumber:5},this)}function re({value:e,onChange:t}){
+  <%s key={someKey} {...props} />`,o,f,m,f),de[f+o]=!0)}if(f=null,i!==void 0&&(r(i),f=``+i),s(n)&&(r(n.key),f=``+n.key),`key`in n)for(var h in i={},n)h!==`key`&&(i[h]=n[h]);else i=n;return f&&c(i,typeof e==`function`?e.displayName||e.name||`Unknown`:e),d(e,f,i,a(),l,u)}function p(e){m(e)?e._store&&(e._store.validated=1):typeof e==`object`&&e&&e.$$typeof===ie&&(e._payload.status===`fulfilled`?m(e._payload.value)&&e._payload.value._store&&(e._payload.value._store.validated=1):e._store&&(e._store.validated=1))}function m(e){return typeof e==`object`&&!!e&&e.$$typeof===g}var h=u(),g=Symbol.for(`react.transitional.element`),_=Symbol.for(`react.portal`),v=Symbol.for(`react.fragment`),y=Symbol.for(`react.strict_mode`),b=Symbol.for(`react.profiler`),x=Symbol.for(`react.consumer`),S=Symbol.for(`react.context`),ee=Symbol.for(`react.forward_ref`),te=Symbol.for(`react.suspense`),ne=Symbol.for(`react.suspense_list`),re=Symbol.for(`react.memo`),ie=Symbol.for(`react.lazy`),C=Symbol.for(`react.activity`),ae=Symbol.for(`react.client.reference`),w=h.__CLIENT_INTERNALS_DO_NOT_USE_OR_WARN_USERS_THEY_CANNOT_UPGRADE,oe=Object.prototype.hasOwnProperty,se=Array.isArray,T=console.createTask?console.createTask:function(){return null};h={react_stack_bottom_frame:function(e){return e()}};var ce,E={},le=h.react_stack_bottom_frame.bind(h,o)(),ue=T(i(o)),de={};e.Fragment=v,e.jsxDEV=function(e,t,n,r){var a=1e4>w.recentlyCreatedOwnerStacks++;return f(e,t,n,r,a?Error(`react-stack-top-frame`):le,a?T(i(e)):ue)}})()})),v=o(((e,t)=>{t.exports=_()})),y=c(g(),1),b=c(u(),1),x=v(),S=`/workspaces/.cached-preview/src/AdminPanel.tsx`;function ee({label:e,children:t}){return(0,x.jsxDEV)(`div`,{children:[(0,x.jsxDEV)(`label`,{className:`block text-[#999] text-[10px] font-semibold tracking-widest uppercase mb-1.5`,style:{fontFamily:`var(--font-mono)`},children:e},void 0,!1,{fileName:S,lineNumber:14,columnNumber:7},this),t]},void 0,!0,{fileName:S,lineNumber:13,columnNumber:5},this)}function te({value:e,onChange:t,placeholder:n,type:r=`text`}){return(0,x.jsxDEV)(`input`,{type:r,value:e,onChange:e=>t(e.target.value),placeholder:n,className:`w-full px-3 py-2 rounded-lg text-sm text-white placeholder-[#333] border border-[#1a1a28] outline-none focus:border-[#f59e0b]/60 focus:ring-1 focus:ring-[#f59e0b]/20 transition-all`,style:{backgroundColor:`#0c0c14`,fontFamily:`var(--font-display)`}},void 0,!1,{fileName:S,lineNumber:29,columnNumber:5},this)}function ne({value:e,onChange:t,placeholder:n,rows:r=3}){return(0,x.jsxDEV)(`textarea`,{value:e,rows:r,onChange:e=>t(e.target.value),placeholder:n,className:`w-full px-3 py-2 rounded-lg text-sm text-white placeholder-[#333] border border-[#1a1a28] outline-none focus:border-[#f59e0b]/60 focus:ring-1 focus:ring-[#f59e0b]/20 transition-all resize-none`,style:{backgroundColor:`#0c0c14`,fontFamily:`var(--font-display)`}},void 0,!1,{fileName:S,lineNumber:47,columnNumber:5},this)}function re({value:e,onChange:t}){
   let [isUploading,setIsUploading]=(0,b.useState)(!1);
   let [uploadMsg,setUploadMsg]=(0,b.useState)(null);
-  let [cropData,setCropData]=(0,b.useState)(null);
   let fileInputRef=(0,b.useRef)(null);
 
   function handleFile(ev){
     let f=ev.target.files?.[0];
     if(!f)return;
-    let reader=new FileReader();
-    reader.onload=rEv=>{
-      setCropData({
-        src: rEv.target.result,
-        fileName: f.name
-      });
-      if(fileInputRef.current) fileInputRef.current.value="";
-    };
-    reader.readAsDataURL(f);
-  }
+    setIsUploading(!0);
+    setUploadMsg("Uploading to VPS...");
+    let fd=new FormData();
+    fd.append("file",f);
 
-  function openCropExisting(){
-    if(!e)return;
-    setCropData({
-      src: e,
-      fileName: "current_image.jpg"
+    fetch("/api/upload",{
+      method:"POST",
+      body:fd
+    })
+    .then(r=>r.json())
+    .then(res=>{
+      setIsUploading(!1);
+      if(res&&res.url){
+        const fullUrl=""+res.url;
+        t(fullUrl);
+        setUploadMsg("✓ Saved on VPS");
+        setTimeout(()=>setUploadMsg(null),3000);
+      } else {
+        setUploadMsg("Upload error: "+(res.detail||"Unknown error"));
+      }
+    })
+    .catch(err=>{
+      setIsUploading(!1);
+      setUploadMsg("Network error: "+err);
     });
   }
 
-  return (0,x.jsxDEV)(`div`,{className:`flex flex-col gap-2`,children:[
+  return(0,x.jsxDEV)(`div`,{className:`flex flex-col gap-2`,children:[
     (0,x.jsxDEV)(`div`,{className:`flex gap-3 items-start`,children:[
-      (0,x.jsxDEV)(`div`,{
-        className:`w-20 h-14 rounded-lg overflow-hidden shrink-0 border border-[#1a1a28] bg-[#0a0a12] relative group cursor-pointer`,
-        title: e ? `Click to crop or change image` : `Click to upload image`,
-        onClick: () => e ? openCropExisting() : fileInputRef.current?.click(),
-        children:[
-          e?(0,x.jsxDEV)(`img`,{src:e,alt:`preview`,className:`w-full h-full object-cover`,onError:e=>{e.target.style.display=`none`}},void 0,!1,{fileName:S,lineNumber:63,columnNumber:11},this):(0,x.jsxDEV)(`div`,{className:`w-full h-full flex items-center justify-center text-[#444] text-xs font-mono`,children:`No img`},void 0,!1,{fileName:S,lineNumber:65,columnNumber:11},this),
-          (0,x.jsxDEV)(`div`,{className:`absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center text-[10px] text-white font-mono transition-opacity`,children:e?`✂️ Crop/Edit`:`Upload`})
-        ]
-      },void 0,!1,{fileName:S,lineNumber:61,columnNumber:7},this),
+      (0,x.jsxDEV)(`div`,{className:`w-20 h-14 rounded-lg overflow-hidden shrink-0 border border-[#1a1a28] bg-[#0a0a12] relative group cursor-pointer`,onClick:()=>fileInputRef.current?.click(),children:[
+        e?(0,x.jsxDEV)(`img`,{src:e,alt:`preview`,className:`w-full h-full object-cover`,onError:e=>{e.target.style.display=`none`}},void 0,!1,{fileName:S,lineNumber:63,columnNumber:11},this):(0,x.jsxDEV)(`div`,{className:`w-full h-full flex items-center justify-center text-[#444] text-xs font-mono`,children:`No img`},void 0,!1,{fileName:S,lineNumber:65,columnNumber:11},this),
+        (0,x.jsxDEV)(`div`,{className:`absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex items-center justify-center text-[10px] text-white font-mono transition-opacity`,children:`Change Image`})
+      ]},void 0,!1,{fileName:S,lineNumber:61,columnNumber:7},this),
       (0,x.jsxDEV)(`div`,{className:`flex-1 flex flex-col gap-1.5`,children:[
-        (0,x.jsxDEV)(te,{value:e,onChange:t,placeholder:`/uploads/...`}),
-        (0,x.jsxDEV)(`div`,{className:`flex items-center gap-2 flex-wrap`,children:[
+        (0,x.jsxDEV)(te,{value:e,onChange:t,placeholder:`/uploads/...`},void 0,!1,{fileName:S,lineNumber:68,columnNumber:7},this),
+        (0,x.jsxDEV)(`div`,{className:`flex items-center gap-2`,children:[
           (0,x.jsxDEV)(`input`,{ref:fileInputRef,type:`file`,accept:`image/*`,className:`hidden`,onChange:handleFile}),
           (0,x.jsxDEV)(`button`,{type:`button`,disabled:isUploading,onClick:()=>fileInputRef.current?.click(),className:`px-2.5 py-1 rounded bg-[#1a1a28] hover:bg-[#2a2a3e] text-white text-[11px] font-mono flex items-center gap-1.5 transition-colors cursor-pointer border border-[#2a2a3e]`,children:[
             isUploading?`⏳ Uploading...`:`📁 Upload New Image to VPS`
           ]}),
-          e&&(0,x.jsxDEV)(`button`,{type:`button`,onClick:openCropExisting,className:`px-2.5 py-1 rounded bg-[#f59e0b]/15 hover:bg-[#f59e0b]/25 text-[#f59e0b] border border-[#f59e0b]/40 text-[11px] font-mono flex items-center gap-1.5 transition-colors cursor-pointer`,children:[
-            `✂️ Crop / Chỉnh tỉ lệ`
-          ]}),
           uploadMsg&&(0,x.jsxDEV)(`span`,{className:`text-[11px] font-mono `+(uploadMsg.startsWith("✓")?`text-[#CAFF00]`:`text-amber-400`),children:uploadMsg})
         ]})
       ]})
-    ]},void 0,!0,{fileName:S,lineNumber:60,columnNumber:5},this),
-
-    cropData&&(0,x.jsxDEV)(ImageCropModal,{
-      src: cropData.src,
-      fileName: cropData.fileName,
-      onConfirm: newUrl => {
-        t(newUrl);
-        setCropData(null);
-        setUploadMsg("✓ Cropped & saved to VPS");
-        setTimeout(()=>setUploadMsg(null), 3000);
-      },
-      onCancel: () => setCropData(null)
-    })
+    ]},void 0,!0,{fileName:S,lineNumber:60,columnNumber:5},this)
   ]});
-}
-function ie({value:e,onChange:t}){return(0,x.jsxDEV)(`div`,{className:`flex items-center gap-3`,children:[(0,x.jsxDEV)(`div`,{className:`relative`,children:(0,x.jsxDEV)(`input`,{type:`color`,value:e,onChange:e=>t(e.target.value),className:`w-9 h-9 rounded-lg cursor-pointer border-0 p-0.5 bg-transparent`},void 0,!1,{fileName:S,lineNumber:77,columnNumber:9},this)},void 0,!1,{fileName:S,lineNumber:76,columnNumber:7},this),(0,x.jsxDEV)(te,{value:e,onChange:t,placeholder:`#CAFF00`},void 0,!1,{fileName:S,lineNumber:80,columnNumber:7},this)]},void 0,!0,{fileName:S,lineNumber:75,columnNumber:5},this)}function C({tags:e,onChange:t}){let[n,r]=(0,b.useState)(``);return(0,x.jsxDEV)(`div`,{children:[(0,x.jsxDEV)(`div`,{className:`flex flex-wrap gap-1.5 mb-2`,children:e.map((n,r)=>(0,x.jsxDEV)(`span`,{className:`flex items-center gap-1 px-2.5 py-1 rounded-full border border-[#1a1a28] text-[#888] text-[10px]`,style:{fontFamily:`var(--font-mono)`,backgroundColor:`#0c0c14`},children:[n,(0,x.jsxDEV)(`button`,{onClick:()=>t(e.filter((e,t)=>t!==r)),className:`text-[#999] hover:text-[#f87171] ml-0.5 transition-colors leading-none text-base`,children:`×`},void 0,!1,{fileName:S,lineNumber:94,columnNumber:13},this)]},r,!0,{fileName:S,lineNumber:91,columnNumber:11},this))},void 0,!1,{fileName:S,lineNumber:89,columnNumber:7},this),(0,x.jsxDEV)(`div`,{className:`flex gap-2`,children:[(0,x.jsxDEV)(`input`,{value:n,onChange:e=>r(e.target.value),onKeyDown:i=>{i.key===`Enter`&&n.trim()&&(t([...e,n.trim()]),r(``))},placeholder:`Add feature, press Enter`,className:`flex-1 px-3 py-2 rounded-lg text-sm text-white placeholder-[#333] border border-[#1a1a28] outline-none focus:border-[#f59e0b]/60 transition-all`,style:{backgroundColor:`#0c0c14`,fontFamily:`var(--font-display)`,fontSize:`12px`}},void 0,!1,{fileName:S,lineNumber:100,columnNumber:9},this),(0,x.jsxDEV)(`button`,{onClick:()=>{n.trim()&&(t([...e,n.trim()]),r(``))},className:`px-3 py-2 rounded-lg border border-[#1a1a28] text-[#999] hover:text-[#888] hover:border-[#f59e0b]/40 transition-all text-sm`,children:`+`},void 0,!1,{fileName:S,lineNumber:105,columnNumber:9},this)]},void 0,!0,{fileName:S,lineNumber:99,columnNumber:7},this)]},void 0,!0,{fileName:S,lineNumber:88,columnNumber:5},this)}function ae(){let{appData:e,setAppData:t}=de(),n=e.switchPersonas,[r,i]=(0,b.useState)(n[0]?.id??``),[a,o]=(0,b.useState)(null),s=a??n.find(e=>e.id===r)??null,[draggedIdx,setDraggedIdx]=(0,b.useState)(null),[dropIndicator,setDropIndicator]=(0,b.useState)(null),[personaToDelete,setPersonaToDelete]=(0,b.useState)(null);function c(e){i(e),o(null)}function l(){let e=`persona-${Date.now()}`,n={id:e,label:`New Persona`,tagline:`Enter tagline`,switchName:`Switch Name`,switchSpec:`Type · 45g · 4.0mm travel`,badge:`NEW`,price:45,description:`Describe this switch profile.`,features:[`Feature 1`,`Feature 2`],image:``,accent:`#CAFF00`,accentDim:`rgba(202,255,0,0.15)`};t(e=>({...e,switchPersonas:[...e.switchPersonas,n]})),i(e),o(null)}function u(e){if(n.length<=1)return;let r=n.find(t=>t.id!==e);t(t=>({...t,switchPersonas:t.switchPersonas.filter(t=>t.id!==e)})),i(r?.id??``),o(null)}function d(e,n){if(!s)return;let r={...s,[e]:n};if(e===`accent`){let e=n;r.accentDim=`rgba(${parseInt(e.slice(1,3),16)},${parseInt(e.slice(3,5),16)},${parseInt(e.slice(5,7),16)},0.15)`}t(e=>({...e,switchPersonas:e.switchPersonas.map(e=>e.id===s.id?r:e)})),o(null)}return(0,x.jsxDEV)(`div`,{className:`grid grid-cols-[220px_1fr] gap-6 h-full`,children:[(0,x.jsxDEV)(`div`,{children:[(0, x.jsxDEV)(`div`, {
-  className: `space-y-1.5 mb-3`,
-  onDragLeave: ev => {
-    if (!ev.currentTarget.contains(ev.relatedTarget)) {
-      setDropIndicator(null);
-    }
-  },
-  children: n.map((e, idx) => {
-    let showTop = draggedIdx !== null && draggedIdx !== idx && dropIndicator?.idx === idx && dropIndicator?.pos === `top`;
-    let showBottom = draggedIdx !== null && draggedIdx !== idx && dropIndicator?.idx === idx && dropIndicator?.pos === `bottom`;
-    return (0, x.jsxDEV)(`div`, {
-      className: `relative`,
-      children: [
-        showTop && (0, x.jsxDEV)(`div`, {
-          style: {
-            position: `absolute`,
-            top: `-4px`,
-            left: 0,
-            right: 0,
-            height: `3px`,
-            display: `flex`,
-            alignItems: `center`,
-            zIndex: 40,
-            pointerEvents: `none`
-          },
-          children: [
-            (0, x.jsxDEV)(`div`, {
-              style: {
-                width: `8px`,
-                height: `8px`,
-                borderRadius: `50%`,
-                backgroundColor: `#f59e0b`,
-                boxShadow: `0 0 10px #f59e0b, 0 0 4px #f59e0b`,
-                marginLeft: `-2px`,
-                flexShrink: 0
-              }
-            }),
-            (0, x.jsxDEV)(`div`, {
-              style: {
-                flex: 1,
-                height: `3px`,
-                backgroundColor: `#f59e0b`,
-                borderRadius: `9999px`,
-                boxShadow: `0 0 10px #f59e0b, 0 0 4px #f59e0b`
-              }
-            })
-          ]
-        }),
-        (0, x.jsxDEV)(`div`, {
-          draggable: true,
-          onDragStart: ev => {
-            ev.dataTransfer.setData(`text/plain`, String(idx));
-            ev.dataTransfer.effectAllowed = `move`;
-            setDraggedIdx(idx);
-          },
-          onDragOver: ev => {
-            ev.preventDefault();
-            ev.dataTransfer.dropEffect = `move`;
-            let rect = ev.currentTarget.getBoundingClientRect();
-            let relY = ev.clientY - rect.top;
-            let pos = relY < rect.height / 2 ? `top` : `bottom`;
-            if (!dropIndicator || dropIndicator.idx !== idx || dropIndicator.pos !== pos) {
-              setDropIndicator({ idx, pos });
-            }
-          },
-          onDragEnd: () => {
-            setDraggedIdx(null);
-            setDropIndicator(null);
-          },
-          onDrop: ev => {
-            ev.preventDefault();
-            let fromIdx = draggedIdx;
-            let toIdx = idx;
-            let pos = dropIndicator?.pos || `bottom`;
-            if (fromIdx !== null && toIdx !== null && fromIdx !== toIdx) {
-              let nextPersonas = [...n];
-              let [moved] = nextPersonas.splice(fromIdx, 1);
-              let targetIdx = pos === `bottom` ? toIdx + (fromIdx < toIdx ? 0 : 1) : toIdx - (fromIdx < toIdx ? 1 : 0);
-              targetIdx = Math.max(0, Math.min(nextPersonas.length, targetIdx));
-              nextPersonas.splice(targetIdx, 0, moved);
-              t(prev => ({ ...prev, switchPersonas: nextPersonas }));
-            }
-            setDraggedIdx(null);
-            setDropIndicator(null);
-          },
-          className: [
-            `w-full text-left px-3 py-2.5 rounded-xl transition-all group/item flex items-center justify-between cursor-grab active:cursor-grabbing select-none`,
-            r === e.id ? `bg-[#f59e0b]/10 border border-[#f59e0b]/30` : `border border-transparent hover:bg-[#0c0c14]`
-          ].join(` `),
-          onClick: () => c(e.id),
-          children: [
-            (0, x.jsxDEV)(`div`, {
-              className: `flex items-center gap-2.5 min-w-0 flex-1`,
-              children: [
-                (0, x.jsxDEV)(`div`, {
-                  className: `opacity-40 group-hover/item:opacity-90 transition-opacity text-[#999] hover:text-white shrink-0 mr-0.5`,
-                  title: `Drag to reorder`,
-                  children: (0, x.jsxDEV)(`svg`, {
-                    width: `12`, height: `12`, viewBox: `0 0 24 24`, fill: `none`, stroke: `currentColor`, strokeWidth: `2.5`,
-                    children: [
-                      (0, x.jsxDEV)(`circle`, { cx: `9`, cy: `6`, r: `1.5`, fill: `currentColor` }),
-                      (0, x.jsxDEV)(`circle`, { cx: `15`, cy: `6`, r: `1.5`, fill: `currentColor` }),
-                      (0, x.jsxDEV)(`circle`, { cx: `9`, cy: `12`, r: `1.5`, fill: `currentColor` }),
-                      (0, x.jsxDEV)(`circle`, { cx: `15`, cy: `12`, r: `1.5`, fill: `currentColor` }),
-                      (0, x.jsxDEV)(`circle`, { cx: `9`, cy: `18`, r: `1.5`, fill: `currentColor` }),
-                      (0, x.jsxDEV)(`circle`, { cx: `15`, cy: `18`, r: `1.5`, fill: `currentColor` })
-                    ]
-                  })
-                }),
-                (0, x.jsxDEV)(`div`, { className: `w-2 h-2 rounded-full shrink-0`, style: { backgroundColor: e.accent } }, void 0, !1, { fileName: S, lineNumber: 206, columnNumber: 17 }, this),
-                (0, x.jsxDEV)(`span`, {
-                  className: [`text-sm font-semibold truncate`, r === e.id ? `text-white` : `text-[#999]`].join(` `),
-                  style: { fontFamily: `var(--font-display)` },
-                  children: e.label
-                }, void 0, !1, { fileName: S, lineNumber: 207, columnNumber: 17 }, this)
-              ]
-            }),
-            (0, x.jsxDEV)(`button`, {
-              onClick: t => {
-                t.stopPropagation();
-                setPersonaToDelete(e);
-              },
-              className: `opacity-0 group-hover/item:opacity-100 text-[#888] hover:text-[#f87171] transition-all text-base leading-none ml-1 p-1 hover:bg-[#201010] rounded`,
-              title: `Delete persona`,
-              children: `×`
-            }, void 0, !1, { fileName: S, lineNumber: 212, columnNumber: 15 }, this)
-          ]
-        }),
-        showBottom && (0, x.jsxDEV)(`div`, {
-          style: {
-            position: `absolute`,
-            bottom: `-4px`,
-            left: 0,
-            right: 0,
-            height: `3px`,
-            display: `flex`,
-            alignItems: `center`,
-            zIndex: 40,
-            pointerEvents: `none`
-          },
-          children: [
-            (0, x.jsxDEV)(`div`, {
-              style: {
-                width: `8px`,
-                height: `8px`,
-                borderRadius: `50%`,
-                backgroundColor: `#f59e0b`,
-                boxShadow: `0 0 10px #f59e0b, 0 0 4px #f59e0b`,
-                marginLeft: `-2px`,
-                flexShrink: 0
-              }
-            }),
-            (0, x.jsxDEV)(`div`, {
-              style: {
-                flex: 1,
-                height: `3px`,
-                backgroundColor: `#f59e0b`,
-                borderRadius: `9999px`,
-                boxShadow: `0 0 10px #f59e0b, 0 0 4px #f59e0b`
-              }
-            })
-          ]
-        })
-      ]
-    }, e.id);
-  })
-}),(0,x.jsxDEV)(`button`,{onClick:l,className:`w-full py-2.5 rounded-xl border border-dashed border-[#1a1a28] text-[#999] hover:text-[#f59e0b] hover:border-[#f59e0b]/40 text-xs font-semibold tracking-widest uppercase transition-all`,style:{fontFamily:`var(--font-mono)`},children:`+ Add Persona`},void 0,!1,{fileName:S,lineNumber:219,columnNumber:9},this)]},void 0,!0,{fileName:S,lineNumber:197,columnNumber:7},this),s?(0,x.jsxDEV)(`div`,{className:`space-y-5 overflow-y-auto pr-1`,children:[...(()=>{
-  let pSt = s?.styles || s?.specs?.styles || {};
-  let upSt = (k, v) => {
-    let nSt = { ...pSt, [k]: v };
-    let nSp = { ...(s?.specs || {}), styles: nSt };
-    if (!s) return;
-    let r = { ...s, styles: nSt, specs: nSp };
-    t(prev => ({ ...prev, switchPersonas: prev.switchPersonas.map(item => item.id === s.id ? r : item) }));
-    o(null);
-  };
-  return [
-    (0,x.jsxDEV)(`div`,{className:`grid grid-cols-2 gap-4`,children:[
-      (0,x.jsxDEV)(ee,{
-        label:`Label (Button Name)`,
-        toolbar:(0,x.jsxDEV)(TextStyleBar,{
-          style:pSt.label,
-          defaultColor:`#ffffff`,
-          defaultSize:16,
-          defaultBold:true,
-          onStyleChange:st=>upSt(`label`,st)
-        }),
-        children:(0,x.jsxDEV)(te,{value:s.label,onChange:e=>d(`label`,e)})
-      }),
-      (0,x.jsxDEV)(ee,{
-        label:`Badge`,
-        toolbar:(0,x.jsxDEV)(TextStyleBar,{
-          style:pSt.badge,
-          defaultColor:s.accent||`#CAFF00`,
-          defaultSize:9,
-          defaultBold:true,
-          onStyleChange:st=>upSt(`badge`,st)
-        }),
-        children:(0,x.jsxDEV)(te,{value:s.badge,onChange:e=>d(`badge`,e.toUpperCase())})
-      })
-    ]},"row-1"),
-    (0,x.jsxDEV)(ee,{
-      label:`Tagline`,
-      toolbar:(0,x.jsxDEV)(TextStyleBar,{
-        style:pSt.tagline,
-        defaultColor:`#888888`,
-        defaultSize:11,
-        defaultBold:false,
-        onStyleChange:st=>upSt(`tagline`,st)
-      }),
-      children:(0,x.jsxDEV)(te,{value:s.tagline,onChange:e=>d(`tagline`,e)})
-    },"tagline-row"),
-    (0,x.jsxDEV)(`div`,{className:`grid grid-cols-2 gap-4`,children:[
-      (0,x.jsxDEV)(ee,{
-        label:`Switch Name`,
-        toolbar:(0,x.jsxDEV)(TextStyleBar,{
-          style:pSt.switchName,
-          defaultColor:`#ffffff`,
-          defaultSize:24,
-          defaultBold:true,
-          onStyleChange:st=>upSt(`switchName`,st)
-        }),
-        children:(0,x.jsxDEV)(te,{value:s.switchName,onChange:e=>d(`switchName`,e)})
-      }),
-      (0,x.jsxDEV)(ee,{
-        label:`Price ($)`,
-        toolbar:(0,x.jsxDEV)(TextStyleBar,{
-          style:pSt.price,
-          defaultColor:s.accent||`#60a5fa`,
-          defaultSize:30,
-          defaultBold:true,
-          onStyleChange:st=>upSt(`price`,st)
-        }),
-        children:(0,x.jsxDEV)(te,{value:s.price,type:`number`,onChange:e=>d(`price`,parseFloat(e)||0)})
-      })
-    ]},"row-2"),
-    (0,x.jsxDEV)(ee,{
-      label:`Spec Line`,
-      toolbar:(0,x.jsxDEV)(TextStyleBar,{
-        style:pSt.switchSpec,
-        defaultColor:`#999999`,
-        defaultSize:12,
-        defaultBold:false,
-        onStyleChange:st=>upSt(`switchSpec`,st)
-      }),
-      children:(0,x.jsxDEV)(te,{value:s.switchSpec,onChange:e=>d(`switchSpec`,e),placeholder:`Linear · 45g · 4.0mm travel`})
-    },"spec-line-row"),
-    (0,x.jsxDEV)(`div`,{className:`p-3 rounded-xl border border-[#2a2a3e] bg-[#0c0c16] space-y-3`,children:[
-      (0,x.jsxDEV)(`p`,{className:`text-[#f59e0b] text-xs font-bold uppercase tracking-wider`,children:`Sidebar Specs (Type / Actuation / Travel / Housing)`}),
-      (0,x.jsxDEV)(`div`,{className:`grid grid-cols-2 gap-3`,children:[
-        (0,x.jsxDEV)(ee,{label:`Spec: Type`,toolbar:(0,x.jsxDEV)(TextStyleBar,{style:pSt.type,defaultColor:`#60a5fa`,defaultSize:11,defaultBold:true,onStyleChange:st=>upSt(`type`,st)}),children:(0,x.jsxDEV)(te,{value:s.specs?.type??s.badge??``,placeholder:s.badge||`Linear`,onChange:e=>d(`specs`,{...(s.specs||{}),type:e})})}),
-        (0,x.jsxDEV)(ee,{label:`Spec: Actuation`,toolbar:(0,x.jsxDEV)(TextStyleBar,{style:pSt.actuation,defaultColor:`#60a5fa`,defaultSize:11,defaultBold:true,onStyleChange:st=>upSt(`actuation`,st)}),children:(0,x.jsxDEV)(te,{value:s.specs?.actuation??`45g`,onChange:e=>d(`specs`,{...(s.specs||{}),actuation:e})})})
-      ]}),
-      (0,x.jsxDEV)(`div`,{className:`grid grid-cols-2 gap-3`,children:[
-        (0,x.jsxDEV)(ee,{label:`Spec: Travel`,toolbar:(0,x.jsxDEV)(TextStyleBar,{style:pSt.travel,defaultColor:`#60a5fa`,defaultSize:11,defaultBold:true,onStyleChange:st=>upSt(`travel`,st)}),children:(0,x.jsxDEV)(te,{value:s.specs?.travel??`4.0mm`,onChange:e=>d(`specs`,{...(s.specs||{}),travel:e})})}),
-        (0,x.jsxDEV)(ee,{label:`Spec: Housing`,toolbar:(0,x.jsxDEV)(TextStyleBar,{style:pSt.housing,defaultColor:`#60a5fa`,defaultSize:11,defaultBold:true,onStyleChange:st=>upSt(`housing`,st)}),children:(0,x.jsxDEV)(te,{value:s.specs?.housing??`Nylon`,onChange:e=>d(`specs`,{...(s.specs||{}),housing:e})})})
-      ]})
-    ]},"specs-container"),
-    (0,x.jsxDEV)(ee,{
-      label:`Description`,
-      toolbar:(0,x.jsxDEV)(TextStyleBar,{
-        style:pSt.description,
-        defaultColor:`#aaaaaa`,
-        defaultSize:14,
-        defaultBold:false,
-        onStyleChange:st=>upSt(`description`,st)
-      }),
-      children:(0,x.jsxDEV)(ne,{value:s.description,onChange:e=>d(`description`,e),rows:3})
-    },"desc-row")
-  ];
-})(),(0,x.jsxDEV)(ee,{label:`Image URL`,children:(0,x.jsxDEV)(re,{value:s.image,onChange:e=>d(`image`,e)},void 0,!1,{fileName:S,lineNumber:255,columnNumber:13},this)},void 0,!1,{fileName:S,lineNumber:254,columnNumber:11},this),(0,x.jsxDEV)(ee,{label:`Accent Color`,children:(0,x.jsxDEV)(ie,{value:s.accent,onChange:e=>d(`accent`,e)},void 0,!1,{fileName:S,lineNumber:258,columnNumber:13},this)},void 0,!1,{fileName:S,lineNumber:257,columnNumber:11},this),(0,x.jsxDEV)(ee,{label:`Feature Tags`,children:(0,x.jsxDEV)(C,{tags:s.features,onChange:e=>d(`features`,e)},void 0,!1,{fileName:S,lineNumber:261,columnNumber:13},this)},void 0,!1,{fileName:S,lineNumber:260,columnNumber:11},this)]},void 0,!0,{fileName:S,lineNumber:228,columnNumber:9},this):(0,x.jsxDEV)(`div`,{className:`flex items-center justify-center text-[#888] text-sm`,style:{fontFamily:`var(--font-mono)`},children:`Select a persona to edit`},void 0,!1,{fileName:S,lineNumber:265,columnNumber:9},this),personaToDelete&&(0,x.jsxDEV)(`div`,{
-  style: {
-    position: `fixed`,
-    top: 0, left: 0, right: 0, bottom: 0,
-    backgroundColor: `rgba(0, 0, 0, 0.8)`,
-    backdropFilter: `blur(6px)`,
-    display: `flex`,
-    alignItems: `center`,
-    justifyContent: `center`,
-    zIndex: 999999,
-    padding: `16px`
-  },
-  onClick: () => setPersonaToDelete(null),
-  children: (0, x.jsxDEV)(`div`, {
-    style: {
-      width: `100%`,
-      maxWidth: `440px`,
-      backgroundColor: `#0d0d14`,
-      borderRadius: `16px`,
-      border: `1px solid #262638`,
-      padding: `24px`,
-      boxShadow: `0 25px 50px rgba(0, 0, 0, 0.85)`,
-      color: `#ffffff`,
-      textAlign: `left`
-    },
-    onClick: ev => ev.stopPropagation(),
-    children: [
-      (0, x.jsxDEV)(`div`, {
-        style: { display: `flex`, alignItems: `center`, gap: `14px`, marginBottom: `16px` },
-        children: [
-          (0, x.jsxDEV)(`div`, {
-            style: {
-              width: `42px`,
-              height: `42px`,
-              borderRadius: `12px`,
-              backgroundColor: `rgba(239, 68, 68, 0.15)`,
-              border: `1px solid rgba(239, 68, 68, 0.3)`,
-              display: `flex`,
-              alignItems: `center`,
-              justifyContent: `center`,
-              color: `#f87171`,
-              flexShrink: 0
-            },
-            children: (0, x.jsxDEV)(`svg`, {
-              width: `22`, height: `22`, viewBox: `0 0 24 24`, fill: `none`, stroke: `currentColor`, strokeWidth: `2`, strokeLinecap: `round`, strokeLinejoin: `round`,
-              children: [
-                (0, x.jsxDEV)(`path`, { d: `M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z` }),
-                (0, x.jsxDEV)(`line`, { x1: `12`, y1: `9`, x2: `12`, y2: `13` }),
-                (0, x.jsxDEV)(`line`, { x1: `12`, y1: `17`, x2: `12.01`, y2: `17` })
-              ]
-            })
-          }),
-          (0, x.jsxDEV)(`div`, {
-            children: [
-              (0, x.jsxDEV)(`h3`, {
-                style: { fontFamily: `var(--font-display)`, color: `#ffffff`, fontSize: `16px`, fontWeight: `bold`, margin: 0 },
-                children: `Are you want to delete?`
-              }),
-              (0, x.jsxDEV)(`p`, {
-                style: { fontFamily: `var(--font-mono)`, color: `#888888`, fontSize: `12px`, margin: `4px 0 0 0` },
-                children: personaToDelete.label || personaToDelete.id
-              })
-            ]
-          })
-        ]
-      }),
-      (0, x.jsxDEV)(`p`, {
-        style: { color: `#aaaaaa`, fontSize: `12px`, lineHeight: `1.6`, margin: `0 0 24px 0` },
-        children: n.length <= 1
-          ? `Cannot delete the last remaining persona. At least one persona is required.`
-          : `Do you really want to delete "${personaToDelete.label || personaToDelete.id}"? This persona and its configuration will be permanently removed.`
-      }),
-      (0, x.jsxDEV)(`div`, {
-        style: { display: `flex`, alignItems: `center`, justifyContent: `flex-end`, gap: `10px` },
-        children: [
-          (0, x.jsxDEV)(`button`, {
-            type: `button`,
-            onClick: () => setPersonaToDelete(null),
-            style: {
-              padding: `8px 18px`,
-              borderRadius: `10px`,
-              border: `1px solid #2a2a3e`,
-              color: `#aaaaaa`,
-              backgroundColor: `#161622`,
-              fontSize: `12px`,
-              fontWeight: `600`,
-              cursor: `pointer`
-            },
-            children: `Cancel`
-          }),
-          (0, x.jsxDEV)(`button`, {
-            type: `button`,
-            disabled: n.length <= 1,
-            onClick: () => {
-              let targetId = personaToDelete.id;
-              setPersonaToDelete(null);
-              u(targetId);
-            },
-            style: {
-              padding: `8px 18px`,
-              borderRadius: `10px`,
-              backgroundColor: n.length <= 1 ? `#4a2020` : `#dc2626`,
-              color: `#ffffff`,
-              fontSize: `12px`,
-              fontWeight: `bold`,
-              border: `none`,
-              cursor: n.length <= 1 ? `not-allowed` : `pointer`,
-              boxShadow: `0 4px 14px rgba(220, 38, 38, 0.35)`
-            },
-            children: `Delete`
-          })
-        ]
-      })
-    ]
-  })
-})]},void 0,!0,{fileName:S,lineNumber:195,columnNumber:5},this)}function w({type:e}){
+}function ie({value:e,onChange:t}){return(0,x.jsxDEV)(`div`,{className:`flex items-center gap-3`,children:[(0,x.jsxDEV)(`div`,{className:`relative`,children:(0,x.jsxDEV)(`input`,{type:`color`,value:e,onChange:e=>t(e.target.value),className:`w-9 h-9 rounded-lg cursor-pointer border-0 p-0.5 bg-transparent`},void 0,!1,{fileName:S,lineNumber:77,columnNumber:9},this)},void 0,!1,{fileName:S,lineNumber:76,columnNumber:7},this),(0,x.jsxDEV)(te,{value:e,onChange:t,placeholder:`#CAFF00`},void 0,!1,{fileName:S,lineNumber:80,columnNumber:7},this)]},void 0,!0,{fileName:S,lineNumber:75,columnNumber:5},this)}function C({tags:e,onChange:t}){let[n,r]=(0,b.useState)(``);return(0,x.jsxDEV)(`div`,{children:[(0,x.jsxDEV)(`div`,{className:`flex flex-wrap gap-1.5 mb-2`,children:e.map((n,r)=>(0,x.jsxDEV)(`span`,{className:`flex items-center gap-1 px-2.5 py-1 rounded-full border border-[#1a1a28] text-[#888] text-[10px]`,style:{fontFamily:`var(--font-mono)`,backgroundColor:`#0c0c14`},children:[n,(0,x.jsxDEV)(`button`,{onClick:()=>t(e.filter((e,t)=>t!==r)),className:`text-[#999] hover:text-[#f87171] ml-0.5 transition-colors leading-none text-base`,children:`×`},void 0,!1,{fileName:S,lineNumber:94,columnNumber:13},this)]},r,!0,{fileName:S,lineNumber:91,columnNumber:11},this))},void 0,!1,{fileName:S,lineNumber:89,columnNumber:7},this),(0,x.jsxDEV)(`div`,{className:`flex gap-2`,children:[(0,x.jsxDEV)(`input`,{value:n,onChange:e=>r(e.target.value),onKeyDown:i=>{i.key===`Enter`&&n.trim()&&(t([...e,n.trim()]),r(``))},placeholder:`Add feature, press Enter`,className:`flex-1 px-3 py-2 rounded-lg text-sm text-white placeholder-[#333] border border-[#1a1a28] outline-none focus:border-[#f59e0b]/60 transition-all`,style:{backgroundColor:`#0c0c14`,fontFamily:`var(--font-display)`,fontSize:`12px`}},void 0,!1,{fileName:S,lineNumber:100,columnNumber:9},this),(0,x.jsxDEV)(`button`,{onClick:()=>{n.trim()&&(t([...e,n.trim()]),r(``))},className:`px-3 py-2 rounded-lg border border-[#1a1a28] text-[#999] hover:text-[#888] hover:border-[#f59e0b]/40 transition-all text-sm`,children:`+`},void 0,!1,{fileName:S,lineNumber:105,columnNumber:9},this)]},void 0,!0,{fileName:S,lineNumber:99,columnNumber:7},this)]},void 0,!0,{fileName:S,lineNumber:88,columnNumber:5},this)}function ae(){let{appData:e,setAppData:t}=de(),n=e.switchPersonas,[r,i]=(0,b.useState)(n[0]?.id??``),[a,o]=(0,b.useState)(null),s=a??n.find(e=>e.id===r)??null;function c(e){i(e),o(null)}function l(){let e=`persona-${Date.now()}`,n={id:e,label:`New Persona`,tagline:`Enter tagline`,switchName:`Switch Name`,switchSpec:`Type · 45g · 4.0mm travel`,badge:`NEW`,price:45,description:`Describe this switch profile.`,features:[`Feature 1`,`Feature 2`],image:``,accent:`#CAFF00`,accentDim:`rgba(202,255,0,0.15)`};t(e=>({...e,switchPersonas:[...e.switchPersonas,n]})),i(e),o(null)}function u(e){if(n.length<=1)return;let r=n.find(t=>t.id!==e);t(t=>({...t,switchPersonas:t.switchPersonas.filter(t=>t.id!==e)})),i(r?.id??``),o(null)}function d(e,n){if(!s)return;let r={...s,[e]:n};if(e===`accent`){let e=n;r.accentDim=`rgba(${parseInt(e.slice(1,3),16)},${parseInt(e.slice(3,5),16)},${parseInt(e.slice(5,7),16)},0.15)`}t(e=>({...e,switchPersonas:e.switchPersonas.map(e=>e.id===s.id?r:e)})),o(null)}return(0,x.jsxDEV)(`div`,{className:`grid grid-cols-[220px_1fr] gap-6 h-full`,children:[(0,x.jsxDEV)(`div`,{children:[(0,x.jsxDEV)(`div`,{className:`space-y-1.5 mb-3`,children:n.map(e=>(0,x.jsxDEV)(`button`,{onClick:()=>c(e.id),className:[`w-full text-left px-3 py-2.5 rounded-xl transition-all group/item flex items-center justify-between`,r===e.id?`bg-[#f59e0b]/10 border border-[#f59e0b]/30`:`border border-transparent hover:bg-[#0c0c14]`].join(` `),children:[(0,x.jsxDEV)(`div`,{className:`flex items-center gap-2.5 min-w-0`,children:[(0,x.jsxDEV)(`div`,{className:`w-2 h-2 rounded-full shrink-0`,style:{backgroundColor:e.accent}},void 0,!1,{fileName:S,lineNumber:206,columnNumber:17},this),(0,x.jsxDEV)(`span`,{className:[`text-sm font-semibold truncate`,r===e.id?`text-white`:`text-[#999]`].join(` `),style:{fontFamily:`var(--font-display)`},children:e.label},void 0,!1,{fileName:S,lineNumber:207,columnNumber:17},this)]},void 0,!0,{fileName:S,lineNumber:205,columnNumber:15},this),(0,x.jsxDEV)(`button`,{onClick:t=>{t.stopPropagation(),u(e.id)},className:`opacity-0 group-hover/item:opacity-100 text-[#888] hover:text-[#f87171] transition-all text-base leading-none ml-1`,children:`×`},void 0,!1,{fileName:S,lineNumber:212,columnNumber:15},this)]},e.id,!0,{fileName:S,lineNumber:200,columnNumber:13},this))},void 0,!1,{fileName:S,lineNumber:198,columnNumber:9},this),(0,x.jsxDEV)(`button`,{onClick:l,className:`w-full py-2.5 rounded-xl border border-dashed border-[#1a1a28] text-[#999] hover:text-[#f59e0b] hover:border-[#f59e0b]/40 text-xs font-semibold tracking-widest uppercase transition-all`,style:{fontFamily:`var(--font-mono)`},children:`+ Add Persona`},void 0,!1,{fileName:S,lineNumber:219,columnNumber:9},this)]},void 0,!0,{fileName:S,lineNumber:197,columnNumber:7},this),s?(0,x.jsxDEV)(`div`,{className:`space-y-5 overflow-y-auto pr-1`,children:[(0,x.jsxDEV)(`div`,{className:`grid grid-cols-2 gap-4`,children:[(0,x.jsxDEV)(ee,{label:`Label (Button Name)`,children:(0,x.jsxDEV)(te,{value:s.label,onChange:e=>d(`label`,e)},void 0,!1,{fileName:S,lineNumber:231,columnNumber:15},this)},void 0,!1,{fileName:S,lineNumber:230,columnNumber:13},this),(0,x.jsxDEV)(ee,{label:`Badge`,children:(0,x.jsxDEV)(te,{value:s.badge,onChange:e=>d(`badge`,e.toUpperCase())},void 0,!1,{fileName:S,lineNumber:234,columnNumber:15},this)},void 0,!1,{fileName:S,lineNumber:233,columnNumber:13},this)]},void 0,!0,{fileName:S,lineNumber:229,columnNumber:11},this),(0,x.jsxDEV)(ee,{label:`Tagline`,children:(0,x.jsxDEV)(te,{value:s.tagline,onChange:e=>d(`tagline`,e)},void 0,!1,{fileName:S,lineNumber:238,columnNumber:13},this)},void 0,!1,{fileName:S,lineNumber:237,columnNumber:11},this),(0,x.jsxDEV)(`div`,{className:`grid grid-cols-2 gap-4`,children:[(0,x.jsxDEV)(ee,{label:`Switch Name`,children:(0,x.jsxDEV)(te,{value:s.switchName,onChange:e=>d(`switchName`,e)},void 0,!1,{fileName:S,lineNumber:242,columnNumber:15},this)},void 0,!1,{fileName:S,lineNumber:241,columnNumber:13},this),(0,x.jsxDEV)(ee,{label:`Price ($)`,children:(0,x.jsxDEV)(te,{value:s.price,type:`number`,onChange:e=>d(`price`,parseFloat(e)||0)},void 0,!1,{fileName:S,lineNumber:245,columnNumber:15},this)},void 0,!1,{fileName:S,lineNumber:244,columnNumber:13},this)]},void 0,!0,{fileName:S,lineNumber:240,columnNumber:11},this),(0,x.jsxDEV)(ee,{label:`Spec Line`,children:(0,x.jsxDEV)(te,{value:s.switchSpec,onChange:e=>d(`switchSpec`,e),placeholder:`Linear · 45g · 4.0mm travel`},void 0,!1,{fileName:S,lineNumber:249,columnNumber:13},this)},void 0,!1,{fileName:S,lineNumber:248,columnNumber:11},this),(0,x.jsxDEV)(ee,{label:`Description`,children:(0,x.jsxDEV)(ne,{value:s.description,onChange:e=>d(`description`,e),rows:3},void 0,!1,{fileName:S,lineNumber:252,columnNumber:13},this)},void 0,!1,{fileName:S,lineNumber:251,columnNumber:11},this),(0,x.jsxDEV)(ee,{label:`Image URL`,children:(0,x.jsxDEV)(re,{value:s.image,onChange:e=>d(`image`,e)},void 0,!1,{fileName:S,lineNumber:255,columnNumber:13},this)},void 0,!1,{fileName:S,lineNumber:254,columnNumber:11},this),(0,x.jsxDEV)(ee,{label:`Accent Color`,children:(0,x.jsxDEV)(ie,{value:s.accent,onChange:e=>d(`accent`,e)},void 0,!1,{fileName:S,lineNumber:258,columnNumber:13},this)},void 0,!1,{fileName:S,lineNumber:257,columnNumber:11},this),(0,x.jsxDEV)(ee,{label:`Feature Tags`,children:(0,x.jsxDEV)(C,{tags:s.features,onChange:e=>d(`features`,e)},void 0,!1,{fileName:S,lineNumber:261,columnNumber:13},this)},void 0,!1,{fileName:S,lineNumber:260,columnNumber:11},this)]},void 0,!0,{fileName:S,lineNumber:228,columnNumber:9},this):(0,x.jsxDEV)(`div`,{className:`flex items-center justify-center text-[#888] text-sm`,style:{fontFamily:`var(--font-mono)`},children:`Select a persona to edit`},void 0,!1,{fileName:S,lineNumber:265,columnNumber:9},this)]},void 0,!0,{fileName:S,lineNumber:195,columnNumber:5},this)}function w({type:e}){
   let { appData: t, setAppData: n } = de(),
       r = e === "keycaps" ? t.keycaps : t.cables,
       [i, a] = (0, b.useState)(r[0]?.id ?? ""),
@@ -1522,89 +591,114 @@ function ie({value:e,onChange:t}){return(0,x.jsxDEV)(`div`,{className:`flex item
 
   function s() {
     let newId = `${e}-${Date.now()}`,
-        newItem = {
+        newItem = e === "keycaps" ? {
           id: newId,
-          name: "New Product",
-          subtitle: "Material · Profile",
-          price: 49,
-          image: "",
-          badge: "",
-          description: "Describe this product.",
+          name: "New Keycap Set",
+          subtitle: "PBT · Cherry Profile",
+          price: 89,
+          image: "/uploads/keycap_arctic_white.jpg",
+          description: "Enter detailed keycap description.",
           accent: "#CAFF00",
-          freeSpecs: "",
+          badge: "NEW",
           layoutCode: "",
+          freeSpecs: ""
+        } : {
+          id: newId,
+          name: "New Cable",
+          subtitle: "Coiled · USB-C",
+          price: 45,
+          image: "/uploads/cable_cosmos_coil.jpg",
+          description: "Enter detailed cable description.",
+          accent: "#CAFF00",
+          badge: "NEW",
           variants: []
         };
-    n(prev => ({ ...prev, [e]: [...(e === "keycaps" ? prev.keycaps : prev.cables), newItem] }));
+    n(prev => ({
+      ...prev,
+      [e]: [...prev[e], newItem]
+    }));
     a(newId);
   }
 
-  function c(targetId) {
-    let list = e === "keycaps" ? t.keycaps : t.cables;
-    if (list.length <= 1) return;
-    let nextSelected = list.find(x => x.id !== targetId);
+  function c(itemId) {
+    if (r.length <= 1) {
+      alert("You must keep at least one product in this category.");
+      return;
+    }
+    let remaining = r.filter(x => x.id !== itemId);
     n(prev => ({
       ...prev,
-      [e]: (e === "keycaps" ? prev.keycaps : prev.cables).filter(x => x.id !== targetId)
+      [e]: prev[e].filter(x => x.id !== itemId)
     }));
-    a(nextSelected?.id ?? "");
+    a(remaining[0]?.id ?? "");
+    setItemToDelete(null);
   }
 
-  function l(field, val) {
+  function l(key, val) {
     if (!o) return;
+    let updated = { ...o, [key]: val };
     n(prev => ({
       ...prev,
-      [e]: (e === "keycaps" ? prev.keycaps : prev.cables).map(x => x.id === o.id ? { ...x, [field]: val } : x)
+      [e]: prev[e].map(x => x.id === o.id ? updated : x)
     }));
   }
 
-  function handleReorder(fromIdx, toIdx, pos) {
-    if (fromIdx === null || toIdx === null || fromIdx === toIdx) return;
-    let list = [...(e === "keycaps" ? t.keycaps : t.cables)];
-    let [moved] = list.splice(fromIdx, 1);
-    let targetIdx = pos === "bottom" ? toIdx + (fromIdx < toIdx ? 0 : 1) : toIdx - (fromIdx < toIdx ? 1 : 0);
-    targetIdx = Math.max(0, Math.min(list.length, targetIdx));
-    list.splice(targetIdx, 0, moved);
-    n(prev => ({ ...prev, [e]: list }));
-  }
+  const handleDragStart = (idx, ev) => {
+    setDraggedIdx(idx);
+    ev.dataTransfer.effectAllowed = "move";
+  };
 
-  function addVariant() {
-    let curVariants = o.variants || [];
-    let newV = {
-      id: "v-" + Date.now(),
-      name: "Biến thể " + (curVariants.length + 1),
-      price: o.price || 0,
-      image: o.image || "",
-      description: "Mô tả cho biến thể này"
-    };
-    l("variants", [...curVariants, newV]);
-  }
+  const handleDragOver = (idx, ev) => {
+    ev.preventDefault();
+    if (draggedIdx === null || draggedIdx === idx) {
+      setDropIndicator(null);
+      return;
+    }
+    const rect = ev.currentTarget.getBoundingClientRect();
+    const midY = rect.top + rect.height / 2;
+    const pos = ev.clientY < midY ? "top" : "bottom";
+    setDropIndicator({ index: idx, position: pos });
+  };
 
-  function updateVariant(vId, vField, vVal) {
-    let curVariants = o.variants || [];
-    l("variants", curVariants.map(v => v.id === vId ? { ...v, [vField]: vVal } : v));
-  }
-
-  function removeVariant(vId) {
-    let curVariants = o.variants || [];
-    l("variants", curVariants.filter(v => v.id !== vId));
-  }
+  const handleDrop = (idx, ev) => {
+    ev.preventDefault();
+    if (draggedIdx === null || draggedIdx === idx) {
+      setDraggedIdx(null);
+      setDropIndicator(null);
+      return;
+    }
+    const currentList = [...r];
+    const itemToMove = currentList.splice(draggedIdx, 1)[0];
+    let insertIdx = idx;
+    if (dropIndicator && dropIndicator.position === "bottom") {
+      insertIdx = draggedIdx < idx ? idx : idx + 1;
+    } else {
+      insertIdx = draggedIdx < idx ? idx - 1 : idx;
+    }
+    insertIdx = Math.max(0, Math.min(insertIdx, currentList.length));
+    currentList.splice(insertIdx, 0, itemToMove);
+    n(prev => ({ ...prev, [e]: currentList }));
+    setDraggedIdx(null);
+    setDropIndicator(null);
+  };
 
   return (0, x.jsxDEV)("div", {
-    className: "grid grid-cols-[230px_1fr] gap-6 h-full relative",
+    className: "grid grid-cols-[260px_1fr] gap-6 h-full relative",
     children: [
       (0, x.jsxDEV)("div", {
+        className: "flex flex-col justify-between",
         children: [
           (0, x.jsxDEV)("div", {
             className: "space-y-1.5 mb-3",
-            onDragLeave: ev => {
-              if (!ev.currentTarget.contains(ev.relatedTarget)) setDropIndicator(null);
-            },
+            onDragLeave: () => setDropIndicator(null),
             children: r.map((item, idx) => {
-              let showTop = draggedIdx !== null && draggedIdx !== idx && dropIndicator?.idx === idx && dropIndicator?.pos === "top";
-              let showBottom = draggedIdx !== null && draggedIdx !== idx && dropIndicator?.idx === idx && dropIndicator?.pos === "bottom";
+              const isSelected = i === item.id;
+              const isDraggingThis = draggedIdx === idx;
+              const showTop = dropIndicator && dropIndicator.index === idx && dropIndicator.position === "top";
+              const showBottom = dropIndicator && dropIndicator.index === idx && dropIndicator.position === "bottom";
+
               return (0, x.jsxDEV)("div", {
-                className: "relative",
+                style: { position: "relative" },
                 children: [
                   showTop && (0, x.jsxDEV)("div", {
                     style: { position: "absolute", top: "-4px", left: 0, right: 0, height: "3px", display: "flex", alignItems: "center", zIndex: 40, pointerEvents: "none" },
@@ -1615,66 +709,27 @@ function ie({value:e,onChange:t}){return(0,x.jsxDEV)(`div`,{className:`flex item
                   }),
                   (0, x.jsxDEV)("div", {
                     draggable: true,
-                    onDragStart: ev => {
-                      ev.dataTransfer.setData("text/plain", String(idx));
-                      ev.dataTransfer.effectAllowed = "move";
-                      setDraggedIdx(idx);
-                    },
-                    onDragOver: ev => {
-                      ev.preventDefault();
-                      ev.dataTransfer.dropEffect = "move";
-                      let rect = ev.currentTarget.getBoundingClientRect();
-                      let relY = ev.clientY - rect.top;
-                      let pos = relY < rect.height / 2 ? "top" : "bottom";
-                      if (!dropIndicator || dropIndicator.idx !== idx || dropIndicator.pos !== pos) {
-                        setDropIndicator({ idx, pos });
-                      }
-                    },
-                    onDragEnd: () => {
-                      setDraggedIdx(null);
-                      setDropIndicator(null);
-                    },
-                    onDrop: ev => {
-                      ev.preventDefault();
-                      let fromIdx = draggedIdx;
-                      let toIdx = idx;
-                      let pos = dropIndicator?.pos || "bottom";
-                      handleReorder(fromIdx, toIdx, pos);
-                      setDraggedIdx(null);
-                      setDropIndicator(null);
-                    },
-                    className: [
-                      "w-full text-left px-3 py-2.5 rounded-xl transition-all group/item flex items-center justify-between cursor-grab active:cursor-grabbing select-none",
-                      i === item.id ? "bg-[#f59e0b]/10 border border-[#f59e0b]/30" : "border border-transparent hover:bg-[#0c0c14]"
-                    ].join(" "),
+                    onDragStart: ev => handleDragStart(idx, ev),
+                    onDragOver: ev => handleDragOver(idx, ev),
+                    onDrop: ev => handleDrop(idx, ev),
                     onClick: () => a(item.id),
+                    className: [
+                      "w-full text-left px-3 py-2.5 rounded-xl transition-all group/item flex items-center justify-between cursor-pointer select-none border",
+                      isSelected ? "bg-[#f59e0b]/10 border-[#f59e0b]/30" : "border-transparent hover:bg-[#0c0c14]",
+                      isDraggingThis ? "opacity-30 scale-95 border-dashed border-[#f59e0b]" : ""
+                    ].join(" "),
                     children: [
                       (0, x.jsxDEV)("div", {
-                        className: "flex items-center gap-2.5 min-w-0 flex-1",
+                        className: "flex items-center gap-2.5 min-w-0",
                         children: [
-                          (0, x.jsxDEV)("div", {
-                            className: "opacity-40 group-hover/item:opacity-90 transition-opacity text-[#999] hover:text-white shrink-0 mr-0.5",
-                            title: "Drag to reorder",
-                            children: (0, x.jsxDEV)("svg", {
-                              width: "12", height: "12", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2.5",
-                              children: [
-                                (0, x.jsxDEV)("circle", { cx: "9", cy: "6", r: "1.5", fill: "currentColor" }),
-                                (0, x.jsxDEV)("circle", { cx: "15", cy: "6", r: "1.5", fill: "currentColor" }),
-                                (0, x.jsxDEV)("circle", { cx: "9", cy: "12", r: "1.5", fill: "currentColor" }),
-                                (0, x.jsxDEV)("circle", { cx: "15", cy: "12", r: "1.5", fill: "currentColor" }),
-                                (0, x.jsxDEV)("circle", { cx: "9", cy: "18", r: "1.5", fill: "currentColor" }),
-                                (0, x.jsxDEV)("circle", { cx: "15", cy: "18", r: "1.5", fill: "currentColor" })
-                              ]
-                            })
-                          }),
-                          (0, x.jsxDEV)("div", {
-                            className: "w-6 h-6 rounded-md overflow-hidden shrink-0 border border-[#1a1a28] bg-[#0a0a12]",
-                            children: item.image
-                              ? (0, x.jsxDEV)("img", { src: item.image, alt: "", className: "w-full h-full object-cover" })
-                              : (0, x.jsxDEV)("div", { className: "w-full h-full bg-[#1a1a28]" })
-                          }),
                           (0, x.jsxDEV)("span", {
-                            className: ["text-sm font-semibold truncate", i === item.id ? "text-white" : "text-[#999]"].join(" "),
+                            className: "cursor-grab active:cursor-grabbing text-[#888] hover:text-[#f59e0b] px-0.5",
+                            title: "Drag to reorder",
+                            children: "⠿"
+                          }),
+                          (0, x.jsxDEV)("img", { src: item.image, alt: item.name, className: "w-6 h-6 rounded object-cover bg-[#161622] shrink-0" }),
+                          (0, x.jsxDEV)("span", {
+                            className: ["text-sm font-semibold truncate", isSelected ? "text-white" : "text-[#999]"].join(" "),
                             style: { fontFamily: "var(--font-display)" },
                             children: item.name
                           })
@@ -1716,6 +771,66 @@ function ie({value:e,onChange:t}){return(0,x.jsxDEV)(`div`,{className:`flex item
       o ? (0, x.jsxDEV)("div", {
         className: "space-y-5 overflow-y-auto pr-1 pb-16",
         children: [
+          e === "keycaps" && (0, x.jsxDEV)("div", {
+            className: "p-4 rounded-2xl bg-[#CAFF00]/5 border border-[#CAFF00]/25 space-y-3 mb-2",
+            children: [
+              (0, x.jsxDEV)("div", {
+                className: "flex items-center justify-between",
+                children: [
+                  (0, x.jsxDEV)("div", {
+                    className: "flex items-center gap-2",
+                    children: [
+                      (0, x.jsxDEV)("span", { className: "text-sm", children: "🌟" }),
+                      (0, x.jsxDEV)("span", { className: "text-[#CAFF00] font-bold text-xs uppercase tracking-wider font-mono", children: "Cấu hình Thẻ Custom Keycap Ô Đầu Tiên (Customer Draft Card - STT 9)" })
+                    ]
+                  }),
+                  (0, x.jsxDEV)("span", { className: "px-2 py-0.5 rounded bg-[#CAFF00]/20 text-[#CAFF00] text-[9px] font-mono font-bold", children: "SLOT 1" })
+                ]
+              }),
+              (0, x.jsxDEV)("div", {
+                className: "grid grid-cols-2 gap-3",
+                children: [
+                  (0, x.jsxDEV)(ee, {
+                    label: "Tên Thẻ Đại Diện (Title)",
+                    children: (0, x.jsxDEV)(te, {
+                      value: t.translations?.customKeycapName ?? "Thiết kế Keycap riêng của bạn",
+                      onChange: v => n(prev => ({ ...prev, translations: { ...prev.translations, customKeycapName: v } })),
+                      placeholder: "Thiết kế Keycap riêng của bạn"
+                    })
+                  }),
+                  (0, x.jsxDEV)(ee, {
+                    label: "Ảnh Đại Diện Thẻ Đặc Biệt",
+                    children: (0, x.jsxDEV)("div", {
+                      className: "flex items-center gap-2",
+                      children: [
+                        (0, x.jsxDEV)(te, {
+                          value: t.translations?.customKeycapImage ?? "/uploads/keycap_arctic_white.jpg",
+                          onChange: v => n(prev => ({ ...prev, translations: { ...prev.translations, customKeycapImage: v } })),
+                          placeholder: "/uploads/custom_draft.jpg"
+                        }),
+                        (0, x.jsxDEV)(ImageCropModal, {
+                          aspectRatio: 16/10,
+                          onCropComplete: url => n(prev => ({ ...prev, translations: { ...prev.translations, customKeycapImage: url } })),
+                          buttonText: "Crop/Up",
+                          buttonClass: "px-3 py-2 bg-[#CAFF00] text-black font-bold text-xs rounded-lg shrink-0 cursor-pointer"
+                        })
+                      ]
+                    })
+                  })
+                ]
+              }),
+              (0, x.jsxDEV)(ee, {
+                label: "Mô Tả Thẻ Custom (Description)",
+                children: (0, x.jsxDEV)("textarea", {
+                  value: t.translations?.customKeycapDesc ?? "Bản phối màu sắc và nghệ thuật phím cơ được tùy biến riêng của bạn trong không gian 3D.",
+                  onChange: ev => n(prev => ({ ...prev, translations: { ...prev.translations, customKeycapDesc: ev.target.value } })),
+                  rows: 2,
+                  className: "w-full px-3 py-2 rounded-lg text-xs text-white bg-[#080810] border border-[#1a1a28] outline-none focus:border-[#CAFF00]/50 font-mono resize-none"
+                })
+              })
+            ]
+          }),
+
           (0, x.jsxDEV)("div", {
             className: "grid grid-cols-2 gap-4",
             children: [
@@ -1724,15 +839,87 @@ function ie({value:e,onChange:t}){return(0,x.jsxDEV)(`div`,{className:`flex item
             ]
           }),
           (0, x.jsxDEV)(ee, { label: "Subtitle / Spec Line", children: (0, x.jsxDEV)(te, { value: o.subtitle, onChange: e => l("subtitle", e) }) }),
-          (0, x.jsxDEV)(ee, { label: "Badge (optional)", children: (0, x.jsxDEV)(te, { value: o.badge ?? "", onChange: e => l("badge", e.toUpperCase() || void 0), placeholder: "e.g. NEW, BESTSELLER" }) }),
-          (0, x.jsxDEV)(ee, { label: "Description", children: (0, x.jsxDEV)(ne, { value: o.description, onChange: e => l("description", e), rows: 3 }) }),
-          (0, x.jsxDEV)(ee, { label: "Image URL", children: (0, x.jsxDEV)(re, { value: o.image, onChange: e => l("image", e) }) }),
+          (0, x.jsxDEV)(ee, { label: "Badge (optional)", children: (0, x.jsxDEV)(te, { value: o.badge ?? "", onChange: e => l("badge", e || void 0), placeholder: "BESTSELLER, NEW, ARTISAN..." }) }),
+          (0, x.jsxDEV)(ee, {
+            label: "Description",
+            children: (0, x.jsxDEV)("textarea", {
+              value: o.description,
+              onChange: e => l("description", e.target.value),
+              rows: 3,
+              className: "w-full px-3 py-2.5 rounded-lg text-sm text-white placeholder-[#333] border border-[#1a1a28] outline-none focus:border-[#f59e0b]/60 transition-all font-mono resize-none",
+              style: { backgroundColor: "#080810", fontSize: "12px" }
+            })
+          }),
+          (0, x.jsxDEV)(ee, {
+            label: "Image URL",
+            children: (0, x.jsxDEV)("div", {
+              className: "space-y-3",
+              children: [
+                (0, x.jsxDEV)("div", {
+                  className: "flex gap-3 items-center",
+                  children: [
+                    o.image && (0, x.jsxDEV)("img", { src: o.image, alt: o.name, className: "w-14 h-14 rounded-lg object-cover bg-[#080810] border border-[#1a1a28] shrink-0" }),
+                    (0, x.jsxDEV)(te, { value: o.image, onChange: e => l("image", e), placeholder: "/uploads/image.jpg" })
+                  ]
+                }),
+                (0, x.jsxDEV)("div", {
+                  className: "flex items-center gap-2",
+                  children: [
+                    (0, x.jsxDEV)("label", {
+                      className: "flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#1a1a28] bg-[#0c0c14] hover:bg-[#141422] text-[#ccc] hover:text-white text-xs font-mono transition-all cursor-pointer",
+                      children: [
+                        (0, x.jsxDEV)("svg", {
+                          width: "12", height: "12", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2", className: "text-[#f59e0b]",
+                          children: [
+                            (0, x.jsxDEV)("path", { d: "M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" }),
+                            (0, x.jsxDEV)("polyline", { points: "17 8 12 3 7 8" }),
+                            (0, x.jsxDEV)("line", { x1: "12", y1: "3", x2: "12", y2: "15" })
+                          ]
+                        }),
+                        "Upload New Image to VPS",
+                        (0, x.jsxDEV)("input", {
+                          type: "file",
+                          accept: "image/*",
+                          className: "hidden",
+                          onChange: ev => {
+                            const file = ev.target.files?.[0];
+                            if (!file) return;
+                            const fd = new FormData();
+                            fd.append("file", file);
+                            fetch("/api/upload", { method: "POST", body: fd })
+                              .then(r => r.json())
+                              .then(d => {
+                                if (d.url) { l("image", d.url); alert("✓ Uploaded: " + d.url); }
+                                else alert("Upload error: " + (d.error || "failed"));
+                              })
+                              .catch(err => alert("Error: " + err.message));
+                          }
+                        })
+                      ]
+                    }),
+                    (0, x.jsxDEV)(ImageCropModal, {
+                      aspectRatio: 16 / 10,
+                      onCropComplete: url => l("image", url),
+                      buttonText: "Crop / Chỉnh tỉ lệ",
+                      buttonClass: "flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-[#1a1a28] bg-[#0c0c14] hover:bg-[#141422] text-[#ccc] hover:text-white text-xs font-mono transition-all cursor-pointer"
+                    })
+                  ]
+                })
+              ]
+            })
+          }),
           (0, x.jsxDEV)(ee, { label: "Accent Color", children: (0, x.jsxDEV)(ie, { value: o.accent, onChange: e => l("accent", e) }) }),
 
           e === "keycaps" && (0, x.jsxDEV)("div", {
-            className: "p-4 rounded-xl border border-[#2a2a3e] bg-[#0c0c16] space-y-4 mt-4",
+            className: "p-4 rounded-xl bg-[#0e0e18] border border-[#1a1a28] space-y-4",
             children: [
-              (0, x.jsxDEV)("p", { className: "text-[#f59e0b] text-xs font-bold uppercase tracking-wider", children: "⚙️ Keycap Advanced Settings (Mã Bố Cục & Thông Số Tự Do)" }),
+              (0, x.jsxDEV)("div", {
+                className: "flex items-center gap-2 text-[#f59e0b] font-mono text-xs font-bold",
+                children: [
+                  (0, x.jsxDEV)("span", { children: "⚙" }),
+                  "KEYCAP ADVANCED SETTINGS (MÃ BỐ CỤC & THÔNG SỐ TỰ DO)"
+                ]
+              }),
               (0, x.jsxDEV)(ee, {
                 label: "Keycap Layout Code (Mã đại diện để nạp nhanh vào 3D)",
                 children: (0, x.jsxDEV)(te, {
@@ -1743,10 +930,12 @@ function ie({value:e,onChange:t}){return(0,x.jsxDEV)(`div`,{className:`flex item
               }),
               (0, x.jsxDEV)(ee, {
                 label: "Free-form Specs (Thông số mô tả tự do hiển thị ở cột phải)",
-                children: (0, x.jsxDEV)(ne, {
+                children: (0, x.jsxDEV)("textarea", {
                   value: o.freeSpecs || "",
-                  onChange: e => l("freeSpecs", e),
+                  onChange: e => l("freeSpecs", e.target.value),
                   rows: 3,
+                  className: "w-full px-3 py-2.5 rounded-lg text-sm text-white placeholder-[#444] border border-[#1a1a28] outline-none focus:border-[#f59e0b]/60 transition-all font-mono resize-none",
+                  style: { backgroundColor: "#080810", fontSize: "12px" },
                   placeholder: "Cherry Profile · PBT Double-shot · 1.5mm thickness · Full ANSI 84-keys compatibility..."
                 })
               })
@@ -1754,38 +943,53 @@ function ie({value:e,onChange:t}){return(0,x.jsxDEV)(`div`,{className:`flex item
           }),
 
           e === "cables" && (0, x.jsxDEV)("div", {
-            className: "p-4 rounded-xl border border-[#2a2a3e] bg-[#0c0c16] space-y-4 mt-4",
+            className: "p-4 rounded-xl bg-[#0e0e18] border border-[#1a1a28] space-y-4",
             children: [
               (0, x.jsxDEV)("div", {
                 className: "flex items-center justify-between",
                 children: [
                   (0, x.jsxDEV)("div", {
                     children: [
-                      (0, x.jsxDEV)("p", { className: "text-[#f59e0b] text-xs font-bold uppercase tracking-wider", children: "📦 Quản Lý Biến Thể Cable (Shopee Style)" }),
-                      (0, x.jsxDEV)("p", { className: "text-[#888] text-[11px] mt-0.5", children: "Mỗi biến thể có tên, ảnh riêng và mô tả mở rộng khi khách click chọn" })
+                      (0, x.jsxDEV)("span", { className: "text-[#f59e0b] font-mono text-xs font-bold block", children: "📦 QUẢN LÝ BIẾN THỂ CABLE (SHOPEE STYLE)" }),
+                      (0, x.jsxDEV)("span", { className: "text-[#888] text-[10px] font-mono block", children: "Mỗi biến thể có tên, ảnh riêng và mô tả mở rộng khi khách click chọn" })
                     ]
                   }),
                   (0, x.jsxDEV)("button", {
                     type: "button",
-                    onClick: addVariant,
-                    className: "px-3 py-1.5 rounded-lg bg-[#f59e0b]/15 text-[#f59e0b] hover:bg-[#f59e0b]/25 border border-[#f59e0b]/30 text-xs font-bold transition-all",
+                    onClick: () => {
+                      const cur = o.variants || [];
+                      const newV = {
+                        id: `v-${Date.now()}`,
+                        name: `Biến thể ${cur.length + 1}`,
+                        price: o.price,
+                        image: o.image,
+                        description: `Mô tả chi tiết cho biến thể ${cur.length + 1}`
+                      };
+                      l("variants", [...cur, newV]);
+                    },
+                    className: "px-3 py-1.5 rounded-lg bg-[#f59e0b] text-black font-bold text-xs font-mono hover:bg-[#fbbf24] transition-all cursor-pointer",
                     children: "+ Thêm biến thể"
                   })
                 ]
               }),
-              (o.variants && o.variants.length > 0) ? (0, x.jsxDEV)("div", {
+              (!o.variants || o.variants.length === 0) ? (0, x.jsxDEV)("div", {
+                className: "text-center py-6 border border-dashed border-[#1a1a28] rounded-lg text-[#888] text-xs font-mono",
+                children: "Chưa có biến thể riêng. Bấm '+ Thêm biến thể' để tạo biến thể kèm ảnh riêng như Shopee."
+              }) : (0, x.jsxDEV)("div", {
                 className: "space-y-3",
-                children: o.variants.map((v, vIdx) => (0, x.jsxDEV)("div", {
-                  className: "p-3 rounded-lg border border-[#1a1a28] bg-[#07070d] space-y-2 relative",
+                children: (o.variants || []).map((v, vIdx) => (0, x.jsxDEV)("div", {
+                  className: "p-3 rounded-lg bg-[#080810] border border-[#1a1a28] space-y-2",
                   children: [
                     (0, x.jsxDEV)("div", {
-                      className: "flex items-center justify-between",
+                      className: "flex items-center justify-between gap-2",
                       children: [
-                        (0, x.jsxDEV)("span", { className: "text-xs font-mono font-bold text-white", children: "Biến thể #" + (vIdx + 1) }),
+                        (0, x.jsxDEV)("span", { className: "text-[#f59e0b] text-xs font-mono font-bold", children: `#${vIdx + 1} Biến thể` }),
                         (0, x.jsxDEV)("button", {
                           type: "button",
-                          onClick: () => removeVariant(v.id),
-                          className: "text-[#888] hover:text-[#f87171] text-xs font-bold",
+                          onClick: () => {
+                            l("variants", (o.variants || []).filter(x => x.id !== v.id));
+                          },
+                          className: "text-[#f87171] hover:text-[#ef4444] text-xs font-mono",
                           children: "Xóa"
                         })
                       ]
@@ -1793,122 +997,106 @@ function ie({value:e,onChange:t}){return(0,x.jsxDEV)(`div`,{className:`flex item
                     (0, x.jsxDEV)("div", {
                       className: "grid grid-cols-2 gap-2",
                       children: [
-                        (0, x.jsxDEV)("input", {
-                          type: "text",
+                        (0, x.jsxDEV)(te, {
                           value: v.name,
-                          onChange: ev => updateVariant(v.id, "name", ev.target.value),
-                          placeholder: "Tên biến thể (e.g. 0.8m Coiled Black)",
-                          className: "px-2.5 py-1.5 rounded bg-[#13131e] border border-[#1a1a28] text-xs text-white outline-none focus:border-[#f59e0b]"
+                          placeholder: "Tên biến thể (vd: Màu Trắng, Dài 1.5m)",
+                          onChange: val => {
+                            const updated = (o.variants || []).map(x => x.id === v.id ? { ...x, name: val } : x);
+                            l("variants", updated);
+                          }
                         }),
-                        (0, x.jsxDEV)("input", {
-                          type: "number",
+                        (0, x.jsxDEV)(te, {
                           value: v.price ?? o.price,
-                          onChange: ev => updateVariant(v.id, "price", parseFloat(ev.target.value) || 0),
+                          type: "number",
                           placeholder: "Giá ($)",
-                          className: "px-2.5 py-1.5 rounded bg-[#13131e] border border-[#1a1a28] text-xs text-white outline-none focus:border-[#f59e0b]"
+                          onChange: val => {
+                            const updated = (o.variants || []).map(x => x.id === v.id ? { ...x, price: parseFloat(val) || 0 } : x);
+                            l("variants", updated);
+                          }
                         })
                       ]
                     }),
                     (0, x.jsxDEV)("div", {
-                      children: (0, x.jsxDEV)(re, {
-                        value: v.image,
-                        onChange: imgUrl => updateVariant(v.id, "image", imgUrl)
-                      })
+                      className: "flex gap-2 items-center",
+                      children: [
+                        v.image && (0, x.jsxDEV)("img", { src: v.image, alt: v.name, className: "w-8 h-8 rounded object-cover bg-black shrink-0" }),
+                        (0, x.jsxDEV)(te, {
+                          value: v.image || "",
+                          placeholder: "Ảnh riêng cho biến thể này (/uploads/...)",
+                          onChange: val => {
+                            const updated = (o.variants || []).map(x => x.id === v.id ? { ...x, image: val } : x);
+                            l("variants", updated);
+                          }
+                        }),
+                        (0, x.jsxDEV)(ImageCropModal, {
+                          aspectRatio: 16 / 10,
+                          onCropComplete: url => {
+                            const updated = (o.variants || []).map(x => x.id === v.id ? { ...x, image: url } : x);
+                            l("variants", updated);
+                          },
+                          buttonText: "Crop",
+                          buttonClass: "px-2.5 py-1.5 bg-[#1a1a28] hover:bg-[#252538] text-white text-xs font-mono rounded cursor-pointer shrink-0"
+                        })
+                      ]
                     }),
-                    (0, x.jsxDEV)("input", {
-                      type: "text",
+                    (0, x.jsxDEV)(te, {
                       value: v.description || "",
-                      onChange: ev => updateVariant(v.id, "description", ev.target.value),
-                      placeholder: "Mô tả mở rộng riêng cho biến thể này...",
-                      className: "w-full px-2.5 py-1.5 rounded bg-[#13131e] border border-[#1a1a28] text-xs text-white outline-none focus:border-[#f59e0b]"
+                      placeholder: "Mô tả mở rộng riêng cho biến thể này khi khách click chọn...",
+                      onChange: val => {
+                        const updated = (o.variants || []).map(x => x.id === v.id ? { ...x, description: val } : x);
+                        l("variants", updated);
+                      }
                     })
                   ]
                 }, v.id))
-              }) : (0, x.jsxDEV)("div", {
-                className: "text-center py-4 border border-dashed border-[#1a1a28] rounded-lg text-[#666] text-xs",
-                children: "Chưa có biến thể riêng. Bấm '+ Thêm biến thể' để tạo biến thể kèm ảnh riêng như Shopee."
               })
             ]
           })
         ]
       }) : (0, x.jsxDEV)("div", {
-        className: "flex items-center justify-center text-[#888] text-sm",
-        style: { fontFamily: "var(--font-mono)" },
+        className: "flex items-center justify-center h-64 text-[#888] font-mono text-sm",
         children: "Select a product to edit"
       }),
 
       itemToDelete && (0, x.jsxDEV)("div", {
-        style: {
-          position: "fixed",
-          top: 0, left: 0, right: 0, bottom: 0,
-          backgroundColor: "rgba(0, 0, 0, 0.8)",
-          backdropFilter: "blur(6px)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          zIndex: 999999,
-          padding: "16px"
-        },
+        className: "fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in",
         onClick: () => setItemToDelete(null),
         children: (0, x.jsxDEV)("div", {
-          style: {
-            width: "100%",
-            maxWidth: "440px",
-            backgroundColor: "#0d0d14",
-            borderRadius: "16px",
-            border: "1px solid #262638",
-            padding: "24px",
-            boxShadow: "0 25px 50px rgba(0, 0, 0, 0.85)",
-            color: "#ffffff"
-          },
+          className: "bg-[#0d0d16] border border-[#2a2a3e] rounded-2xl p-6 max-w-sm w-full shadow-2xl space-y-4",
           onClick: ev => ev.stopPropagation(),
           children: [
             (0, x.jsxDEV)("div", {
-              style: { display: "flex", alignItems: "center", gap: "14px", marginBottom: "16px" },
+              className: "flex items-center gap-3",
               children: [
                 (0, x.jsxDEV)("div", {
-                  style: { width: "42px", height: "42px", borderRadius: "12px", backgroundColor: "rgba(239, 68, 68, 0.15)", border: "1px solid rgba(239, 68, 68, 0.3)", display: "flex", alignItems: "center", justifyContent: "center", color: "#f87171", flexShrink: 0 },
-                  children: (0, x.jsxDEV)("svg", {
-                    width: "22", height: "22", viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: "2",
-                    children: [
-                      (0, x.jsxDEV)("path", { d: "M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" }),
-                      (0, x.jsxDEV)("line", { x1: "12", y1: "9", x2: "12", y2: "13" }),
-                      (0, x.jsxDEV)("line", { x1: "12", y1: "17", x2: "12.01", y2: "17" })
-                    ]
-                  })
+                  className: "w-10 h-10 rounded-xl bg-[#f87171]/10 border border-[#f87171]/30 flex items-center justify-center text-[#f87171] text-lg font-bold shrink-0",
+                  children: "⚠️"
                 }),
                 (0, x.jsxDEV)("div", {
                   children: [
-                    (0, x.jsxDEV)("h3", { style: { fontFamily: "var(--font-display)", color: "#ffffff", fontSize: "16px", fontWeight: "bold", margin: 0 }, children: "Are you want to delete?" }),
-                    (0, x.jsxDEV)("p", { style: { fontFamily: "var(--font-mono)", color: "#888888", fontSize: "12px", margin: "4px 0 0 0" }, children: itemToDelete.name || itemToDelete.id })
+                    (0, x.jsxDEV)("h4", { className: "text-white font-bold text-sm", style: { fontFamily: "var(--font-display)" }, children: "Confirm Deletion" }),
+                    (0, x.jsxDEV)("p", { className: "text-[#888] text-xs font-mono", children: "Are you sure you want to delete this product?" })
                   ]
                 })
               ]
             }),
             (0, x.jsxDEV)("p", {
-              style: { color: "#aaaaaa", fontSize: "12px", lineHeight: "1.6", margin: "0 0 24px 0" },
-              children: r.length <= 1
-                ? "Cannot delete the last remaining product. At least one product is required."
-                : `Do you really want to delete "${itemToDelete.name || itemToDelete.id}"? This product and its configuration will be permanently removed.`
+              className: "text-[#ddd] text-xs bg-[#080810] p-3 rounded-lg border border-[#1a1a28] font-semibold truncate",
+              children: itemToDelete.name
             }),
             (0, x.jsxDEV)("div", {
-              style: { display: "flex", alignItems: "center", justifyContent: "flex-end", gap: "10px" },
+              className: "flex items-center justify-end gap-2 pt-2",
               children: [
                 (0, x.jsxDEV)("button", {
                   type: "button",
                   onClick: () => setItemToDelete(null),
-                  style: { padding: "8px 18px", borderRadius: "10px", border: "1px solid #2a2a3e", color: "#aaaaaa", backgroundColor: "#161622", fontSize: "12px", fontWeight: "600", cursor: "pointer" },
+                  className: "px-4 py-2 rounded-xl border border-[#2a2a3e] text-[#aaa] hover:text-white text-xs font-mono transition-all",
                   children: "Cancel"
                 }),
                 (0, x.jsxDEV)("button", {
                   type: "button",
-                  disabled: r.length <= 1,
-                  onClick: () => {
-                    let targetId = itemToDelete.id;
-                    setItemToDelete(null);
-                    c(targetId);
-                  },
-                  style: { padding: "8px 18px", borderRadius: "10px", backgroundColor: r.length <= 1 ? "#4a2020" : "#dc2626", color: "#ffffff", fontSize: "12px", fontWeight: "bold", border: "none", cursor: r.length <= 1 ? "not-allowed" : "pointer", boxShadow: "0 4px 14px rgba(220, 38, 38, 0.35)" },
+                  onClick: () => c(itemToDelete.id),
+                  className: "px-4 py-2 rounded-xl bg-[#f87171] hover:bg-[#ef4444] text-white font-bold text-xs font-mono transition-all cursor-pointer shadow-lg",
                   children: "Delete"
                 })
               ]
@@ -2675,7 +1863,7 @@ function ce({onExit:e}){
   [s,c]=(0,b.useState)(!1),[l,u]=(0,b.useState)(``),[d,f]=(0,b.useState)(!1),p=(0,b.useRef)(null),
   [isSyncing,setIsSyncing]=(0,b.useState)(!1),[syncMsg,setSyncMsg]=(0,b.useState)(null),
   [adminTheme,setAdminTheme]=(0,b.useState)(()=>localStorage.getItem('keyhaus_theme')||(document.documentElement.classList.contains('light')?'light':'dark')),
-  m=[{id:`personas`,label:`Switch Personas`,group:`Products`},{id:`keycaps`,label:`Keycap Sets`,group:`Products`},{id:`cables`,label:`Cable Options`,group:`Products`},{id:`translations`,label:`Translations`,group:`Settings`},{id:`sidebar-specs`,label:`Sidebar & Specs`,group:`Settings`},{id:`versions`,label:`Versions`,group:`Settings`},{id:`3d-settings`,label:`3D Setting`,group:`Settings`}],
+  m=[{id:`personas`,label:`Switch Personas`,group:`Products`},{id:`keycaps`,label:`Keycap Sets`,group:`Products`},{id:`cables`,label:`Cable Options`,group:`Products`},{id:`translations`,label:`Translations`,group:`Settings`},{id:`versions`,label:`Versions`,group:`Settings`},{id:`3d-settings`,label:`3D Setting`,group:`Settings`}],
   h=[`Products`,`Settings`];
 (0,b.useEffect)(()=>{
   const fn=()=>{o(getAdminTab());};
@@ -2690,31 +1878,25 @@ function ce({onExit:e}){
   window.addEventListener('storage',syncTheme);
   return()=>window.removeEventListener('storage',syncTheme);
 },[]);
-const autoSaveTimer=(0,b.useRef)(null);
-(0,b.useEffect)(()=>{
-  if(!t||!t.switchPersonas) return;
-  if(autoSaveTimer.current) clearTimeout(autoSaveTimer.current);
-  autoSaveTimer.current=setTimeout(()=>{
-    setIsSyncing(!0);
-    fetch("/api/store-data",{
-      method:"PUT",
-      headers:{"Content-Type":"application/json"},
-      body:JSON.stringify(t)
-    })
-    .then(res=>res.json())
-    .then(()=>{
-      setIsSyncing(!1);
-      setSyncMsg("✓ Auto-saved");
-      setTimeout(()=>setSyncMsg(null),2500);
-    })
-    .catch(()=>{
-      setIsSyncing(!1);
-      setSyncMsg("⚠ Save failed");
-      setTimeout(()=>setSyncMsg(null),3000);
-    });
-  },1500);
-  return()=>{if(autoSaveTimer.current) clearTimeout(autoSaveTimer.current);};
-},[JSON.stringify(t)]);
+function handleSaveVPS(){
+  setIsSyncing(!0);
+  setSyncMsg("Saving...");
+  fetch("/api/store-data",{
+    method:"PUT",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify(t)
+  })
+  .then(res=>res.json())
+  .then(res=>{
+    setIsSyncing(!1);
+    setSyncMsg("✓ Saved to PostgreSQL on VPS!");
+    setTimeout(()=>setSyncMsg(null),4000);
+  })
+  .catch(err=>{
+    setIsSyncing(!1);
+    setSyncMsg("Error: "+err);
+  });
+}
 function g(){let e=l.trim()||`Version ${n.length+1} — ${new Date().toLocaleDateString()}`,i={id:`v-${Date.now()}`,name:e,createdAt:new Date().toLocaleString(),data:JSON.parse(JSON.stringify(t))};r(e=>[i,...e]),c(!1),u(``),f(!0),setTimeout(()=>f(!1),2e3)}return(0,x.jsxDEV)(`div`,{className:`min-h-screen flex flex-col`,style:{backgroundColor:`#06060a`,fontFamily:`var(--font-display)`},children:[(0,x.jsxDEV)(`div`,{className:`border-b border-[#1a1a28] px-6 py-4 flex items-center justify-between sticky top-0 z-50`,style:{backgroundColor:`rgba(6,6,10,0.96)`,backdropFilter:`blur(20px)`},children:[(0,x.jsxDEV)(`div`,{className:`flex items-center gap-4`,children:[(0,x.jsxDEV)(`button`,{onClick:()=>{e();window.history.pushState(null,'','/switches');},className:`flex items-center gap-2 text-[#999] hover:text-white transition-colors text-sm font-medium group`,style:{fontFamily:`var(--font-display)`},children:[(0,x.jsxDEV)(`svg`,{width:`16`,height:`16`,viewBox:`0 0 16 16`,fill:`none`,className:`group-hover:-translate-x-0.5 transition-transform`,children:(0,x.jsxDEV)(`path`,{d:`M10 12L6 8l4-4`,stroke:`currentColor`,strokeWidth:`1.5`,strokeLinecap:`round`,strokeLinejoin:`round`},void 0,!1,{fileName:S,lineNumber:606,columnNumber:15},this)},void 0,!1,{fileName:S,lineNumber:605,columnNumber:13},this),`Back to Store`]},void 0,!0,{fileName:S,lineNumber:602,columnNumber:11},this),(0,x.jsxDEV)(`div`,{className:`w-px h-4 bg-[#1a1a28]`},void 0,!1,{fileName:S,lineNumber:610,columnNumber:11},this),(0,x.jsxDEV)(`div`,{className:`flex items-center gap-2.5`,children:[(0,x.jsxDEV)(`div`,{className:`w-2 h-2 rounded-full bg-[#f59e0b] animate-pulse`},void 0,!1,{fileName:S,lineNumber:612,columnNumber:13},this),(0,x.jsxDEV)(`span`,{className:`text-white font-bold text-sm`,style:{fontFamily:`var(--font-display)`},children:`Keyhaus Admin`},void 0,!1,{fileName:S,lineNumber:613,columnNumber:13},this),(0,x.jsxDEV)(`span`,{className:`text-[9px] px-1.5 py-0.5 rounded-sm bg-[#f59e0b]/20 text-[#f59e0b] font-bold tracking-widest`,style:{fontFamily:`var(--font-mono)`},children:`ADMIN MODE`},void 0,!1,{fileName:S,lineNumber:616,columnNumber:13},this)]},void 0,!0,{fileName:S,lineNumber:611,columnNumber:11},this)]},void 0,!0,{fileName:S,lineNumber:601,columnNumber:9},this),(0,x.jsxDEV)(`div`,{className:`flex items-center gap-3`,children:[syncMsg&&(0,x.jsxDEV)(`span`,{className:`text-[#CAFF00] text-xs font-bold animate-fade-up`,style:{fontFamily:`var(--font-mono)`},children:syncMsg},void 0,!1,{fileName:S,lineNumber:624,columnNumber:13},this),
 
 (0,x.jsxDEV)("label",{
@@ -2746,7 +1928,7 @@ function g(){let e=l.trim()||`Version ${n.length+1} — ${new Date().toLocaleDat
       children:adminTheme==="light"?"Light":"Dark"
     })
   ]
-},void 0,!0,{fileName:S,lineNumber:624,columnNumber:30},this),d&&(0,x.jsxDEV)(`span`,{className:`text-[#f59e0b] text-xs font-medium animate-fade-up`,style:{fontFamily:`var(--font-mono)`},children:`✓ Version saved`},void 0,!1,{fileName:S,lineNumber:625,columnNumber:13},this),s?(0,x.jsxDEV)(`div`,{className:`flex items-center gap-2`,children:[(0,x.jsxDEV)(`input`,{ref:p,autoFocus:!0,value:l,onChange:e=>u(e.target.value),onKeyDown:e=>{e.key===`Enter`&&g(),e.key===`Escape`&&c(!1)},placeholder:`Version ${n.length+1}`,className:`px-3 py-1.5 rounded-lg text-sm text-white placeholder-[#444] border border-[#f59e0b]/40 outline-none focus:border-[#f59e0b]/70 bg-[#0c0c14]`,style:{width:`200px`,fontFamily:`var(--font-display)`}},void 0,!1,{fileName:S,lineNumber:631,columnNumber:15},this),(0,x.jsxDEV)(`button`,{onClick:g,className:`px-3.5 py-1.5 rounded-lg bg-[#f59e0b] text-[#06060a] font-bold text-xs hover:bg-[#fbbf24] transition-all`,style:{fontFamily:`var(--font-display)`},children:`Save`},void 0,!1,{fileName:S,lineNumber:641,columnNumber:15},this),(0,x.jsxDEV)(`button`,{onClick:()=>c(!1),className:`px-3 py-1.5 rounded-lg border border-[#1a1a28] text-[#999] hover:text-white transition-all text-xs`,style:{fontFamily:`var(--font-mono)`},children:`✕`},void 0,!1,{fileName:S,lineNumber:646,columnNumber:15},this)]},void 0,!0,{fileName:S,lineNumber:630,columnNumber:13},this):(0,x.jsxDEV)(`button`,{onClick:()=>{c(!0),setTimeout(()=>p.current?.focus(),50)},className:`flex items-center gap-2 px-4 py-2 rounded-lg bg-[#f59e0b] text-[#06060a] font-bold text-xs hover:bg-[#fbbf24] transition-all`,style:{fontFamily:`var(--font-display)`},children:[(0,x.jsxDEV)(`svg`,{width:`12`,height:`12`,viewBox:`0 0 12 12`,fill:`none`,children:[(0,x.jsxDEV)(`rect`,{x:`1`,y:`1`,width:`10`,height:`10`,rx:`1.5`,stroke:`currentColor`,strokeWidth:`1.2`},void 0,!1,{fileName:S,lineNumber:657,columnNumber:17},this),(0,x.jsxDEV)(`path`,{d:`M3.5 7.5 6 10l2.5-2.5M6 3v7`,stroke:`currentColor`,strokeWidth:`1.2`,strokeLinecap:`round`,strokeLinejoin:`round`},void 0,!1,{fileName:S,lineNumber:658,columnNumber:17},this)]},void 0,!0,{fileName:S,lineNumber:656,columnNumber:15},this),`Save Version`]},void 0,!0,{fileName:S,lineNumber:653,columnNumber:13},this)]},void 0,!0,{fileName:S,lineNumber:623,columnNumber:9},this)]},void 0,!0,{fileName:S,lineNumber:599,columnNumber:7},this),(0,x.jsxDEV)(`div`,{className:`flex flex-1 min-h-0`,children:[(0,x.jsxDEV)(`nav`,{className:`w-52 shrink-0 border-r border-[#0f0f18] py-6 px-3`,style:{backgroundColor:`#080810`},children:h.map(e=>(0,x.jsxDEV)(`div`,{className:`mb-5`,children:[(0,x.jsxDEV)(`p`,{className:`text-[#888] text-[9px] font-bold tracking-widest uppercase px-3 mb-2`,style:{fontFamily:`var(--font-mono)`},children:e},void 0,!1,{fileName:S,lineNumber:672,columnNumber:15},this),m.filter(t=>t.group===e).map(e=>(0,x.jsxDEV)(`button`,{onClick:()=>{o(e.id);window.history.pushState(null,'','/admin/'+e.id);},className:[`w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-all mb-0.5`,a===e.id?`bg-[#f59e0b]/10 text-[#f59e0b] border border-[#f59e0b]/20`:`text-[#999] hover:text-[#888] hover:bg-[#0c0c14] border border-transparent`].join(` `),style:{fontFamily:`var(--font-display)`},children:[e.label,e.id===`versions`&&n.length>0&&(0,x.jsxDEV)(`span`,{className:`ml-auto float-right text-[10px] px-1.5 py-0.5 rounded bg-[#f59e0b]/20 text-[#f59e0b]`,style:{fontFamily:`var(--font-mono)`},children:n.length},void 0,!1,{fileName:S,lineNumber:687,columnNumber:21},this)]},e.id,!0,{fileName:S,lineNumber:677,columnNumber:17},this))]},e,!0,{fileName:S,lineNumber:671,columnNumber:13},this))},void 0,!1,{fileName:S,lineNumber:669,columnNumber:9},this),(0,x.jsxDEV)(`main`,{className:`flex-1 overflow-y-auto p-8`,children:[(0,x.jsxDEV)(`div`,{className:`mb-6 flex items-center justify-between`,children:(0,x.jsxDEV)(`div`,{children:[(0,x.jsxDEV)(`h1`,{className:`text-2xl font-extrabold text-white tracking-tight`,style:{fontFamily:`var(--font-display)`},children:{personas:`Switch Personas`,keycaps:`Keycap Sets`,cables:`Cable Options`,translations:`Translations`,versions:`Version History`,'3d-settings':`3D Setting`}[a]},void 0,!1,{fileName:S,lineNumber:702,columnNumber:15},this),(0,x.jsxDEV)(`p`,{className:`text-[#888] text-xs mt-1`,style:{fontFamily:`var(--font-mono)`},children:[a===`personas`&&`Edit or add switch persona option cards shown in Step 1`,a===`keycaps`&&`Edit or add keycap product cards shown in Step 2`,a===`cables`&&`Edit or add cable product cards shown in Step 3`,a===`translations`&&`Edit all static UI text — changes reflect immediately in the storefront`,a===`sidebar-specs`&&`Customize Sidebar Specs (Type, Actuation, Travel, Housing), Bundle Hint text and font colors, sizes, bold, italic with icons`,a===`versions`&&`Save snapshots of the current storefront state and restore previous versions`,a===`3d-settings`&&`Configure 3D rendering lighting, GMK & SA color presets, and model transforms`]},void 0,!0,{fileName:S,lineNumber:705,columnNumber:15},this)]},void 0,!0,{fileName:S,lineNumber:701,columnNumber:13},this)},void 0,!1,{fileName:S,lineNumber:700,columnNumber:11},this),(0,x.jsxDEV)(`div`,{style:{minHeight:`400px`},children:[a===`personas`&&(0,x.jsxDEV)(ae,{},void 0,!1,{fileName:S,lineNumber:716,columnNumber:40},this),a===`keycaps`&&(0,x.jsxDEV)(w,{type:`keycaps`},void 0,!1,{fileName:S,lineNumber:717,columnNumber:39},this),a===`cables`&&(0,x.jsxDEV)(w,{type:`cables`},void 0,!1,{fileName:S,lineNumber:718,columnNumber:38},this),a===`translations`&&(0,x.jsxDEV)(se,{},void 0,!1,{fileName:S,lineNumber:719,columnNumber:44},this),a===`sidebar-specs`&&(0,x.jsxDEV)(SidebarSpecsStylingPanel,{},void 0,!1,{},this),a===`versions`&&(0,x.jsxDEV)(T,{},void 0,!1,{fileName:S,lineNumber:720,columnNumber:40},this),a===`3d-settings`&&(0,x.jsxDEV)(Settings3DPanel,{},void 0,!1,{fileName:S,lineNumber:721,columnNumber:40},this)]},void 0,!0,{fileName:S,lineNumber:715,columnNumber:11},this)]},void 0,!0,{fileName:S,lineNumber:699,columnNumber:9},this)]},void 0,!0,{fileName:S,lineNumber:667,columnNumber:7},this)]},void 0,!0,{fileName:S,lineNumber:597,columnNumber:5},this)}var E=`/workspaces/.cached-preview/src/App.tsx`,le={switchPersonas:[{id:`office`,label:`Office`,tagline:`Silent & Focused`,switchName:`Gateron Silent Pink`,switchSpec:`Linear · 45g · Ultra-quiet`,badge:`SILENT`,price:45,description:`Engineered for open offices and focused deep work. Near-zero operating noise with a factory-dampened stem and pre-lubed bore. Long typing sessions feel effortless at 45g.`,features:[`45g actuation`,`Dampened stem`,`Pre-lubed`,`SMD LED compat.`],image:`/uploads/switch_office.jpg`,accent:`#60a5fa`,accentDim:`rgba(96,165,250,0.15)`},{id:`gamer`,label:`Gamer`,tagline:`Speed & Precision`,switchName:`Gateron Yellow Pro`,switchSpec:`Linear · 35g · 1.0mm pre-travel`,badge:`FAST`,price:45,description:`Lowest pre-travel actuation in its class. Factory-lubed linear motion eliminates any scratch. Built for competitive play where every millisecond of input lag matters.`,features:[`35g actuation`,`1.0mm pre-travel`,`Factory lubed`,`N-key rollover`],image:`/uploads/switch_gamer.jpg`,accent:`#f87171`,accentDim:`rgba(248,113,113,0.15)`},{id:`typist`,label:`Typist`,tagline:`Sound & Thock`,switchName:`Holy Panda X`,switchSpec:`Tactile · 67g · Thocky bump`,badge:`THOCK`,price:65,description:`The sound profile that sparked a thousand ASMR videos. A defined tactile bump at 2.0mm delivers auditory and physical confirmation of every keystroke.`,features:[`67g actuation`,`Rounded tactile bump`,`Long-pole stem`,`Thocky resonance`],image:`/uploads/switch_typist.jpg`,accent:`#a78bfa`,accentDim:`rgba(167,139,250,0.15)`},{id:`designer`,label:`Designer`,tagline:`Feedback & Flow`,switchName:`Boba U4T`,switchSpec:`Tactile · 62g · Fast + Feedback`,badge:`PRECISE`,price:55,description:`Sharp tactile bump that never interrupts flow state. Cerakote-coated housing creates a refined, muted sound signature — clean feedback without the drama.`,features:[`62g actuation`,`Sharp tactile bump`,`Cerakote housing`,`Muted sound sig.`],image:`/uploads/switch_designer.jpg`,accent:`#34d399`,accentDim:`rgba(52,211,153,0.15)`}],keycaps:[{id:`arctic-white`,name:`Arctic White`,subtitle:`PBT Double-shot · Cherry Profile`,price:89,image:`/uploads/keycap_arctic_white.jpg`,badge:`BESTSELLER`,description:`Ultra-clean legends with zero shine-through. PBT texture that only improves with age.`,accent:`#e8e8e8`},{id:`midnight-void`,name:`Midnight Void`,subtitle:`ABS · Laser-engraved · SA Profile`,price:79,image:`/uploads/cable_void_braided.jpg`,description:`Stealth matte finish with barely-there legends. For setups that prefer to disappear.`,accent:`#4a4a6a`},{id:`forest-sage`,name:`Forest Sage`,subtitle:`PBT Dye-sublimated · SA Profile`,price:95,image:`/uploads/keycap_forest_sage.jpg`,badge:`NEW`,description:`Muted earth tones with botanical-inspired colorway. Pairs beautifully with brass and walnut.`,accent:`#3d6b38`},{id:`neon-pulse`,name:`Neon Pulse`,subtitle:`ABS · Double-shot · OEM Profile`,price:85,image:`/uploads/keycap_neon_pulse.jpg`,description:`High-contrast RGB-transparent legends. Engineered for backlit builds that demand attention.`,accent:`#e84393`}],cables:[{id:`cosmos-coil`,name:`Cosmos Coil`,subtitle:`Coiled · Paracord Sleeved · USB-C`,price:55,image:`/uploads/cable_cosmos_coil.jpg`,badge:`ARTISAN`,description:`Hand-built coiled cable with custom GX16 aviator connector and milled brass barrel ends.`,accent:`#CAFF00`},{id:`void-braided`,name:`Void Braided`,subtitle:`Straight · Techflex · USB-C to USB-A`,price:28,image:`/uploads/cable_void_braided.jpg`,description:`No-frills quality. 1.8m techflex braid, triple-shielded core, zero cable drag.`,accent:`#6b7280`},{id:`aurora-coil`,name:`Aurora Coil`,subtitle:`Coiled · Transparent Sleeving · USB-C`,price:48,image:`/uploads/cable_aurora_coil.jpg`,badge:`NEW`,description:`Crystal-clear sleeving reveals the internal helix. Pairs with any keycap colorway seamlessly.`,accent:`#a5f3fc`}],translations:{brandName:`Keyhaus`,brandSubtitle:`Build Studio`,switchesTitle:`Choose your switches`,switchesSubtitle:`Four archetypes. Pick the one that fits how you work.`,keycapsTitle:`Choose your keycaps`,keycapsSubtitle:`Select one to customize and add to your build.`,cableTitle:`Choose your cable`,cableSubtitle:`Select one to customize and add to your build.`,bundleHintText:`Complete the full build and save 15% on your entire order.`,summaryTitle:`Your Build`,bundleDiscountTitle:`15% Bundle Discount Applied`,checkoutBtn:`Proceed to Checkout →`,startOverBtn:`Start Over`,addContinueBtn:`Add {name} + Continue to {next} →`,addOnlyBtn:`Add {item} only, exit flow`,skipBtn:`Skip {item}, continue without →`,customizeBtn:`Customize Design`,switchSpecsLabel:`Switch specs`,buildSoFarLabel:`Your build so far`,adminBtn:`Admin`}},ue=(0,b.createContext)(null);function de(){return(0,b.useContext)(ue)}function fe(){let{appData:e}=de();return(t,n)=>{let r=e.translations[t]??t;if(n)for(let[e,t]of Object.entries(n))r=r.replaceAll(`{${e}}`,t);return r}}var pe={keycaps:{Profile:[`Cherry`,`SA`,`OEM`,`XDA`,`MT3`],Material:[`PBT`,`ABS`],"Legend Style":[`Double-shot`,`Dye-sub`,`Laser-engraved`],Shine:[`Standard`,`Matte Coat`,`Glossy Coat`]},cable:{Connector:[`USB-C to USB-C`,`USB-C to USB-A`,`USB-C to USB-B Mini`],Length:[`0.8m`,`1.2m`,`1.5m`,`2.0m`],"Color Sleeve":[`Stock Color`,`Black`,`White`,`Custom (+$12)`],"Aviator Connector":[`None`,`GX16 Silver`,`GX16 Gold`,`GX16 Black`]}},me=.15;function he(e){return((e.keycaps?.product?.price??e.keycaps?.price??0)+(e.switches?.product?.price??e.switches?.price??0)+(Array.isArray(e.cables)&&e.cables.length>0?e.cables.reduce((s,it)=>s+(it?.product?.price??it?.price??0),0):(e.cable?.product?.price??e.cable?.price??0)))}function ge(e){let t={};for(let[n,r]of Object.entries(pe[e]??{}))t[n]=r[0];return t}function _e({text:e}){return(0,x.jsxDEV)(`span`,{className:`px-1.5 py-0.5 rounded-sm bg-[#CAFF00] text-[#06060a] font-semibold tracking-widest`,style:{fontFamily:`var(--font-mono)`,fontSize:`9px`},children:e},void 0,!1,{fileName:E,lineNumber:229,columnNumber:5},this)}function ve({current:e,cart:t,onStepClick:n}){let r=[`switches`,`keycaps`,`cable`,`summary`],i=r.indexOf(e),a=e=>e===`switches`?!!t.switches:e===`keycaps`?!!t.keycaps:e===`cable`?!!t.cable:!1,o=[{id:`switches`,label:a(`stepperSwitches`)||`Switches`,num:1},{id:`keycaps`,label:a(`stepperKeycaps`)||`Keycaps`,num:2},{id:`cable`,label:a(`stepperCable`)||`Cable`,num:3},{id:`summary`,label:a(`stepperSummary`)||`Summary`,num:4}];return(0,x.jsxDEV)(`div`,{className:`flex items-center`,children:o.map((t,s)=>{let c=r.indexOf(t.id),l=c<i,u=t.id===e,d=a(t.id);return(0,x.jsxDEV)(`div`,{className:`flex items-center`,children:[(0,x.jsxDEV)(`button`,{onClick:()=>n(t.id),className:`flex items-center gap-2.5 group/step cursor-pointer px-3.5 py-1.5 rounded-full transition-all border border-transparent`,children:[(0,x.jsxDEV)(`div`,{className:[`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-300`,u?`bg-[#CAFF00] text-[#06060a] ring-4 ring-[#CAFF00]/20 shadow-[0_0_12px_rgba(202,255,0,0.35)]`:d?`border-2 border-[#CAFF00] text-[#CAFF00] bg-[#CAFF00]/10`:`bg-[#1e1e2e] group-hover/step:bg-[#2a2a3e]`].join(` `),style:{fontFamily:`var(--font-mono)`,fontSize:`11px`,color:u?`#06060a`:d?`#CAFF00`:`#999999`},children:d&&!u?`✓`:t.num},void 0,!1,{fileName:E,lineNumber:274,columnNumber:15},this),(0,x.jsxDEV)(`span`,{className:[`text-sm font-semibold transition-colors`,u?`text-white`:`hover:text-white`].join(` `),style:{fontFamily:`var(--font-display)`,color:u?`#ffffff`:`#999999`},children:t.label},void 0,!1,{fileName:E,lineNumber:289,columnNumber:15},this)]},void 0,!0,{fileName:E,lineNumber:270,columnNumber:13},this),s<o.length-1&&(0,x.jsxDEV)(`div`,{className:`mx-3`,children:(0,x.jsxDEV)(`div`,{className:[`h-px w-12 transition-all duration-500`,c<i?`bg-[#CAFF00]/40`:`bg-[#1a1a2a]`].join(` `)},void 0,!1,{fileName:E,lineNumber:301,columnNumber:17},this)},void 0,!1,{fileName:E,lineNumber:300,columnNumber:15},this)]},t.id,!0,{fileName:E,lineNumber:269,columnNumber:11},this)})},void 0,!1,{fileName:E,lineNumber:261,columnNumber:5},this)}function ye({label:e,values:t,selected:n,onChange:r}){return(0,x.jsxDEV)(`div`,{children:[(0,x.jsxDEV)(`div`,{className:`flex items-center justify-between mb-2`,children:[(0,x.jsxDEV)(`span`,{className:`text-[#999] text-[10px] font-medium tracking-widest uppercase`,style:{fontFamily:`var(--font-mono)`},children:e},void 0,!1,{fileName:E,lineNumber:325,columnNumber:9},this),(0,x.jsxDEV)(`span`,{className:`text-[#CAFF00] text-[11px]`,style:{fontFamily:`var(--font-mono)`},children:n},void 0,!1,{fileName:E,lineNumber:328,columnNumber:9},this)]},void 0,!0,{fileName:E,lineNumber:324,columnNumber:7},this),(0,x.jsxDEV)(`div`,{className:`flex flex-wrap gap-1.5`,children:t.map(e=>(0,x.jsxDEV)(`button`,{onClick:()=>r(e),className:[`px-2.5 py-1 rounded-md text-[10px] font-medium transition-all duration-150`,n===e?`bg-[#CAFF00] text-[#06060a]`:`bg-[#111118] text-[#999] hover:text-[#888] border border-[#1e1e2e]`].join(` `),style:{fontFamily:`var(--font-mono)`},children:e},e,!1,{fileName:E,lineNumber:332,columnNumber:11},this))},void 0,!1,{fileName:E,lineNumber:330,columnNumber:7},this)]},void 0,!0,{fileName:E,lineNumber:323,columnNumber:5},this)}function be({entry:e,label:t}){let p=e?.product||e||{};return(0,x.jsxDEV)(`div`,{className:`flex items-center gap-3 py-3 border-b border-[#0f0f18] last:border-0`,children:[(0,x.jsxDEV)(`img`,{src:p.image,alt:p.name,className:`w-10 h-10 rounded-lg object-cover bg-[#0d0d14] shrink-0`},void 0,!1,{fileName:E,lineNumber:354,columnNumber:7},this),(0,x.jsxDEV)(`div`,{className:`flex-1 min-w-0`,children:[(0,x.jsxDEV)(`p`,{className:`text-[#999] text-[10px] font-medium tracking-widest uppercase`,style:{fontFamily:`var(--font-mono)`},children:t},void 0,!1,{fileName:E,lineNumber:356,columnNumber:9},this),(0,x.jsxDEV)(`p`,{className:`text-white text-sm font-semibold truncate`,style:{fontFamily:`var(--font-display)`},children:p.name},void 0,!1,{fileName:E,lineNumber:357,columnNumber:9},this)]},void 0,!0,{fileName:E,lineNumber:355,columnNumber:7},this),(0,x.jsxDEV)(`span`,{className:`text-white font-bold text-sm shrink-0`,style:{fontFamily:`var(--font-mono)`},children:[`$`,p.price??0]},void 0,!0,{fileName:E,lineNumber:359,columnNumber:7},this)]},void 0,!0,{fileName:E,lineNumber:353,columnNumber:5},this)}function xe({cart:e,onAdd:t,onAddOnly:n,onSkip:r}){let{appData:i}=de(),a=fe(),o=i.switchPersonas,[s,c]=(0,b.useState)(o[0]?.id??``),[l,u]=(0,b.useState)(!0),[d,f]=(0,b.useState)(!1),p=o.find(e=>e.id===s)??o[0];(0,b.useEffect)(()=>{!o.find(e=>e.id===s)&&o[0]&&c(o[0].id)},[o]);function m(e){e!==s&&(u(!1),setTimeout(()=>{c(e),u(!0)},180))}function h(){return{product:{id:p.id,name:p.switchName,subtitle:p.switchSpec,price:p.price,image:p.image,description:p.description,accent:p.accent,badge:p.badge},opts:{Profile:p.label,Sound:p.badge}}}return p?(0,x.jsxDEV)(`div`,{className:`animate-fade-up`,children:[(0,x.jsxDEV)(`div`,{className:`mb-6`,children:[(0,x.jsxDEV)(`h2`,{className:`text-3xl font-extrabold text-white tracking-tight`,style:{fontFamily:`var(--font-display)`},children:a(`switchesTitle`)},void 0,!1,{fileName:E,lineNumber:414,columnNumber:9},this),(0,x.jsxDEV)(`p`,{className:`text-[#999] text-sm mt-1`,children:a(`switchesSubtitle`)},void 0,!1,{fileName:E,lineNumber:417,columnNumber:9},this)]},void 0,!0,{fileName:E,lineNumber:413,columnNumber:7},this),(0,x.jsxDEV)(`div`,{className:`flex gap-3 mb-5 flex-wrap`,children:o.map(e=>{let t=s===e.id;return(0,x.jsxDEV)(`button`,{onClick:()=>m(e.id),className:[`relative rounded-2xl p-4 text-left transition-all duration-200 border min-w-[140px]`,t?`border-transparent`:`border-[#1a1a2a] bg-[#0d0d14] hover:border-[#2a2a3a]`].join(` `),style:t?{backgroundColor:e.accentDim,borderColor:e.accent+`60`}:{},children:[t&&(0,x.jsxDEV)(`div`,{className:`absolute inset-0 rounded-2xl opacity-20 pointer-events-none`,style:{background:`radial-gradient(circle at top left, ${e.accent}, transparent 70%)`}},void 0,!1,{fileName:E,lineNumber:435,columnNumber:17},this),(0,x.jsxDEV)(`div`,{className:`relative`,children:[(0,x.jsxDEV)(`div`,{className:`flex items-center justify-between mb-2`,children:[(0,x.jsxDEV)(`span`,{className:[`text-[9px] font-bold tracking-widest px-1.5 py-0.5 rounded-sm`,t?`text-[#06060a]`:`text-[#888] bg-[#111118]`].join(` `),style:{fontFamily:`var(--font-mono)`,backgroundColor:t?e.accent:void 0},children:e.badge},void 0,!1,{fileName:E,lineNumber:440,columnNumber:19},this),t&&(0,x.jsxDEV)(`div`,{className:`w-2 h-2 rounded-full`,style:{backgroundColor:e.accent}},void 0,!1,{fileName:E,lineNumber:444,columnNumber:30},this)]},void 0,!0,{fileName:E,lineNumber:439,columnNumber:17},this),(0,x.jsxDEV)(`p`,{className:[`leading-none`,t?`text-white`:`text-[#999]`].join(` `),style:{fontFamily:`var(--font-display)`,...getPersonaStyle(e,`label`,t?`#ffffff`:`#999999`,16,true,false)},children:e.label}),(0,x.jsxDEV)(`p`,{className:[`mt-1`,t?`text-[#888]`:`text-[#888]`].join(` `),style:{fontFamily:`var(--font-mono)`,...getPersonaStyle(e,`tagline`,`#888888`,11,false,false)},children:e.tagline})]},void 0,!0,{fileName:E,lineNumber:438,columnNumber:15},this)]},e.id,!0,{fileName:E,lineNumber:425,columnNumber:13},this)})},void 0,!1,{fileName:E,lineNumber:421,columnNumber:7},this),(0,x.jsxDEV)(`div`,{className:`grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-5 items-start`,children:[(0,x.jsxDEV)(`div`,{children:[(0,x.jsxDEV)(`div`,{className:`relative rounded-3xl overflow-hidden cursor-pointer`,style:{backgroundColor:`#0d0d14`,height:`440px`},onMouseEnter:()=>f(!0),onMouseLeave:()=>f(!1),children:[(0,x.jsxDEV)(`img`,{src:p.image,alt:p.switchName,className:`w-full h-full object-cover transition-all duration-700`,style:{opacity:l?.85:0,transform:l?`scale(1)`:`scale(1.03)`}},void 0,!1,{fileName:E,lineNumber:463,columnNumber:13},this),(0,x.jsxDEV)(`div`,{className:`absolute bottom-0 left-0 right-0 px-7 py-6 transition-opacity duration-300`,style:{background:`linear-gradient(to top, rgba(6,6,10,0.95) 0%, rgba(6,6,10,0.5) 60%, transparent 100%)`,opacity:d?0:1},children:(0,x.jsxDEV)(`div`,{className:`flex items-end justify-between`,children:[(0,x.jsxDEV)(`div`,{children:[(0,x.jsxDEV)(`div`,{className:`flex items-center gap-2 mb-1`,children:(0,x.jsxDEV)(`span`,{className:`text-[9px] font-bold tracking-widest px-1.5 py-0.5 rounded-sm text-[#06060a]`,style:{fontFamily:`var(--font-mono)`,backgroundColor:p.accent},children:p.badge},void 0,!1,{fileName:E,lineNumber:472,columnNumber:21},this)},void 0,!1,{fileName:E,lineNumber:471,columnNumber:19},this),(0,x.jsxDEV)(`h3`,{className:`leading-none`,style:{fontFamily:`var(--font-display)`,...getPersonaStyle(p,`switchName`,`#ffffff`,24,true,false)},children:p.switchName}),(0,x.jsxDEV)(`p`,{className:`mt-1`,style:{fontFamily:`var(--font-mono)`,...getPersonaStyle(p,`switchSpec`,`#999999`,12,false,false)},children:p.switchSpec})]},void 0,!0,{fileName:E,lineNumber:470,columnNumber:17},this),(0,x.jsxDEV)(`div`,{style:{fontFamily:`var(--font-mono)`,...getPersonaStyle(p,`price`,p.accent,30,true,false)},children:[`$`,p.price]})]},void 0,!0,{fileName:E,lineNumber:469,columnNumber:15},this)},void 0,!1,{fileName:E,lineNumber:467,columnNumber:13},this),(0,x.jsxDEV)(`div`,{className:`absolute inset-0 transition-opacity duration-300 flex flex-col justify-end`,style:{opacity:d?1:0,background:`linear-gradient(to top, rgba(6,6,10,0.97) 0%, rgba(6,6,10,0.75) 50%, rgba(6,6,10,0.3) 100%)`,pointerEvents:d?`auto`:`none`},children:(0,x.jsxDEV)(`div`,{className:`px-7 py-7`,children:[(0,x.jsxDEV)(`p`,{className:`leading-relaxed mb-4 max-w-lg`,style:{...getPersonaStyle(p,`description`,`#aaaaaa`,14,false,false)},children:p.description}),(0,x.jsxDEV)(`div`,{className:`flex flex-wrap gap-2 mb-6`,children:p.features.map(e=>(0,x.jsxDEV)(`span`,{className:`px-2.5 py-1 rounded-full border text-[10px] font-medium`,style:{fontFamily:`var(--font-mono)`,borderColor:p.accent+`50`,color:p.accent,backgroundColor:p.accentDim},children:e},e,!1,{fileName:E,lineNumber:493,columnNumber:21},this))},void 0,!1,{fileName:E,lineNumber:491,columnNumber:17},this),(0,x.jsxDEV)(`div`,{className:`flex items-center gap-3`,children:[(0,x.jsxDEV)(`button`,{onClick:()=>n(h()),className:`flex-1 py-3 rounded-xl font-bold text-sm text-[#06060a] transition-all duration-150 hover:brightness-110 active:scale-[0.98]`,style:{fontFamily:`var(--font-display)`,backgroundColor:p.accent},children:`Add to cart → Checkout`},void 0,!1,{fileName:E,lineNumber:500,columnNumber:19},this),(0,x.jsxDEV)(`button`,{onClick:r,className:`px-5 py-3 rounded-xl border border-[#2a2a3a] text-[#999] hover:text-[#888] hover:border-[#3a3a4a] text-sm font-semibold transition-all`,style:{fontFamily:`var(--font-display)`},children:`Skip →`},void 0,!1,{fileName:E,lineNumber:505,columnNumber:19},this)]},void 0,!0,{fileName:E,lineNumber:499,columnNumber:17},this)]},void 0,!0,{fileName:E,lineNumber:489,columnNumber:15},this)},void 0,!1,{fileName:E,lineNumber:483,columnNumber:13},this)]},void 0,!0,{fileName:E,lineNumber:461,columnNumber:11},this),(0,x.jsxDEV)(`button`,{onClick:()=>t(h()),className:`mt-3 w-full py-3.5 rounded-xl bg-[#CAFF00] text-[#06060a] font-bold text-sm hover:bg-[#d4ff00] active:scale-[0.99] transition-all`,style:{fontFamily:`var(--font-display)`},children:a(`addContinueBtn`,{name:p.switchName,next:`Keycaps`})},void 0,!1,{fileName:E,lineNumber:515,columnNumber:11},this)]},void 0,!0,{fileName:E,lineNumber:459,columnNumber:9},this),(0,x.jsxDEV)(`div`,{className:`space-y-4`,children:[(0,x.jsxDEV)(`div`,{className:`rounded-2xl p-5 border border-[#1a1a2a] transition-all duration-300`,style:{backgroundColor:`#0d0d14`},children:[...renderSidebarSpecs(p, a)]},void 0,!0,{fileName:E,lineNumber:524,columnNumber:11},this),(e.keycaps||e.cable)&&(0,x.jsxDEV)(`div`,{className:`rounded-2xl p-4 border border-[#111118] bg-[#0a0a10]`,children:[(0,x.jsxDEV)(`p`,{className:`text-[#888] text-[10px] font-semibold tracking-widest uppercase mb-3`,style:{fontFamily:`var(--font-mono)`},children:a(`buildSoFarLabel`)},void 0,!1,{fileName:E,lineNumber:546,columnNumber:15},this),e.keycaps&&(0,x.jsxDEV)(be,{entry:e.keycaps,label:`Keycaps`},void 0,!1,{fileName:E,lineNumber:547,columnNumber:32},this),e.cable&&(0,x.jsxDEV)(be,{entry:e.cable,label:`Cable`},void 0,!1,{fileName:E,lineNumber:548,columnNumber:30},this)]},void 0,!0,{fileName:E,lineNumber:545,columnNumber:13},this),renderBundleHint(a)]},void 0,!0,{fileName:E,lineNumber:523,columnNumber:9},this)]},void 0,!0,{fileName:E,lineNumber:458,columnNumber:7},this)]},void 0,!0,{fileName:E,lineNumber:412,columnNumber:5},this):null}function Se({product:e,selected:t,onSelect:n,onCustomize:r}){let i=fe();return(0,x.jsxDEV)(`div`,{className:[`group relative w-full rounded-2xl overflow-hidden transition-all duration-300`,t?`ring-2 ring-[#CAFF00] shadow-[0_0_32px_rgba(202,255,0,0.12)]`:`ring-1 ring-[#1a1a2a] hover:ring-[#2e2e44]`].join(` `),style:{backgroundColor:`#0d0d14`},children:[(0,x.jsxDEV)(`div`,{onClick:n,className:`product-card-info w-full text-left cursor-pointer block`,children:(0,x.jsxDEV)(`div`,{className:`relative h-44 overflow-hidden bg-[#0a0a12]`,children:[(0,x.jsxDEV)(`img`,{src:e.image,alt:e.name,className:`w-full h-full object-cover opacity-80 group-hover:opacity-95 group-hover:scale-[1.03] transition-all duration-500`},void 0,!1,{fileName:E,lineNumber:579,columnNumber:11},this),(0,x.jsxDEV)(`div`,{className:`absolute inset-0 bg-gradient-to-t from-[#0d0d14] via-transparent to-transparent`},void 0,!1,{fileName:E,lineNumber:581,columnNumber:11},this),e.badge&&(0,x.jsxDEV)(`div`,{className:`absolute top-3 left-3`,children:(0,x.jsxDEV)(_e,{text:e.badge},void 0,!1,{fileName:E,lineNumber:582,columnNumber:68},this)},void 0,!1,{fileName:E,lineNumber:582,columnNumber:29},this),t&&(0,x.jsxDEV)(`div`,{className:`absolute top-3 right-3 w-6 h-6 rounded-full bg-[#CAFF00] flex items-center justify-center`,children:(0,x.jsxDEV)(`span`,{className:`text-[#06060a] text-xs font-black`,children:`✓`},void 0,!1,{fileName:E,lineNumber:585,columnNumber:15},this)},void 0,!1,{fileName:E,lineNumber:584,columnNumber:13},this)]},void 0,!0,{fileName:E,lineNumber:578,columnNumber:9},this)},void 0,!1,{fileName:E,lineNumber:577,columnNumber:7},this),(0,x.jsxDEV)(`div`,{className:`p-4`,children:[(0,x.jsxDEV)(`div`,{onClick:n,className:`product-card-info w-full text-left cursor-pointer block`,children:[(0,x.jsxDEV)(`div`,{className:`flex items-start justify-between gap-2`,children:[(0,x.jsxDEV)(`div`,{children:[(0,x.jsxDEV)(`h3`,{className:`text-white font-bold text-base leading-tight`,style:{fontFamily:`var(--font-display)`},children:e.name},void 0,!1,{fileName:E,lineNumber:594,columnNumber:15},this),(0,x.jsxDEV)(`p`,{className:`text-[#999] text-xs mt-0.5`,style:{fontFamily:`var(--font-mono)`},children:e.subtitle},void 0,!1,{fileName:E,lineNumber:595,columnNumber:15},this)]},void 0,!0,{fileName:E,lineNumber:593,columnNumber:13},this),(0,x.jsxDEV)(`div`,{className:`text-[#CAFF00] font-bold text-lg shrink-0`,style:{fontFamily:`var(--font-mono)`},children:[`$`,e.price]},void 0,!0,{fileName:E,lineNumber:597,columnNumber:13},this)]},void 0,!0,{fileName:E,lineNumber:592,columnNumber:11},this),(0,x.jsxDEV)(`p`,{className:`text-[#999] text-xs leading-relaxed mt-2.5 line-clamp-2`,children:e.description},void 0,!1,{fileName:E,lineNumber:599,columnNumber:11},this)]},void 0,!0,{fileName:E,lineNumber:591,columnNumber:9},this),r&&(0,x.jsxDEV)(`button`,{onClick:r,className:`mt-3 w-full flex items-center justify-center gap-1.5 py-2 rounded-lg border border-dashed border-[#2a2a3e] text-[#999] hover:text-[#CAFF00] hover:border-[#CAFF00]/40 transition-all duration-200 group/cust`,children:[(0,x.jsxDEV)(`svg`,{width:`12`,height:`12`,viewBox:`0 0 12 12`,fill:`none`,className:`opacity-60 group-hover/cust:opacity-100 transition-opacity`,children:(0,x.jsxDEV)(`path`,{d:`M8.5 1.5a1.414 1.414 0 0 1 2 2L4 10H2v-2L8.5 1.5Z`,stroke:`currentColor`,strokeWidth:`1.2`,strokeLinecap:`round`,strokeLinejoin:`round`},void 0,!1,{fileName:E,lineNumber:605,columnNumber:15},this)},void 0,!1,{fileName:E,lineNumber:604,columnNumber:13},this),(0,x.jsxDEV)(`span`,{className:`text-[10px] font-semibold tracking-widest uppercase`,style:{fontFamily:`var(--font-mono)`},children:i(`customizeBtn`)},void 0,!1,{fileName:E,lineNumber:607,columnNumber:13},this)]},void 0,!0,{fileName:E,lineNumber:602,columnNumber:11},this)]},void 0,!0,{fileName:E,lineNumber:590,columnNumber:7},this)]},void 0,!0,{fileName:E,lineNumber:574,columnNumber:5},this)}function Ce({stepId:e,products:t,stepLabel:n,nextLabel:r,cart:i,onAdd:a,onAddOnly:o,onSkip:s,onCustomizeProduct:cstm}){
+},void 0,!0,{fileName:S,lineNumber:624,columnNumber:30},this),d&&(0,x.jsxDEV)(`span`,{className:`text-[#f59e0b] text-xs font-medium animate-fade-up`,style:{fontFamily:`var(--font-mono)`},children:`✓ Version saved`},void 0,!1,{fileName:S,lineNumber:625,columnNumber:13},this),s?(0,x.jsxDEV)(`div`,{className:`flex items-center gap-2`,children:[(0,x.jsxDEV)(`input`,{ref:p,autoFocus:!0,value:l,onChange:e=>u(e.target.value),onKeyDown:e=>{e.key===`Enter`&&g(),e.key===`Escape`&&c(!1)},placeholder:`Version ${n.length+1}`,className:`px-3 py-1.5 rounded-lg text-sm text-white placeholder-[#444] border border-[#f59e0b]/40 outline-none focus:border-[#f59e0b]/70 bg-[#0c0c14]`,style:{width:`200px`,fontFamily:`var(--font-display)`}},void 0,!1,{fileName:S,lineNumber:631,columnNumber:15},this),(0,x.jsxDEV)(`button`,{onClick:g,className:`px-3.5 py-1.5 rounded-lg bg-[#f59e0b] text-[#06060a] font-bold text-xs hover:bg-[#fbbf24] transition-all`,style:{fontFamily:`var(--font-display)`},children:`Save`},void 0,!1,{fileName:S,lineNumber:641,columnNumber:15},this),(0,x.jsxDEV)(`button`,{onClick:()=>c(!1),className:`px-3 py-1.5 rounded-lg border border-[#1a1a28] text-[#999] hover:text-white transition-all text-xs`,style:{fontFamily:`var(--font-mono)`},children:`✕`},void 0,!1,{fileName:S,lineNumber:646,columnNumber:15},this)]},void 0,!0,{fileName:S,lineNumber:630,columnNumber:13},this):(0,x.jsxDEV)(`button`,{onClick:()=>{c(!0),setTimeout(()=>p.current?.focus(),50)},className:`flex items-center gap-2 px-4 py-2 rounded-lg bg-[#f59e0b] text-[#06060a] font-bold text-xs hover:bg-[#fbbf24] transition-all`,style:{fontFamily:`var(--font-display)`},children:[(0,x.jsxDEV)(`svg`,{width:`12`,height:`12`,viewBox:`0 0 12 12`,fill:`none`,children:[(0,x.jsxDEV)(`rect`,{x:`1`,y:`1`,width:`10`,height:`10`,rx:`1.5`,stroke:`currentColor`,strokeWidth:`1.2`},void 0,!1,{fileName:S,lineNumber:657,columnNumber:17},this),(0,x.jsxDEV)(`path`,{d:`M3.5 7.5 6 10l2.5-2.5M6 3v7`,stroke:`currentColor`,strokeWidth:`1.2`,strokeLinecap:`round`,strokeLinejoin:`round`},void 0,!1,{fileName:S,lineNumber:658,columnNumber:17},this)]},void 0,!0,{fileName:S,lineNumber:656,columnNumber:15},this),`Save Version`]},void 0,!0,{fileName:S,lineNumber:653,columnNumber:13},this)]},void 0,!0,{fileName:S,lineNumber:623,columnNumber:9},this)]},void 0,!0,{fileName:S,lineNumber:599,columnNumber:7},this),(0,x.jsxDEV)(`div`,{className:`flex flex-1 min-h-0`,children:[(0,x.jsxDEV)(`nav`,{className:`w-52 shrink-0 border-r border-[#0f0f18] py-6 px-3`,style:{backgroundColor:`#080810`},children:h.map(e=>(0,x.jsxDEV)(`div`,{className:`mb-5`,children:[(0,x.jsxDEV)(`p`,{className:`text-[#888] text-[9px] font-bold tracking-widest uppercase px-3 mb-2`,style:{fontFamily:`var(--font-mono)`},children:e},void 0,!1,{fileName:S,lineNumber:672,columnNumber:15},this),m.filter(t=>t.group===e).map(e=>(0,x.jsxDEV)(`button`,{onClick:()=>{o(e.id);window.history.pushState(null,'','/admin/'+e.id);},className:[`w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-all mb-0.5`,a===e.id?`bg-[#f59e0b]/10 text-[#f59e0b] border border-[#f59e0b]/20`:`text-[#999] hover:text-[#888] hover:bg-[#0c0c14] border border-transparent`].join(` `),style:{fontFamily:`var(--font-display)`},children:[e.label,e.id===`versions`&&n.length>0&&(0,x.jsxDEV)(`span`,{className:`ml-auto float-right text-[10px] px-1.5 py-0.5 rounded bg-[#f59e0b]/20 text-[#f59e0b]`,style:{fontFamily:`var(--font-mono)`},children:n.length},void 0,!1,{fileName:S,lineNumber:687,columnNumber:21},this)]},e.id,!0,{fileName:S,lineNumber:677,columnNumber:17},this))]},e,!0,{fileName:S,lineNumber:671,columnNumber:13},this))},void 0,!1,{fileName:S,lineNumber:669,columnNumber:9},this),(0,x.jsxDEV)(`main`,{className:`flex-1 overflow-y-auto p-8`,children:[(0,x.jsxDEV)(`div`,{className:`mb-6 flex items-center justify-between`,children:(0,x.jsxDEV)(`div`,{children:[(0,x.jsxDEV)(`h1`,{className:`text-2xl font-extrabold text-white tracking-tight`,style:{fontFamily:`var(--font-display)`},children:{personas:`Switch Personas`,keycaps:`Keycap Sets`,cables:`Cable Options`,translations:`Translations`,versions:`Version History`,'3d-settings':`3D Setting`}[a]},void 0,!1,{fileName:S,lineNumber:702,columnNumber:15},this),(0,x.jsxDEV)(`p`,{className:`text-[#888] text-xs mt-1`,style:{fontFamily:`var(--font-mono)`},children:[a===`personas`&&`Edit or add switch persona option cards shown in Step 1`,a===`keycaps`&&`Edit or add keycap product cards shown in Step 2`,a===`cables`&&`Edit or add cable product cards shown in Step 3`,a===`translations`&&`Edit all static UI text — changes reflect immediately in the storefront`,a===`versions`&&`Save snapshots of the current storefront state and restore previous versions`,a===`3d-settings`&&`Configure 3D rendering lighting, GMK & SA color presets, and model transforms`]},void 0,!0,{fileName:S,lineNumber:705,columnNumber:15},this)]},void 0,!0,{fileName:S,lineNumber:701,columnNumber:13},this)},void 0,!1,{fileName:S,lineNumber:700,columnNumber:11},this),(0,x.jsxDEV)(`div`,{style:{minHeight:`400px`},children:[a===`personas`&&(0,x.jsxDEV)(ae,{},void 0,!1,{fileName:S,lineNumber:716,columnNumber:40},this),a===`keycaps`&&(0,x.jsxDEV)(w,{type:`keycaps`},void 0,!1,{fileName:S,lineNumber:717,columnNumber:39},this),a===`cables`&&(0,x.jsxDEV)(w,{type:`cables`},void 0,!1,{fileName:S,lineNumber:718,columnNumber:38},this),a===`translations`&&(0,x.jsxDEV)(se,{},void 0,!1,{fileName:S,lineNumber:719,columnNumber:44},this),a===`versions`&&(0,x.jsxDEV)(T,{},void 0,!1,{fileName:S,lineNumber:720,columnNumber:40},this),a===`3d-settings`&&(0,x.jsxDEV)(Settings3DPanel,{},void 0,!1,{fileName:S,lineNumber:721,columnNumber:40},this)]},void 0,!0,{fileName:S,lineNumber:715,columnNumber:11},this)]},void 0,!0,{fileName:S,lineNumber:699,columnNumber:9},this)]},void 0,!0,{fileName:S,lineNumber:667,columnNumber:7},this)]},void 0,!0,{fileName:S,lineNumber:597,columnNumber:5},this)}var E=`/workspaces/.cached-preview/src/App.tsx`,le={switchPersonas:[{id:`office`,label:`Office`,tagline:`Silent & Focused`,switchName:`Gateron Silent Pink`,switchSpec:`Linear · 45g · Ultra-quiet`,badge:`SILENT`,price:45,description:`Engineered for open offices and focused deep work. Near-zero operating noise with a factory-dampened stem and pre-lubed bore. Long typing sessions feel effortless at 45g.`,features:[`45g actuation`,`Dampened stem`,`Pre-lubed`,`SMD LED compat.`],image:`/uploads/switch_office.jpg`,accent:`#60a5fa`,accentDim:`rgba(96,165,250,0.15)`},{id:`gamer`,label:`Gamer`,tagline:`Speed & Precision`,switchName:`Gateron Yellow Pro`,switchSpec:`Linear · 35g · 1.0mm pre-travel`,badge:`FAST`,price:45,description:`Lowest pre-travel actuation in its class. Factory-lubed linear motion eliminates any scratch. Built for competitive play where every millisecond of input lag matters.`,features:[`35g actuation`,`1.0mm pre-travel`,`Factory lubed`,`N-key rollover`],image:`/uploads/switch_gamer.jpg`,accent:`#f87171`,accentDim:`rgba(248,113,113,0.15)`},{id:`typist`,label:`Typist`,tagline:`Sound & Thock`,switchName:`Holy Panda X`,switchSpec:`Tactile · 67g · Thocky bump`,badge:`THOCK`,price:65,description:`The sound profile that sparked a thousand ASMR videos. A defined tactile bump at 2.0mm delivers auditory and physical confirmation of every keystroke.`,features:[`67g actuation`,`Rounded tactile bump`,`Long-pole stem`,`Thocky resonance`],image:`/uploads/switch_typist.jpg`,accent:`#a78bfa`,accentDim:`rgba(167,139,250,0.15)`},{id:`designer`,label:`Designer`,tagline:`Feedback & Flow`,switchName:`Boba U4T`,switchSpec:`Tactile · 62g · Fast + Feedback`,badge:`PRECISE`,price:55,description:`Sharp tactile bump that never interrupts flow state. Cerakote-coated housing creates a refined, muted sound signature — clean feedback without the drama.`,features:[`62g actuation`,`Sharp tactile bump`,`Cerakote housing`,`Muted sound sig.`],image:`/uploads/switch_designer.jpg`,accent:`#34d399`,accentDim:`rgba(52,211,153,0.15)`}],keycaps:[{id:`arctic-white`,name:`Arctic White`,subtitle:`PBT Double-shot · Cherry Profile`,price:89,image:`/uploads/keycap_arctic_white.jpg`,badge:`BESTSELLER`,description:`Ultra-clean legends with zero shine-through. PBT texture that only improves with age.`,accent:`#e8e8e8`},{id:`midnight-void`,name:`Midnight Void`,subtitle:`ABS · Laser-engraved · SA Profile`,price:79,image:`/uploads/cable_void_braided.jpg`,description:`Stealth matte finish with barely-there legends. For setups that prefer to disappear.`,accent:`#4a4a6a`},{id:`forest-sage`,name:`Forest Sage`,subtitle:`PBT Dye-sublimated · SA Profile`,price:95,image:`/uploads/keycap_forest_sage.jpg`,badge:`NEW`,description:`Muted earth tones with botanical-inspired colorway. Pairs beautifully with brass and walnut.`,accent:`#3d6b38`},{id:`neon-pulse`,name:`Neon Pulse`,subtitle:`ABS · Double-shot · OEM Profile`,price:85,image:`/uploads/keycap_neon_pulse.jpg`,description:`High-contrast RGB-transparent legends. Engineered for backlit builds that demand attention.`,accent:`#e84393`}],cables:[{id:`cosmos-coil`,name:`Cosmos Coil`,subtitle:`Coiled · Paracord Sleeved · USB-C`,price:55,image:`/uploads/cable_cosmos_coil.jpg`,badge:`ARTISAN`,description:`Hand-built coiled cable with custom GX16 aviator connector and milled brass barrel ends.`,accent:`#CAFF00`},{id:`void-braided`,name:`Void Braided`,subtitle:`Straight · Techflex · USB-C to USB-A`,price:28,image:`/uploads/cable_void_braided.jpg`,description:`No-frills quality. 1.8m techflex braid, triple-shielded core, zero cable drag.`,accent:`#6b7280`},{id:`aurora-coil`,name:`Aurora Coil`,subtitle:`Coiled · Transparent Sleeving · USB-C`,price:48,image:`/uploads/cable_aurora_coil.jpg`,badge:`NEW`,description:`Crystal-clear sleeving reveals the internal helix. Pairs with any keycap colorway seamlessly.`,accent:`#a5f3fc`}],translations:{brandName:`Keyhaus`,brandSubtitle:`Build Studio`,switchesTitle:`Choose your switches`,switchesSubtitle:`Four archetypes. Pick the one that fits how you work.`,keycapsTitle:`Choose your keycaps`,keycapsSubtitle:`Select one to customize and add to your build.`,cableTitle:`Choose your cable`,cableSubtitle:`Select one to customize and add to your build.`,bundleHintText:`Complete the full build and save 15% on your entire order.`,summaryTitle:`Your Build`,bundleDiscountTitle:`15% Bundle Discount Applied`,checkoutBtn:`Proceed to Checkout →`,startOverBtn:`Start Over`,addContinueBtn:`Add {name} + Continue to {next} →`,addOnlyBtn:`Add {item} only, exit flow`,skipBtn:`Skip {item}, continue without →`,customizeBtn:`Customize Design`,switchSpecsLabel:`Switch specs`,buildSoFarLabel:`Your build so far`,adminBtn:`Admin`}},ue=(0,b.createContext)(null);function de(){return(0,b.useContext)(ue)}function fe(){let{appData:e}=de();return(t,n)=>{let r=e.translations[t]??t;if(n)for(let[e,t]of Object.entries(n))r=r.replaceAll(`{${e}}`,t);return r}}var pe={keycaps:{Profile:[`Cherry`,`SA`,`OEM`,`XDA`,`MT3`],Material:[`PBT`,`ABS`],"Legend Style":[`Double-shot`,`Dye-sub`,`Laser-engraved`],Shine:[`Standard`,`Matte Coat`,`Glossy Coat`]},cable:{Connector:[`USB-C to USB-C`,`USB-C to USB-A`,`USB-C to USB-B Mini`],Length:[`0.8m`,`1.2m`,`1.5m`,`2.0m`],"Color Sleeve":[`Stock Color`,`Black`,`White`,`Custom (+$12)`],"Aviator Connector":[`None`,`GX16 Silver`,`GX16 Gold`,`GX16 Black`]}},me=.15;function he(e){return((e.keycaps?.product?.price??e.keycaps?.price??0)+(e.switches?.product?.price??e.switches?.price??0)+(e.cable?.product?.price??e.cable?.price??0))}function ge(e){let t={};for(let[n,r]of Object.entries(pe[e]??{}))t[n]=r[0];return t}function _e({text:e}){return(0,x.jsxDEV)(`span`,{className:`px-1.5 py-0.5 rounded-sm bg-[#CAFF00] text-[#06060a] font-semibold tracking-widest`,style:{fontFamily:`var(--font-mono)`,fontSize:`9px`},children:e},void 0,!1,{fileName:E,lineNumber:229,columnNumber:5},this)}function ve({current:e,cart:t,onStepClick:n}){let r=[`switches`,`keycaps`,`cable`,`summary`],i=r.indexOf(e),a=e=>e===`switches`?!!t.switches:e===`keycaps`?!!t.keycaps:e===`cable`?!!t.cable:!1,o=[{id:`switches`,label:a(`stepperSwitches`)||`Switches`,num:1},{id:`keycaps`,label:a(`stepperKeycaps`)||`Keycaps`,num:2},{id:`cable`,label:a(`stepperCable`)||`Cable`,num:3},{id:`summary`,label:a(`stepperSummary`)||`Summary`,num:4}];return(0,x.jsxDEV)(`div`,{className:`flex items-center`,children:o.map((t,s)=>{let c=r.indexOf(t.id),l=c<i,u=t.id===e,d=a(t.id);return(0,x.jsxDEV)(`div`,{className:`flex items-center`,children:[(0,x.jsxDEV)(`button`,{onClick:()=>n(t.id),className:`flex items-center gap-2.5 group/step cursor-pointer px-3.5 py-1.5 rounded-full transition-all border border-transparent`,children:[(0,x.jsxDEV)(`div`,{className:[`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-300`,u?`bg-[#CAFF00] text-[#06060a] ring-4 ring-[#CAFF00]/20 shadow-[0_0_12px_rgba(202,255,0,0.35)]`:d?`border-2 border-[#CAFF00] text-[#CAFF00] bg-[#CAFF00]/10`:`bg-[#1e1e2e] group-hover/step:bg-[#2a2a3e]`].join(` `),style:{fontFamily:`var(--font-mono)`,fontSize:`11px`,color:u?`#06060a`:d?`#CAFF00`:`#999999`},children:d&&!u?`✓`:t.num},void 0,!1,{fileName:E,lineNumber:274,columnNumber:15},this),(0,x.jsxDEV)(`span`,{className:[`text-sm font-semibold transition-colors`,u?`text-white`:`hover:text-white`].join(` `),style:{fontFamily:`var(--font-display)`,color:u?`#ffffff`:`#999999`},children:t.label},void 0,!1,{fileName:E,lineNumber:289,columnNumber:15},this)]},void 0,!0,{fileName:E,lineNumber:270,columnNumber:13},this),s<o.length-1&&(0,x.jsxDEV)(`div`,{className:`mx-3`,children:(0,x.jsxDEV)(`div`,{className:[`h-px w-12 transition-all duration-500`,c<i?`bg-[#CAFF00]/40`:`bg-[#1a1a2a]`].join(` `)},void 0,!1,{fileName:E,lineNumber:301,columnNumber:17},this)},void 0,!1,{fileName:E,lineNumber:300,columnNumber:15},this)]},t.id,!0,{fileName:E,lineNumber:269,columnNumber:11},this)})},void 0,!1,{fileName:E,lineNumber:261,columnNumber:5},this)}function ye({label:e,values:t,selected:n,onChange:r}){return(0,x.jsxDEV)(`div`,{children:[(0,x.jsxDEV)(`div`,{className:`flex items-center justify-between mb-2`,children:[(0,x.jsxDEV)(`span`,{className:`text-[#999] text-[10px] font-medium tracking-widest uppercase`,style:{fontFamily:`var(--font-mono)`},children:e},void 0,!1,{fileName:E,lineNumber:325,columnNumber:9},this),(0,x.jsxDEV)(`span`,{className:`text-[#CAFF00] text-[11px]`,style:{fontFamily:`var(--font-mono)`},children:n},void 0,!1,{fileName:E,lineNumber:328,columnNumber:9},this)]},void 0,!0,{fileName:E,lineNumber:324,columnNumber:7},this),(0,x.jsxDEV)(`div`,{className:`flex flex-wrap gap-1.5`,children:t.map(e=>(0,x.jsxDEV)(`button`,{onClick:()=>r(e),className:[`px-2.5 py-1 rounded-md text-[10px] font-medium transition-all duration-150`,n===e?`bg-[#CAFF00] text-[#06060a]`:`bg-[#111118] text-[#999] hover:text-[#888] border border-[#1e1e2e]`].join(` `),style:{fontFamily:`var(--font-mono)`},children:e},e,!1,{fileName:E,lineNumber:332,columnNumber:11},this))},void 0,!1,{fileName:E,lineNumber:330,columnNumber:7},this)]},void 0,!0,{fileName:E,lineNumber:323,columnNumber:5},this)}function be({entry:e,label:t}){let p=e?.product||e||{};return(0,x.jsxDEV)(`div`,{className:`flex items-center gap-3 py-3 border-b border-[#0f0f18] last:border-0`,children:[(0,x.jsxDEV)(`img`,{src:p.image,alt:p.name,className:`w-10 h-10 rounded-lg object-cover bg-[#0d0d14] shrink-0`},void 0,!1,{fileName:E,lineNumber:354,columnNumber:7},this),(0,x.jsxDEV)(`div`,{className:`flex-1 min-w-0`,children:[(0,x.jsxDEV)(`p`,{className:`text-[#999] text-[10px] font-medium tracking-widest uppercase`,style:{fontFamily:`var(--font-mono)`},children:t},void 0,!1,{fileName:E,lineNumber:356,columnNumber:9},this),(0,x.jsxDEV)(`p`,{className:`text-white text-sm font-semibold truncate`,style:{fontFamily:`var(--font-display)`},children:p.name},void 0,!1,{fileName:E,lineNumber:357,columnNumber:9},this)]},void 0,!0,{fileName:E,lineNumber:355,columnNumber:7},this),(0,x.jsxDEV)(`span`,{className:`text-white font-bold text-sm shrink-0`,style:{fontFamily:`var(--font-mono)`},children:[`$`,p.price??0]},void 0,!0,{fileName:E,lineNumber:359,columnNumber:7},this)]},void 0,!0,{fileName:E,lineNumber:353,columnNumber:5},this)}function xe({cart:e,onAdd:t,onAddOnly:n,onSkip:r}){let{appData:i}=de(),a=fe(),o=i.switchPersonas,[s,c]=(0,b.useState)(o[0]?.id??``),[l,u]=(0,b.useState)(!0),[d,f]=(0,b.useState)(!1),p=o.find(e=>e.id===s)??o[0];(0,b.useEffect)(()=>{!o.find(e=>e.id===s)&&o[0]&&c(o[0].id)},[o]);function m(e){e!==s&&(u(!1),setTimeout(()=>{c(e),u(!0)},180))}function h(){return{product:{id:p.id,name:p.switchName,subtitle:p.switchSpec,price:p.price,image:p.image,description:p.description,accent:p.accent,badge:p.badge},opts:{Profile:p.label,Sound:p.badge}}}return p?(0,x.jsxDEV)(`div`,{className:`animate-fade-up`,children:[(0,x.jsxDEV)(`div`,{className:`mb-6`,children:[(0,x.jsxDEV)(`h2`,{className:`text-3xl font-extrabold text-white tracking-tight`,style:{fontFamily:`var(--font-display)`},children:a(`switchesTitle`)},void 0,!1,{fileName:E,lineNumber:414,columnNumber:9},this),(0,x.jsxDEV)(`p`,{className:`text-[#999] text-sm mt-1`,children:a(`switchesSubtitle`)},void 0,!1,{fileName:E,lineNumber:417,columnNumber:9},this)]},void 0,!0,{fileName:E,lineNumber:413,columnNumber:7},this),(0,x.jsxDEV)(`div`,{className:`flex gap-3 mb-5 flex-wrap`,children:o.map(e=>{let t=s===e.id;return(0,x.jsxDEV)(`button`,{onClick:()=>m(e.id),className:[`relative rounded-2xl p-4 text-left transition-all duration-200 border min-w-[140px]`,t?`border-transparent`:`border-[#1a1a2a] bg-[#0d0d14] hover:border-[#2a2a3a]`].join(` `),style:t?{backgroundColor:e.accentDim,borderColor:e.accent+`60`}:{},children:[t&&(0,x.jsxDEV)(`div`,{className:`absolute inset-0 rounded-2xl opacity-20 pointer-events-none`,style:{background:`radial-gradient(circle at top left, ${e.accent}, transparent 70%)`}},void 0,!1,{fileName:E,lineNumber:435,columnNumber:17},this),(0,x.jsxDEV)(`div`,{className:`relative`,children:[(0,x.jsxDEV)(`div`,{className:`flex items-center justify-between mb-2`,children:[(0,x.jsxDEV)(`span`,{className:[`text-[9px] font-bold tracking-widest px-1.5 py-0.5 rounded-sm`,t?`text-[#06060a]`:`text-[#888] bg-[#111118]`].join(` `),style:{fontFamily:`var(--font-mono)`,backgroundColor:t?e.accent:void 0},children:e.badge},void 0,!1,{fileName:E,lineNumber:440,columnNumber:19},this),t&&(0,x.jsxDEV)(`div`,{className:`w-2 h-2 rounded-full`,style:{backgroundColor:e.accent}},void 0,!1,{fileName:E,lineNumber:444,columnNumber:30},this)]},void 0,!0,{fileName:E,lineNumber:439,columnNumber:17},this),(0,x.jsxDEV)(`p`,{className:[`font-bold text-base leading-none`,t?`text-white`:`text-[#999]`].join(` `),style:{fontFamily:`var(--font-display)`},children:e.label},void 0,!1,{fileName:E,lineNumber:446,columnNumber:17},this),(0,x.jsxDEV)(`p`,{className:[`text-[11px] mt-1`,t?`text-[#888]`:`text-[#888]`].join(` `),style:{fontFamily:`var(--font-mono)`},children:e.tagline},void 0,!1,{fileName:E,lineNumber:449,columnNumber:17},this)]},void 0,!0,{fileName:E,lineNumber:438,columnNumber:15},this)]},e.id,!0,{fileName:E,lineNumber:425,columnNumber:13},this)})},void 0,!1,{fileName:E,lineNumber:421,columnNumber:7},this),(0,x.jsxDEV)(`div`,{className:`grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-5 items-start`,children:[(0,x.jsxDEV)(`div`,{children:[(0,x.jsxDEV)(`div`,{className:`relative rounded-3xl overflow-hidden cursor-pointer`,style:{backgroundColor:`#0d0d14`,height:`440px`},onMouseEnter:()=>f(!0),onMouseLeave:()=>f(!1),children:[(0,x.jsxDEV)(`img`,{src:p.image,alt:p.switchName,className:`w-full h-full object-cover transition-all duration-700`,style:{opacity:l?.85:0,transform:l?`scale(1)`:`scale(1.03)`}},void 0,!1,{fileName:E,lineNumber:463,columnNumber:13},this),(0,x.jsxDEV)(`div`,{className:`absolute bottom-0 left-0 right-0 px-7 py-6 transition-opacity duration-300`,style:{background:`linear-gradient(to top, rgba(6,6,10,0.95) 0%, rgba(6,6,10,0.5) 60%, transparent 100%)`,opacity:d?0:1},children:(0,x.jsxDEV)(`div`,{className:`flex items-end justify-between`,children:[(0,x.jsxDEV)(`div`,{children:[(0,x.jsxDEV)(`div`,{className:`flex items-center gap-2 mb-1`,children:(0,x.jsxDEV)(`span`,{className:`text-[9px] font-bold tracking-widest px-1.5 py-0.5 rounded-sm text-[#06060a]`,style:{fontFamily:`var(--font-mono)`,backgroundColor:p.accent},children:p.badge},void 0,!1,{fileName:E,lineNumber:472,columnNumber:21},this)},void 0,!1,{fileName:E,lineNumber:471,columnNumber:19},this),(0,x.jsxDEV)(`h3`,{className:`text-white font-extrabold text-2xl leading-none`,style:{fontFamily:`var(--font-display)`},children:p.switchName},void 0,!1,{fileName:E,lineNumber:475,columnNumber:19},this),(0,x.jsxDEV)(`p`,{className:`text-[#999] text-xs mt-1`,style:{fontFamily:`var(--font-mono)`},children:p.switchSpec},void 0,!1,{fileName:E,lineNumber:476,columnNumber:19},this)]},void 0,!0,{fileName:E,lineNumber:470,columnNumber:17},this),(0,x.jsxDEV)(`div`,{className:`font-black text-3xl`,style:{fontFamily:`var(--font-mono)`,color:p.accent},children:[`$`,p.price]},void 0,!0,{fileName:E,lineNumber:478,columnNumber:17},this)]},void 0,!0,{fileName:E,lineNumber:469,columnNumber:15},this)},void 0,!1,{fileName:E,lineNumber:467,columnNumber:13},this),(0,x.jsxDEV)(`div`,{className:`absolute inset-0 transition-opacity duration-300 flex flex-col justify-end`,style:{opacity:d?1:0,background:`linear-gradient(to top, rgba(6,6,10,0.97) 0%, rgba(6,6,10,0.75) 50%, rgba(6,6,10,0.3) 100%)`,pointerEvents:d?`auto`:`none`},children:(0,x.jsxDEV)(`div`,{className:`px-7 py-7`,children:[(0,x.jsxDEV)(`p`,{className:`text-[#aaa] text-sm leading-relaxed mb-4 max-w-lg`,children:p.description},void 0,!1,{fileName:E,lineNumber:490,columnNumber:17},this),(0,x.jsxDEV)(`div`,{className:`flex flex-wrap gap-2 mb-6`,children:p.features.map(e=>(0,x.jsxDEV)(`span`,{className:`px-2.5 py-1 rounded-full border text-[10px] font-medium`,style:{fontFamily:`var(--font-mono)`,borderColor:p.accent+`50`,color:p.accent,backgroundColor:p.accentDim},children:e},e,!1,{fileName:E,lineNumber:493,columnNumber:21},this))},void 0,!1,{fileName:E,lineNumber:491,columnNumber:17},this),(0,x.jsxDEV)(`div`,{className:`flex items-center gap-3`,children:[(0,x.jsxDEV)(`button`,{onClick:()=>n(h()),className:`flex-1 py-3 rounded-xl font-bold text-sm text-[#06060a] transition-all duration-150 hover:brightness-110 active:scale-[0.98]`,style:{fontFamily:`var(--font-display)`,backgroundColor:p.accent},children:`Add to cart → Checkout`},void 0,!1,{fileName:E,lineNumber:500,columnNumber:19},this),(0,x.jsxDEV)(`button`,{onClick:r,className:`px-5 py-3 rounded-xl border border-[#2a2a3a] text-[#999] hover:text-[#888] hover:border-[#3a3a4a] text-sm font-semibold transition-all`,style:{fontFamily:`var(--font-display)`},children:`Skip →`},void 0,!1,{fileName:E,lineNumber:505,columnNumber:19},this)]},void 0,!0,{fileName:E,lineNumber:499,columnNumber:17},this)]},void 0,!0,{fileName:E,lineNumber:489,columnNumber:15},this)},void 0,!1,{fileName:E,lineNumber:483,columnNumber:13},this)]},void 0,!0,{fileName:E,lineNumber:461,columnNumber:11},this),(0,x.jsxDEV)(`button`,{onClick:()=>t(h()),className:`mt-3 w-full py-3.5 rounded-xl bg-[#CAFF00] text-[#06060a] font-bold text-sm hover:bg-[#d4ff00] active:scale-[0.99] transition-all`,style:{fontFamily:`var(--font-display)`},children:a(`addContinueBtn`,{name:p.switchName,next:`Keycaps`})},void 0,!1,{fileName:E,lineNumber:515,columnNumber:11},this)]},void 0,!0,{fileName:E,lineNumber:459,columnNumber:9},this),(0,x.jsxDEV)(`div`,{className:`space-y-4`,children:[(0,x.jsxDEV)(`div`,{className:`rounded-2xl p-5 border border-[#1a1a2a] transition-all duration-300`,style:{backgroundColor:`#0d0d14`},children:[(0,x.jsxDEV)(`div`,{className:`flex items-center gap-2 mb-4`,children:[(0,x.jsxDEV)(`div`,{className:`w-1 h-4 rounded-full`,style:{backgroundColor:p.accent}},void 0,!1,{fileName:E,lineNumber:526,columnNumber:15},this),(0,x.jsxDEV)(`span`,{className:`text-white font-semibold text-sm`,style:{fontFamily:`var(--font-display)`},children:a(`switchSpecsLabel`)},void 0,!1,{fileName:E,lineNumber:527,columnNumber:15},this)]},void 0,!0,{fileName:E,lineNumber:525,columnNumber:13},this),(0,x.jsxDEV)(`div`,{className:`space-y-3`,children:[{label:`Type`,value:p.badge},{label:`Actuation`,value:p.switchSpec.split(`·`)[1]?.trim()??`—`},{label:`Travel`,value:`4.0mm total`},{label:`Housing`,value:p.id===`designer`?`Cerakote PC`:`Nylon PA66`}].map(e=>(0,x.jsxDEV)(`div`,{className:`flex items-center justify-between`,children:[(0,x.jsxDEV)(`span`,{className:`text-[#999] text-[11px]`,style:{fontFamily:`var(--font-mono)`},children:e.label},void 0,!1,{fileName:E,lineNumber:537,columnNumber:19},this),(0,x.jsxDEV)(`span`,{className:`text-[11px] font-medium`,style:{fontFamily:`var(--font-mono)`,color:p.accent},children:e.value},void 0,!1,{fileName:E,lineNumber:538,columnNumber:19},this)]},e.label,!0,{fileName:E,lineNumber:536,columnNumber:17},this))},void 0,!1,{fileName:E,lineNumber:529,columnNumber:13},this)]},void 0,!0,{fileName:E,lineNumber:524,columnNumber:11},this),(e.keycaps||e.cable)&&(0,x.jsxDEV)(`div`,{className:`rounded-2xl p-4 border border-[#111118] bg-[#0a0a10]`,children:[(0,x.jsxDEV)(`p`,{className:`text-[#888] text-[10px] font-semibold tracking-widest uppercase mb-3`,style:{fontFamily:`var(--font-mono)`},children:a(`buildSoFarLabel`)},void 0,!1,{fileName:E,lineNumber:546,columnNumber:15},this),e.keycaps&&(0,x.jsxDEV)(be,{entry:e.keycaps,label:`Keycaps`},void 0,!1,{fileName:E,lineNumber:547,columnNumber:32},this),e.cable&&(0,x.jsxDEV)(be,{entry:e.cable,label:`Cable`},void 0,!1,{fileName:E,lineNumber:548,columnNumber:30},this)]},void 0,!0,{fileName:E,lineNumber:545,columnNumber:13},this),(0,x.jsxDEV)(`div`,{className:`rounded-xl px-4 py-3 border border-[#CAFF00]/20 bg-[#CAFF00]/5`,children:(0,x.jsxDEV)(`p`,{className:`text-[#CAFF00]/70 leading-relaxed`,style:{fontFamily:`var(--font-mono)`,fontSize:`11px`},children:[`◆ `,a(`bundleHintText`).replace(`15%`,``),(0,x.jsxDEV)(`span`,{className:`text-[#CAFF00] font-bold`,children:`15%`},void 0,!1,{fileName:E,lineNumber:555,columnNumber:15},this),`.`]},void 0,!0,{fileName:E,lineNumber:553,columnNumber:13},this)},void 0,!1,{fileName:E,lineNumber:552,columnNumber:11},this)]},void 0,!0,{fileName:E,lineNumber:523,columnNumber:9},this)]},void 0,!0,{fileName:E,lineNumber:458,columnNumber:7},this)]},void 0,!0,{fileName:E,lineNumber:412,columnNumber:5},this):null}function Se({product:e,selected:t,onSelect:n,onCustomize:r}){let i=fe();return(0,x.jsxDEV)(`div`,{className:[`group relative w-full rounded-2xl overflow-hidden transition-all duration-300`,t?`ring-2 ring-[#CAFF00] shadow-[0_0_32px_rgba(202,255,0,0.12)]`:`ring-1 ring-[#1a1a2a] hover:ring-[#2e2e44]`].join(` `),style:{backgroundColor:`#0d0d14`},children:[(0,x.jsxDEV)(`div`,{onClick:n,className:`product-card-info w-full text-left cursor-pointer block`,children:(0,x.jsxDEV)(`div`,{className:`relative h-44 overflow-hidden bg-[#0a0a12]`,children:[(0,x.jsxDEV)(`img`,{src:e.image,alt:e.name,className:`w-full h-full object-cover opacity-80 group-hover:opacity-95 group-hover:scale-[1.03] transition-all duration-500`},void 0,!1,{fileName:E,lineNumber:579,columnNumber:11},this),(0,x.jsxDEV)(`div`,{className:`absolute inset-0 bg-gradient-to-t from-[#0d0d14] via-transparent to-transparent`},void 0,!1,{fileName:E,lineNumber:581,columnNumber:11},this),e.badge&&(0,x.jsxDEV)(`div`,{className:`absolute top-3 left-3`,children:(0,x.jsxDEV)(_e,{text:e.badge},void 0,!1,{fileName:E,lineNumber:582,columnNumber:68},this)},void 0,!1,{fileName:E,lineNumber:582,columnNumber:29},this),t&&(0,x.jsxDEV)(`div`,{className:`absolute top-3 right-3 w-6 h-6 rounded-full bg-[#CAFF00] flex items-center justify-center`,children:(0,x.jsxDEV)(`span`,{className:`text-[#06060a] text-xs font-black`,children:`✓`},void 0,!1,{fileName:E,lineNumber:585,columnNumber:15},this)},void 0,!1,{fileName:E,lineNumber:584,columnNumber:13},this)]},void 0,!0,{fileName:E,lineNumber:578,columnNumber:9},this)},void 0,!1,{fileName:E,lineNumber:577,columnNumber:7},this),(0,x.jsxDEV)(`div`,{className:`p-4`,children:[(0,x.jsxDEV)(`div`,{onClick:n,className:`product-card-info w-full text-left cursor-pointer block`,children:[(0,x.jsxDEV)(`div`,{className:`flex items-start justify-between gap-2`,children:[(0,x.jsxDEV)(`div`,{children:[(0,x.jsxDEV)(`h3`,{className:`text-white font-bold text-base leading-tight`,style:{fontFamily:`var(--font-display)`},children:e.name},void 0,!1,{fileName:E,lineNumber:594,columnNumber:15},this),(0,x.jsxDEV)(`p`,{className:`text-[#999] text-xs mt-0.5`,style:{fontFamily:`var(--font-mono)`},children:e.subtitle},void 0,!1,{fileName:E,lineNumber:595,columnNumber:15},this)]},void 0,!0,{fileName:E,lineNumber:593,columnNumber:13},this),(0,x.jsxDEV)(`div`,{className:`text-[#CAFF00] font-bold text-lg shrink-0`,style:{fontFamily:`var(--font-mono)`},children:[`$`,e.price]},void 0,!0,{fileName:E,lineNumber:597,columnNumber:13},this)]},void 0,!0,{fileName:E,lineNumber:592,columnNumber:11},this),(0,x.jsxDEV)(`p`,{className:`text-[#999] text-xs leading-relaxed mt-2.5 line-clamp-2`,children:e.description},void 0,!1,{fileName:E,lineNumber:599,columnNumber:11},this)]},void 0,!0,{fileName:E,lineNumber:591,columnNumber:9},this),r&&(0,x.jsxDEV)(`button`,{onClick:r,className:`mt-3 w-full flex items-center justify-center gap-1.5 py-2 rounded-lg border border-dashed border-[#2a2a3e] text-[#999] hover:text-[#CAFF00] hover:border-[#CAFF00]/40 transition-all duration-200 group/cust`,children:[(0,x.jsxDEV)(`svg`,{width:`12`,height:`12`,viewBox:`0 0 12 12`,fill:`none`,className:`opacity-60 group-hover/cust:opacity-100 transition-opacity`,children:(0,x.jsxDEV)(`path`,{d:`M8.5 1.5a1.414 1.414 0 0 1 2 2L4 10H2v-2L8.5 1.5Z`,stroke:`currentColor`,strokeWidth:`1.2`,strokeLinecap:`round`,strokeLinejoin:`round`},void 0,!1,{fileName:E,lineNumber:605,columnNumber:15},this)},void 0,!1,{fileName:E,lineNumber:604,columnNumber:13},this),(0,x.jsxDEV)(`span`,{className:`text-[10px] font-semibold tracking-widest uppercase`,style:{fontFamily:`var(--font-mono)`},children:i(`customizeBtn`)},void 0,!1,{fileName:E,lineNumber:607,columnNumber:13},this)]},void 0,!0,{fileName:E,lineNumber:602,columnNumber:11},this)]},void 0,!0,{fileName:E,lineNumber:590,columnNumber:7},this)]},void 0,!0,{fileName:E,lineNumber:574,columnNumber:5},this)}function Ce({stepId:e,products:t,stepLabel:n,nextLabel:r,cart:i,onAdd:a,onAddOnly:o,onSkip:s,onCustomizeProduct:cstm}){
   let c=fe(),[l,u]=(0,b.useState)(null),[d,f]=(0,b.useState)(ge(e)),[customizingProduct,setCustomizingProduct]=(0,b.useState)(null),[isKeysimFullscreen,setIsKeysimFullscreen]=(0,b.useState)(!1);
   (0,b.useEffect)(()=>{
     const onKey=(ev)=>{if(ev.key==='Escape')setCustomizingProduct(null);};
@@ -2896,7 +2078,7 @@ function g(){let e=l.trim()||`Version ${n.length+1} — ${new Date().toLocaleDat
   const sendBaseReset=(target)=>{const ifr=document.querySelector('.keysim-modal-body iframe')||document.querySelector('iframe');ifr?.contentWindow?.postMessage({type:'KEYSIM_RESET_BASE',target:target||transformTarget},'*');};
   (0,b.useEffect)(()=>{const fn=()=>{const nav=getNav();a(nav.isAdmin);s(nav.step);};window.addEventListener('popstate',fn);return()=>window.removeEventListener('popstate',fn);},[]);
   (0,b.useEffect)(()=>{const onMsg=(ev)=>{if(ev.data?.type==='KEYSIM_BASE_TRANSFORM_UPDATE'&&ev.data?.transform){setBaseTransform(ev.data.transform);}};window.addEventListener('message',onMsg);return()=>window.removeEventListener('message',onMsg);},[]);
-  (0,b.useEffect)(()=>{if(!customizingProduct)return;const sendInit=()=>{const ifr=document.querySelector('.keysim-modal-body iframe')||document.querySelector('iframe');ifr?.contentWindow?.postMessage({type:'KEYSIM_SET_KEY_MODEL',isNew:isNewKeyModel,model:isNewKeyModel?'new':'old'},'*');ifr?.contentWindow?.postMessage({type:'KEYSIM_GET_BASE_TRANSFORM'},'*');let s=null;try{const raw=localStorage.getItem('keysim_render_settings');if(raw)s=JSON.parse(raw);}catch(e){}if(!s)s={primaryIntensity:1.0,primaryColor:"#fffdf5",sunAngle:-60,sunHeight:6.0,secIntensity:0.8,secColor:"#dbeafe",secAngle:-5,secHeight:7.0,ambientIntensity:0.1,ambientColor:"#ffffff",lightIntensity:1.0,brightness:1.0,contrast:1.25,hue:0,saturation:1.0,lightness:1.0};ifr?.contentWindow?.postMessage({type:'KEYSIM_APPLY_RENDER_SETTINGS',settings:s},'*');};const t1=setTimeout(sendInit,300);const t2=setTimeout(sendInit,1000);const t3=setTimeout(sendInit,2000);return()=>{clearTimeout(t1);clearTimeout(t2);clearTimeout(t3);};},[customizingProduct,isNewKeyModel]);
+  (0,b.useEffect)(()=>{if(!customizingProduct)return;const sendInit=()=>{const ifr=document.querySelector('.keysim-modal-body iframe')||document.querySelector('iframe');ifr?.contentWindow?.postMessage({type:'KEYSIM_SET_KEY_MODEL',isNew:isNewKeyModel,model:isNewKeyModel?'new':'old'},'*');ifr?.contentWindow?.postMessage({type:'KEYSIM_GET_BASE_TRANSFORM'},'*');let s=null;try{const raw=localStorage.getItem('keysim_render_settings');if(raw)s=JSON.parse(raw);}catch(e){}if(!s)s={primaryIntensity:1.0,primaryColor:"#fffdf5",sunAngle:-60,sunHeight:6.0,secIntensity:0.8,secColor:"#dbeafe",secAngle:-5,secHeight:7.0,ambientIntensity:0.1,ambientColor:"#ffffff",lightIntensity:1.0,brightness:1.0,contrast:1.25,hue:0,saturation:1.0,lightness:1.0};ifr?.contentWindow?.postMessage({type:'KEYSIM_APPLY_RENDER_SETTINGS',settings:s},'*');if(customizingProduct?.layoutCode){setTimeout(()=>{ifr?.contentWindow?.postMessage({type:'KEYSIM_APPLY_LAYOUT_CODE',layoutCode:customizingProduct.layoutCode},'*');},500);}};const t1=setTimeout(sendInit,300);const t2=setTimeout(sendInit,1000);const t3=setTimeout(sendInit,2000);return()=>{clearTimeout(t1);clearTimeout(t2);clearTimeout(t3);};},[customizingProduct,isNewKeyModel]);
   (0,b.useEffect)(()=>{if(!customizingProduct)return;const onKey=(ev)=>{if(ev.target&&['INPUT','TEXTAREA','SELECT'].includes(ev.target.tagName))return;if(ev.key==='ArrowLeft'){ev.preventDefault();sendBaseAdjust(-0.05,0,0,0,0);}else if(ev.key==='ArrowRight'){ev.preventDefault();sendBaseAdjust(0.05,0,0,0,0);}else if(ev.key==='ArrowUp'){ev.preventDefault();sendBaseAdjust(0,0,-0.05,0,0);}else if(ev.key==='ArrowDown'){ev.preventDefault();sendBaseAdjust(0,0,0.05,0,0);}else if(ev.key==='['||ev.key==='{'){ev.preventDefault();sendBaseAdjust(0,0,0,-0.026,0);}else if(ev.key===']'||ev.key==='}'){ev.preventDefault();sendBaseAdjust(0,0,0,0.026,0);}else if(ev.key==='-'||ev.key==='_'){ev.preventDefault();sendBaseAdjust(0,0,0,0,-0.02);}else if(ev.key==='+'||ev.key==='='){ev.preventDefault();sendBaseAdjust(0,0,0,0,0.02);}};window.addEventListener('keydown',onKey);return()=>window.removeEventListener('keydown',onKey);},[customizingProduct]);
 (0,b.useEffect)(()=>{
   if(theme==='light'){
@@ -3375,42 +2557,102 @@ function h(e){const next=p?p.id:`summary`;l(t=>({...t,[o]:e})),s(next);window.hi
         }, void 0, !1, { fileName: E, lineNumber: 642, columnNumber: 9 }, this)
       }, void 0, !1, { fileName: E, lineNumber: 641, columnNumber: 7 }, this),
       (0,x.jsxDEV)("div", {
-        className: "keysim-modal-footer px-4 sm:px-6 py-3 border-t border-[#1f1f30] bg-[#10101a] flex items-center justify-center shrink-0",
-        children: (0,x.jsxDEV)("button", {
-          type: "button",
-          onClick: () => {
-            let qrInfo = null;
-            try {
-              const ifr = document.querySelector('.keysim-modal-body iframe') || document.querySelector('iframe');
-              if (ifr && ifr.contentWindow && typeof ifr.contentWindow.getKeySimDesignQr === 'function') {
-                qrInfo = ifr.contentWindow.getKeySimDesignQr();
+        className: "keysim-modal-footer px-4 sm:px-6 py-3 border-t border-[#1f1f30] bg-[#10101a] flex items-center justify-between shrink-0 gap-3",
+        children: [
+          (0,x.jsxDEV)("div", {
+            className: "flex items-center gap-2",
+            children: [
+              (0,x.jsxDEV)("button", {
+                type: "button",
+                onClick: () => {
+                  let code = null;
+                  try {
+                    const ifr = document.querySelector('.keysim-modal-body iframe') || document.querySelector('iframe');
+                    if (ifr && ifr.contentWindow && typeof ifr.contentWindow.exportKeySimLayoutCode === 'function') {
+                      code = ifr.contentWindow.exportKeySimLayoutCode();
+                    }
+                    if (!code && ifr && ifr.contentWindow && typeof ifr.contentWindow.getKeySimDesignQr === 'function') {
+                      const qr = ifr.contentWindow.getKeySimDesignQr();
+                      if (qr && qr.colorway) {
+                        code = btoa(unescape(encodeURIComponent(JSON.stringify({ id: qr.colorway.id, label: qr.colorway.label, swatches: qr.colorway.swatches, override: qr.colorway.override }))));
+                      }
+                    }
+                  } catch(err) {}
+                  if (code) {
+                    navigator.clipboard.writeText(code);
+                    alert("✓ Đã sao chép mã bố cục Keycaps vào clipboard!\n\nMã: " + code.slice(0, 36) + "...");
+                  } else {
+                    alert("Chưa thể lấy mã thiết kế 3D. Hãy thử chọn hoặc chỉnh một màu trên phím trước nhé!");
+                  }
+                },
+                className: "px-3.5 py-2 rounded-xl bg-[#161624] hover:bg-[#222236] text-[#CAFF00] border border-[#CAFF00]/30 font-bold text-xs flex items-center gap-1.5 transition-all cursor-pointer font-mono",
+                children: "📋 Sao Chép Mã Layout (Export Code)"
+              }),
+              (0,x.jsxDEV)("button", {
+                type: "button",
+                onClick: () => {
+                  let userCode = prompt("Nhập mã bố cục Keycaps (Layout Code hoặc Base64):");
+                  if (userCode && userCode.trim()) {
+                    const ifr = document.querySelector('.keysim-modal-body iframe') || document.querySelector('iframe');
+                    ifr?.contentWindow?.postMessage({ type: 'KEYSIM_APPLY_LAYOUT_CODE', layoutCode: userCode.trim() }, '*');
+                  }
+                },
+                className: "px-3 py-2 rounded-xl bg-[#161624] hover:bg-[#222236] text-[#aaa] hover:text-white border border-[#2a2a3e] text-xs flex items-center gap-1.5 transition-all cursor-pointer font-mono",
+                children: "📥 Nạp Mã Layout (Import Code)"
+              })
+            ]
+          }),
+          (0,x.jsxDEV)("button", {
+            type: "button",
+            onClick: () => {
+              let qrInfo = null;
+              try {
+                const ifr = document.querySelector('.keysim-modal-body iframe') || document.querySelector('iframe');
+                if (ifr && ifr.contentWindow && typeof ifr.contentWindow.getKeySimDesignQr === 'function') {
+                  qrInfo = ifr.contentWindow.getKeySimDesignQr();
+                }
+              } catch (e) {
+                console.warn("Could not read QR from keysim iframe:", e);
               }
-            } catch (e) {
-              console.warn("Could not read QR from keysim iframe:", e);
-            }
-            const opts = typeof ge === "function" ? ge("keycaps") : {};
-            const extendedOpts = { ...opts };
-            if (qrInfo?.label) {
-              extendedOpts["3D Design"] = qrInfo.label;
-            }
-            if (isNewKeyModel) {
-              extendedOpts["Keyboard Model"] = "New Model (75% Rotary)";
-            }
-            h({
-              id: customizingProduct.id,
-              product: customizingProduct,
-              opts: extendedOpts,
-              qrInfo: qrInfo,
-              qrDataUrl: qrInfo?.qrDataUrl || null,
-              colorway: qrInfo?.colorway || null,
-              isNewKeyModel: isNewKeyModel
-            });
-            setCustomizingProduct(null);
-          },
-          className: "px-6 py-2 bg-[#CAFF00] hover:bg-[#d4ff00] text-[#06060a] font-bold rounded-xl transition-all text-xs font-mono cursor-pointer shadow-[0_0_16px_rgba(202,255,0,0.35)]",
-          children: "Select this Set & Continue →"
-        }, void 0, !1, { fileName: E, lineNumber: 649, columnNumber: 13 }, this)
-      }, void 0, !1, { fileName: E, lineNumber: 645, columnNumber: 7 }, this)
+              const opts = typeof ge === "function" ? ge("keycaps") : {};
+              const extendedOpts = { ...opts };
+              if (qrInfo?.label) {
+                extendedOpts["3D Design"] = qrInfo.label;
+              }
+              if (isNewKeyModel) {
+                extendedOpts["Keyboard Model"] = "New Model (75% Rotary)";
+              }
+              try {
+                let expCode = null;
+                const ifr = document.querySelector('.keysim-modal-body iframe') || document.querySelector('iframe');
+                if (ifr && ifr.contentWindow && typeof ifr.contentWindow.exportKeySimLayoutCode === 'function') {
+                  expCode = ifr.contentWindow.exportKeySimLayoutCode();
+                }
+                localStorage.setItem('keyhaus_custom_keycap_draft', JSON.stringify({
+                  id: 'custom-keycap-draft',
+                  name: qrInfo?.label || 'Custom ' + customizingProduct.name,
+                  layoutCode: expCode || customizingProduct.layoutCode || qrInfo?.id || 'CUSTOM-3D',
+                  image: qrInfo?.qrDataUrl || customizingProduct.image,
+                  colorway: qrInfo?.colorway || null,
+                  timestamp: Date.now()
+                }));
+              } catch(e) {}
+              h({
+                id: customizingProduct.id,
+                product: customizingProduct,
+                opts: extendedOpts,
+                qrInfo: qrInfo,
+                qrDataUrl: qrInfo?.qrDataUrl || null,
+                colorway: qrInfo?.colorway || null,
+                isNewKeyModel: isNewKeyModel
+              });
+              setCustomizingProduct(null);
+            },
+            className: "px-6 py-2 bg-[#CAFF00] hover:bg-[#d4ff00] text-[#06060a] font-bold rounded-xl transition-all text-xs font-mono cursor-pointer shadow-[0_0_16px_rgba(202,255,0,0.35)]",
+            children: "Select this Set & Continue →"
+          }, void 0, !1, { fileName: E, lineNumber: 649, columnNumber: 13 }, this)
+        ]
+      }, void 0, !0, { fileName: E, lineNumber: 645, columnNumber: 7 }, this)
     ]
   }, void 0, !0, { fileName: E, lineNumber: 605, columnNumber: 5 }, this)
 }, void 0, !1, { fileName: E, lineNumber: 603, columnNumber: 3 }, this) : null),

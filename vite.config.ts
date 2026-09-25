@@ -324,7 +324,7 @@ function serveKeysimPlugin(): Plugin {
 export default defineConfig({
   plugins: [react(), liveReloadPlugin(), keysimApiPlugin(), serveKeysimPlugin()],
   server: {
-    port: 5174,
+    port: 5173,
     host: true,
     watch: {
       ignored: ['**/node_modules/**', '**/.git/**', '**/scratch/**', '**/*.log', '**/*.png', '**/dist/**']
@@ -352,7 +352,7 @@ export default defineConfig({
     }
   },
   preview: {
-    port: 5174,
+    port: 5173,
     host: true
   }
 });
