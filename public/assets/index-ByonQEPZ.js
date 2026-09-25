@@ -1,4 +1,31 @@
 
+
+function showToast(msg, type) {
+  var toast = document.createElement('div');
+  var isError = type === 'error';
+  toast.style.cssText = [
+    'position:fixed',
+    'top:20px',
+    'right:20px',
+    'z-index:99999',
+    'background:' + (isError ? '#7f1d1d' : '#052e16'),
+    'color:' + (isError ? '#fca5a5' : '#86efac'),
+    'border:1px solid ' + (isError ? '#b91c1c' : '#16a34a'),
+    'border-radius:10px',
+    'padding:10px 16px',
+    'font-size:13px',
+    'font-family:monospace',
+    'box-shadow:0 4px 20px rgba(0,0,0,0.5)',
+    'max-width:400px',
+    'word-break:break-all',
+    'transition:opacity 0.4s',
+    'opacity:1'
+  ].join(';');
+  toast.textContent = msg;
+  document.body.appendChild(toast);
+  setTimeout(function() { toast.style.opacity = '0'; }, 2800);
+  setTimeout(function() { toast.remove(); }, 3200);
+}
 function getPersonaStyle(p, field, defColor, defSize, defBold, defItalic) {
   let s = p?.styles?.[field] || p?.specs?.styles?.[field] || {};
   return {
@@ -156,10 +183,10 @@ function ImageCropModal({ onCropComplete, aspectRatio = 16 / 10, buttonText = "C
         setIsOpen(false);
         setImageSrc(null);
       } else {
-        alert("Upload error: " + (data.error || "Unknown"));
+        showToast("✗ Upload error: " + (data.error || "Unknown"), "error");
       }
     } catch (err) {
-      alert("Error saving cropped image: " + err.message);
+      showToast("✗ Error: " + err.message, "error");
     } finally {
       setIsUploading(false);
     }
@@ -193,10 +220,10 @@ function ImageCropModal({ onCropComplete, aspectRatio = 16 / 10, buttonText = "C
         ]
       }),
       isOpen && (0, x.jsxDEV)("div", {
-        className: "fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-fade-in",
+        className: "fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/85 backdrop-blur-md",
         onClick: () => !isUploading && setIsOpen(false),
         children: (0, x.jsxDEV)("div", {
-          className: "bg-[#0d0d16] border border-[#2a2a3e] rounded-2xl p-6 max-w-xl w-full shadow-2xl flex flex-col gap-4",
+          className: "bg-[#0d0d16] border border-[#2a2a3e] rounded-2xl p-5 max-w-2xl w-full shadow-2xl flex flex-col gap-3",
           onClick: e => e.stopPropagation(),
           children: [
             (0, x.jsxDEV)("div", {
@@ -217,7 +244,7 @@ function ImageCropModal({ onCropComplete, aspectRatio = 16 / 10, buttonText = "C
             }),
             (0, x.jsxDEV)("div", {
               className: "relative overflow-hidden rounded-xl border border-[#222234] bg-black select-none cursor-grab active:cursor-grabbing flex items-center justify-center",
-              style: { width: "100%", height: "300px" },
+              style: { width: "100%", height: "320px", minHeight: "200px" },
               onMouseDown: handleMouseDown,
               onMouseMove: handleMouseMove,
               onMouseUp: handleMouseUp,
@@ -889,10 +916,10 @@ React keys must be passed directly to JSX without using spread:
                             fetch("/api/upload", { method: "POST", body: fd })
                               .then(r => r.json())
                               .then(d => {
-                                if (d.url) { l("image", d.url); alert("✓ Uploaded: " + d.url); }
-                                else alert("Upload error: " + (d.error || "failed"));
+                                if (d.url) { l("image", d.url); showToast("✓ Uploaded: " + d.url); }
+                                else showToast("\u2717 Upload error: " + (d.error || "failed"), "error");
                               })
-                              .catch(err => alert("Error: " + err.message));
+                              .catch(err => showToast("\u2717 Error: " + err.message, "error"));
                           }
                         })
                       ]
