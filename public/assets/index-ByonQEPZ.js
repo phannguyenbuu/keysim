@@ -28,25 +28,38 @@ function showToast(msg, type) {
 }
 
 function showCropModal({ imageSrc, fileName, aspectRatio, onCropComplete, onClose }) {
-  // Vanilla DOM - appended to body to escape CSS transform stacking context
-  let zoom = 1.0, offset = { x: 0, y: 0 }, isDragging = false, dragStart = { x: 0, y: 0 };
+  // Guard: only one modal at a time
+  if (document.getElementById('__keysim_crop_overlay__')) return;
   
+  let zoom = 1.0, offset = { x: 0, y: 0 }, isDragging = false, dragStart = { x: 0, y: 0 };
+  let closed = false;
+  
+  const safeClose = () => {
+    if (closed) return;
+    closed = true;
+    const el = document.getElementById('__keysim_crop_overlay__');
+    if (el && el.parentNode) el.parentNode.removeChild(el);
+    onClose && onClose();
+  };
+
   const overlay = document.createElement('div');
-  overlay.style.cssText = 'position:fixed;inset:0;z-index:99998;background:rgba(0,0,0,0.88);backdrop-filter:blur(8px);display:flex;align-items:center;justify-content:center;padding:16px;';
+  overlay.id = '__keysim_crop_overlay__';
+  // Semi-transparent so admin form visible behind
+  overlay.style.cssText = 'position:fixed;inset:0;z-index:99998;background:rgba(0,0,0,0.65);backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;padding:16px;';
   
   const modal = document.createElement('div');
-  modal.style.cssText = 'background:#0d0d16;border:1px solid #2a2a3e;border-radius:16px;padding:20px;width:100%;max-width:680px;display:flex;flex-direction:column;gap:12px;box-shadow:0 25px 50px rgba(0,0,0,0.8);';
+  modal.style.cssText = 'background:#0d0d16;border:1px solid #2a2a3e;border-radius:16px;padding:20px;width:100%;max-width:680px;display:flex;flex-direction:column;gap:12px;box-shadow:0 25px 50px rgba(0,0,0,0.9);';
   
   // Header
   const header = document.createElement('div');
   header.style.cssText = 'display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #1f1f30;padding-bottom:12px;';
-  header.innerHTML = '<div><h3 style="color:white;font-weight:700;font-size:15px;font-family:var(--font-display,sans-serif)">Crop & Adjust Image</h3><p style="color:#888;font-size:11px;font-family:monospace;margin-top:2px">Aspect Ratio ' + (aspectRatio||1.6).toFixed(2) + ':1 — Drag to pan, slider to zoom</p></div>';
+  header.innerHTML = '<div><h3 style="color:white;font-weight:700;font-size:15px;font-family:monospace">Crop & Adjust Image</h3><p style="color:#888;font-size:11px;font-family:monospace;margin-top:2px">Aspect Ratio ' + (aspectRatio||1.6).toFixed(2) + ':1 — Drag to pan, slider to zoom</p></div>';
   const closeBtn = document.createElement('button');
   closeBtn.innerHTML = '&times;';
-  closeBtn.style.cssText = 'color:#888;font-size:20px;background:none;border:none;cursor:pointer;padding:4px 8px;line-height:1;';
+  closeBtn.style.cssText = 'color:#888;font-size:22px;background:none;border:none;cursor:pointer;padding:4px 8px;line-height:1;flex-shrink:0;';
   closeBtn.onmouseover = () => closeBtn.style.color = 'white';
   closeBtn.onmouseout = () => closeBtn.style.color = '#888';
-  closeBtn.onclick = () => { document.body.removeChild(overlay); onClose && onClose(); };
+  closeBtn.onclick = (e) => { e.stopPropagation(); safeClose(); };
   header.appendChild(closeBtn);
   
   // Crop area
@@ -55,8 +68,9 @@ function showCropModal({ imageSrc, fileName, aspectRatio, onCropComplete, onClos
   
   const img = document.createElement('img');
   img.src = imageSrc;
+  img.crossOrigin = 'anonymous';
   img.draggable = false;
-  img.style.cssText = 'max-height:100%;max-width:100%;object-fit:contain;pointer-events:none;transform:translate(0px,0px) scale(1);';
+  img.style.cssText = 'max-height:100%;max-width:100%;object-fit:contain;pointer-events:none;transform:translate(0px,0px) scale(1);transition:none;';
   
   const dashed = document.createElement('div');
   dashed.style.cssText = 'position:absolute;inset:0;border:2px dashed rgba(245,158,11,0.6);border-radius:12px;pointer-events:none;';
@@ -64,22 +78,21 @@ function showCropModal({ imageSrc, fileName, aspectRatio, onCropComplete, onClos
   cropArea.appendChild(img);
   cropArea.appendChild(dashed);
   
-  // Drag logic
+  // Drag logic — scoped to this modal instance
+  const onMove = (e) => {
+    if (!isDragging) return;
+    offset = { x: e.clientX - dragStart.x, y: e.clientY - dragStart.y };
+    img.style.transform = 'translate(' + offset.x + 'px,' + offset.y + 'px) scale(' + zoom + ')';
+  };
+  const onUp = () => { isDragging = false; cropArea.style.cursor = 'grab'; };
   cropArea.onmousedown = (e) => {
     e.preventDefault();
     isDragging = true;
     dragStart = { x: e.clientX - offset.x, y: e.clientY - offset.y };
     cropArea.style.cursor = 'grabbing';
   };
-  document.addEventListener('mousemove', function onMove(e) {
-    if (!isDragging) return;
-    offset = { x: e.clientX - dragStart.x, y: e.clientY - dragStart.y };
-    img.style.transform = 'translate(' + offset.x + 'px,' + offset.y + 'px) scale(' + zoom + ')';
-  });
-  document.addEventListener('mouseup', function onUp() {
-    isDragging = false;
-    cropArea.style.cursor = 'grab';
-  });
+  document.addEventListener('mousemove', onMove);
+  document.addEventListener('mouseup', onUp);
   
   // Zoom controls
   const zoomRow = document.createElement('div');
@@ -115,43 +128,54 @@ function showCropModal({ imageSrc, fileName, aspectRatio, onCropComplete, onClos
   
   const cancelBtn = document.createElement('button');
   cancelBtn.textContent = 'Cancel';
-  cancelBtn.style.cssText = 'padding:8px 16px;border-radius:12px;border:1px solid #2a2a3e;color:#aaa;background:none;cursor:pointer;font-size:12px;font-family:monospace;font-weight:600;';
+  cancelBtn.style.cssText = 'padding:8px 16px;border-radius:12px;border:1px solid #2a2a3e;color:#aaa;background:#0a0a14;cursor:pointer;font-size:12px;font-family:monospace;font-weight:600;';
   cancelBtn.onmouseover = () => cancelBtn.style.color = 'white';
   cancelBtn.onmouseout = () => cancelBtn.style.color = '#aaa';
-  cancelBtn.onclick = () => { document.body.removeChild(overlay); onClose && onClose(); };
+  cancelBtn.onclick = (e) => { e.stopPropagation(); safeClose(); };
   
   const saveBtn = document.createElement('button');
   saveBtn.textContent = 'Crop & Save to VPS';
-  saveBtn.style.cssText = 'padding:8px 20px;border-radius:12px;background:#f59e0b;color:#06060a;font-weight:700;font-size:12px;font-family:monospace;border:none;cursor:pointer;display:flex;align-items:center;gap:6px;';
+  saveBtn.style.cssText = 'padding:8px 20px;border-radius:12px;background:#f59e0b;color:#06060a;font-weight:700;font-size:12px;font-family:monospace;border:none;cursor:pointer;';
   saveBtn.onmouseover = () => saveBtn.style.background = '#fbbf24';
   saveBtn.onmouseout = () => saveBtn.style.background = '#f59e0b';
-  saveBtn.onclick = async () => {
+  saveBtn.onclick = async (e) => {
+    e.stopPropagation();
     saveBtn.textContent = 'Uploading...';
     saveBtn.disabled = true;
     try {
       const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
+      const ctx2d = canvas.getContext('2d');
       const cropW = 800;
       const cropH = Math.round(cropW / (aspectRatio || 1.6));
       canvas.width = cropW; canvas.height = cropH;
-      ctx.fillStyle = '#0c0c14';
-      ctx.fillRect(0, 0, cropW, cropH);
-      const renderScale = cropW / 480;
-      const drawW = img.naturalWidth * (cropW / (img.naturalWidth / zoom));
-      const drawH = img.naturalHeight * (cropH / (img.naturalHeight / zoom));
-      const drawX = (cropW - drawW) / 2 + (offset.x * renderScale);
-      const drawY = (cropH - drawH) / 2 + (offset.y * renderScale);
-      ctx.drawImage(img, drawX, drawY, drawW, drawH);
+      ctx2d.fillStyle = '#0c0c14';
+      ctx2d.fillRect(0, 0, cropW, cropH);
+      const displayW = cropArea.clientWidth || 480;
+      const displayH = cropArea.clientHeight || 340;
+      const naturalW = img.naturalWidth || displayW;
+      const naturalH = img.naturalHeight || displayH;
+      const scaleX = cropW / displayW;
+      const scaleY = cropH / displayH;
+      const drawW = naturalW * zoom * scaleX;
+      const drawH = naturalH * zoom * scaleY;
+      const drawX = (cropW - naturalW * scaleX) / 2 + offset.x * scaleX;
+      const drawY = (cropH - naturalH * scaleY) / 2 + offset.y * scaleY;
+      ctx2d.drawImage(img, drawX, drawY, drawW, drawH);
       const blob = await new Promise(res => canvas.toBlob(res, 'image/jpeg', 0.92));
       const fd = new FormData();
       fd.append('file', blob, (fileName || 'image').replace(/\.[^/.]+$/, '') + '_cropped.jpg');
       const res = await fetch('/api/upload', { method: 'POST', body: fd });
       const data = await res.json();
-      if (data.url) {
-        document.body.removeChild(overlay);
+      if (data && data.url) {
+        document.removeEventListener('mousemove', onMove);
+        document.removeEventListener('mouseup', onUp);
+        closed = true;
+        const el = document.getElementById('__keysim_crop_overlay__');
+        if (el && el.parentNode) el.parentNode.removeChild(el);
         onCropComplete && onCropComplete(data.url);
+        showToast('\u2713 Image saved!');
       } else {
-        showToast('\u2717 Upload error: ' + (data.error || 'Unknown'), 'error');
+        showToast('\u2717 Upload error: ' + ((data && data.error) || 'Unknown'), 'error');
         saveBtn.textContent = 'Crop & Save to VPS';
         saveBtn.disabled = false;
       }
@@ -165,11 +189,14 @@ function showCropModal({ imageSrc, fileName, aspectRatio, onCropComplete, onClos
   footer.appendChild(cancelBtn);
   footer.appendChild(saveBtn);
   
-  // Prevent clicks inside modal from closing overlay
-  modal.onclick = e => e.stopPropagation();
+  // Block clicks inside modal from bubbling to overlay
+  modal.addEventListener('click', e => e.stopPropagation());
   
-  // Click outside to close
-  overlay.onclick = () => { document.body.removeChild(overlay); onClose && onClose(); };
+  // Click backdrop to close
+  overlay.addEventListener('click', () => safeClose());
+  
+  // Cleanup listeners on close
+  const origSafeClose = safeClose;
   
   modal.appendChild(header);
   modal.appendChild(cropArea);
@@ -177,6 +204,16 @@ function showCropModal({ imageSrc, fileName, aspectRatio, onCropComplete, onClos
   modal.appendChild(footer);
   overlay.appendChild(modal);
   document.body.appendChild(overlay);
+  
+  // Cleanup mousemove/mouseup when overlay is removed
+  const observer = new MutationObserver(() => {
+    if (!document.getElementById('__keysim_crop_overlay__')) {
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('mouseup', onUp);
+      observer.disconnect();
+    }
+  });
+  observer.observe(document.body, { childList: true });
 }
 
 
