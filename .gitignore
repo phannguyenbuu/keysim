@@ -24,6 +24,12 @@ scratch/
 .system_generated/
 *.tmp
 
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
 # OS files
 .DS_Store
 Thumbs.db
+
