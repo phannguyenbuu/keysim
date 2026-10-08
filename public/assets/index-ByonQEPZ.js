@@ -255,6 +255,707 @@ function showCropModal({ imageSrc, fileName, aspectRatio = 1.6, onCropComplete, 
 }
 
 
+function formatTextToHtml(str) {
+  if (!str) return '';
+  return String(str)
+    .replace(/\[color=([^\]]+)\](.*?)\[\/color\]/gi, '<span style="color:$1">$2</span>')
+    .replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>')
+    .replace(/\*([^*]+)\*/g, '<i>$1</i>');
+}
+window.formatTextToHtml = formatTextToHtml;
+
+function renderComboHint(tFunc, cartObj) {
+  try {
+    const cType = tFunc('comboDiscountType') === 'fixed' ? 'fixed' : 'percent';
+    const cValRaw = tFunc('comboDiscountValue');
+    const cVal = (cValRaw !== undefined && cValRaw !== null && cValRaw !== '') ? parseFloat(cValRaw) : 15;
+    const customMsg1 = (tFunc('comboCustomMsg1') || '').trim();
+    const customMsg2 = (tFunc('comboCustomMsg2') || '').trim();
+    const hasFlow1And2 = !!(cartObj && cartObj.switches && cartObj.keycaps);
+
+    if (cVal === 0) {
+      if (!customMsg1) return null; // Auto-hide if custom message 1 is empty
+      const activeMsg = hasFlow1And2 ? customMsg1 : (customMsg2 || customMsg1);
+      return (0,x.jsxDEV)("div", {
+        className: "rounded-xl px-4 py-3 border border-[#CAFF00]/20 bg-[#CAFF00]/5",
+        children: (0,x.jsxDEV)("div", {
+          className: "rich-text-content text-[#CAFF00]/90 leading-relaxed text-[11px] font-mono whitespace-pre-line",
+          dangerouslySetInnerHTML: { __html: formatTextToHtml(activeMsg) }
+        })
+      });
+    }
+
+    const discountLabel = cType === 'percent' ? (cVal + '%') : formatPrice(cVal);
+    let baseHint = tFunc('bundleHintText') || 'Hoàn thành combo Switch + Keycap để nhận ưu đãi {discount} trên toàn bộ đơn hàng.';
+    let renderedText = baseHint;
+    if (renderedText.includes('{discount}')) {
+      renderedText = renderedText.replace(/\{discount\}/g, discountLabel);
+    } else if (renderedText.includes('15%')) {
+      renderedText = renderedText.replace('15%', discountLabel);
+    } else {
+      renderedText = renderedText + ' (' + discountLabel + ')';
+    }
+
+    return (0,x.jsxDEV)("div", {
+      className: "rounded-xl px-4 py-3 border border-[#CAFF00]/20 bg-[#CAFF00]/5",
+      children: (0,x.jsxDEV)("p", {
+        className: "text-[#CAFF00]/80 leading-relaxed text-[11px] font-mono",
+        children: ["⚡ ", renderedText]
+      })
+    });
+  } catch(err) {
+    return null;
+  }
+}
+window.renderComboHint = renderComboHint;
+function OrderBillModal({ order, onClose }) {
+  if (!order) return null;
+  const items = order.items || {};
+  const switches = items.switches;
+  const keycaps = items.keycaps;
+  const cables = Array.isArray(items.cables) ? items.cables : (items.cable ? [items.cable] : []);
+
+  const qrSrc = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(
+    `KEYHAUS-BILL:${order.orderCode || order.id}|TOTAL:${order.total}|CUST:${order.customerName}`
+  )}`;
+
+  return (0, x.jsxDEV)("div", {
+    className: "fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md overflow-y-auto print:p-0 print:bg-white",
+    onClick: onClose,
+    children: (0, x.jsxDEV)("div", {
+      className: "printable-invoice-card bg-[#0e0e16] border border-[#222238] rounded-2xl p-6 sm:p-8 max-w-2xl w-full text-white shadow-2xl relative my-8 print:border-none print:shadow-none print:bg-white print:text-black print:p-6 print:m-0",
+      onClick: e => e.stopPropagation(),
+      children: [
+        (0, x.jsxDEV)("div", {
+          className: "flex justify-between items-start border-b border-[#222234] pb-5 mb-5 print:border-b-2 print:border-black",
+          children: [
+            (0, x.jsxDEV)("div", {
+              children: [
+                (0, x.jsxDEV)("div", { className: "flex items-center gap-2", children: [
+                  (0, x.jsxDEV)("div", { className: "w-8 h-8 rounded-lg bg-[#CAFF00] flex items-center justify-center font-black text-black text-sm", children: "K" }),
+                  (0, x.jsxDEV)("span", { className: "text-2xl font-black tracking-tight", style: { fontFamily: "var(--font-display)" }, children: "KeyHaus Studio" })
+                ] }),
+                (0, x.jsxDEV)("p", { className: "text-xs text-[#888] font-mono mt-1 print:text-black", children: "Custom Mechanical Keyboard Studio & Design" }),
+                (0, x.jsxDEV)("p", { className: "text-xs text-[#888] font-mono print:text-black", children: "Hotline: 0900.000.xxx · TP. Hồ Chí Minh" })
+              ]
+            }),
+            (0, x.jsxDEV)("div", {
+              className: "text-right",
+              children: [
+                (0, x.jsxDEV)("h2", { className: "text-xl font-black text-[#CAFF00] print:text-black uppercase tracking-wider", children: "HÓA ĐƠN BÁN HÀNG" }),
+                (0, x.jsxDEV)("p", { className: "text-xs font-mono text-[#aaa] mt-1 print:text-black", children: ["Mã đơn: ", (0, x.jsxDEV)("b", { className: "text-white print:text-black", children: order.orderCode || `#KH-${order.id}` })] }),
+                (0, x.jsxDEV)("p", { className: "text-[11px] font-mono text-[#777] print:text-black", children: new Date(order.createdAt || Date.now()).toLocaleString("vi-VN") })
+              ]
+            })
+          ]
+        }),
+
+        (0, x.jsxDEV)("div", {
+          className: "grid grid-cols-2 gap-4 p-4 rounded-xl bg-[#141422] border border-[#222238] mb-5 text-xs font-mono print:bg-slate-50 print:border-gray-300 print:text-black",
+          children: [
+            (0, x.jsxDEV)("div", {
+              children: [
+                (0, x.jsxDEV)("p", { className: "text-[#888] print:text-gray-600 mb-1 font-bold", children: "THÔNG TIN KHÁCH HÀNG:" }),
+                (0, x.jsxDEV)("p", { className: "text-white print:text-black font-bold text-sm", children: order.customerName || "Khách lẻ" }),
+                (0, x.jsxDEV)("p", { className: "text-[#aaa] print:text-black", children: ["SĐT: ", order.customerPhone || items.customerPhone || "—"] }),
+                (0, x.jsxDEV)("p", { className: "text-[#aaa] print:text-black", children: ["Email: ", order.customerEmail || items.customerEmail || "—"] })
+              ]
+            }),
+            (0, x.jsxDEV)("div", {
+              children: [
+                (0, x.jsxDEV)("p", { className: "text-[#888] print:text-gray-600 mb-1 font-bold", children: "ĐỊA CHỈ NHẬN HÀNG:" }),
+                (0, x.jsxDEV)("p", { className: "text-[#ddd] print:text-black leading-relaxed", children: order.customerAddress || items.customerAddress || "Nhận tại cửa hàng" }),
+                (items.customerNote || order.customerNote) && (0, x.jsxDEV)("p", { className: "text-[#f59e0b] print:text-black mt-1 italic", children: ["Ghi chú: ", items.customerNote || order.customerNote] })
+              ]
+            })
+          ]
+        }),
+
+        (0, x.jsxDEV)("div", {
+          className: "overflow-x-auto mb-5",
+          children: (0, x.jsxDEV)("table", {
+            className: "w-full text-left text-xs font-mono border-collapse",
+            children: [
+              (0, x.jsxDEV)("thead", {
+                className: "border-b border-[#222238] text-[#888] print:border-black print:text-black",
+                children: (0, x.jsxDEV)("tr", {
+                  children: [
+                    (0, x.jsxDEV)("th", { className: "py-2 px-2 text-center w-10", children: "STT" }),
+                    (0, x.jsxDEV)("th", { className: "py-2 px-3", children: "Sản phẩm & Chi tiết" }),
+                    (0, x.jsxDEV)("th", { className: "py-2 px-2 text-center w-16", children: "SL" }),
+                    (0, x.jsxDEV)("th", { className: "py-2 px-3 text-right w-24", children: "Đơn giá" }),
+                    (0, x.jsxDEV)("th", { className: "py-2 px-3 text-right w-28", children: "Thành tiền" })
+                  ]
+                })
+              }),
+              (0, x.jsxDEV)("tbody", {
+                className: "divide-y divide-[#1a1a28] print:divide-gray-300",
+                children: [
+                  switches && (0, x.jsxDEV)("tr", {
+                    children: [
+                      (0, x.jsxDEV)("td", { className: "py-3 px-2 text-center text-[#666] print:text-black", children: "1" }),
+                      (0, x.jsxDEV)("td", { className: "py-3 px-3", children: [
+                        (0, x.jsxDEV)("span", { className: "font-bold text-white print:text-black block text-sm", children: switches.switchName || switches.label || "Switch Cơ" }),
+                        (0, x.jsxDEV)("span", { className: "text-[#888] print:text-gray-600 text-[11px]", children: switches.tagline || switches.switchSpec || "Flow 1" })
+                      ] }),
+                      (0, x.jsxDEV)("td", { className: "py-3 px-2 text-center font-bold", children: "1" }),
+                      (0, x.jsxDEV)("td", { className: "py-3 px-3 text-right", children: formatPrice(switches.price || 0) }),
+                      (0, x.jsxDEV)("td", { className: "py-3 px-3 text-right font-bold text-white print:text-black", children: formatPrice(switches.price || 0) })
+                    ]
+                  }),
+                  keycaps && (0, x.jsxDEV)("tr", {
+                    children: [
+                      (0, x.jsxDEV)("td", { className: "py-3 px-2 text-center text-[#666] print:text-black", children: "2" }),
+                      (0, x.jsxDEV)("td", { className: "py-3 px-3", children: [
+                        (0, x.jsxDEV)("span", { className: "font-bold text-white print:text-black block text-sm", children: keycaps.product?.name || keycaps.name || "Bộ Keycaps" }),
+                        (0, x.jsxDEV)("span", { className: "text-[#888] print:text-gray-600 text-[11px]", children: keycaps.opts ? Object.entries(keycaps.opts).map(([k,v])=>`${k}: ${v}`).join(" · ") : (keycaps.subtitle || "Flow 2") })
+                      ] }),
+                      (0, x.jsxDEV)("td", { className: "py-3 px-2 text-center font-bold", children: "1" }),
+                      (0, x.jsxDEV)("td", { className: "py-3 px-3 text-right", children: formatPrice(keycaps.product?.price ?? keycaps.price ?? 0) }),
+                      (0, x.jsxDEV)("td", { className: "py-3 px-3 text-right font-bold text-white print:text-black", children: formatPrice(keycaps.product?.price ?? keycaps.price ?? 0) })
+                    ]
+                  }),
+                  cables.map((cItem, cIdx) => {
+                    const cProd = cItem.product || cItem;
+                    const cPrice = cProd.price || 0;
+                    const cQty = cItem.quantity || 1;
+                    return (0, x.jsxDEV)("tr", {
+                      key: cIdx,
+                      children: [
+                        (0, x.jsxDEV)("td", { className: "py-3 px-2 text-center text-[#666] print:text-black", children: String(3 + cIdx) }),
+                        (0, x.jsxDEV)("td", { className: "py-3 px-3", children: [
+                          (0, x.jsxDEV)("span", { className: "font-bold text-white print:text-black block text-sm", children: cProd.name || "Phụ kiện / Cable" }),
+                          (0, x.jsxDEV)("span", { className: "text-[#888] print:text-gray-600 text-[11px]", children: cItem.activeVariant?.name || cProd.subtitle || "Phụ kiện" })
+                        ] }),
+                        (0, x.jsxDEV)("td", { className: "py-3 px-2 text-center font-bold", children: String(cQty) }),
+                        (0, x.jsxDEV)("td", { className: "py-3 px-3 text-right", children: formatPrice(cPrice) }),
+                        (0, x.jsxDEV)("td", { className: "py-3 px-3 text-right font-bold text-white print:text-black", children: formatPrice(cPrice * cQty) })
+                      ]
+                    });
+                  })
+                ]
+              })
+            ]
+          })
+        }),
+
+        (0, x.jsxDEV)("div", {
+          className: "border-t border-[#222238] pt-4 flex justify-between items-end mb-6 print:border-t-2 print:border-black",
+          children: [
+            (0, x.jsxDEV)("div", {
+              className: "flex items-center gap-3",
+              children: [
+                (0, x.jsxDEV)("img", { src: qrSrc, alt: "QR Code", className: "w-20 h-20 bg-white p-1 rounded-lg border border-[#333] object-contain print:border-black" }),
+                (0, x.jsxDEV)("div", {
+                  className: "text-[11px] font-mono text-[#888] print:text-black leading-snug",
+                  children: [
+                    (0, x.jsxDEV)("p", { className: "font-bold text-white print:text-black", children: "MÃ QR TRA CỨU / THANH TOÁN" }),
+                    (0, x.jsxDEV)("p", { children: "Quét bằng Camera hoặc app Ngân hàng" }),
+                    (0, x.jsxDEV)("p", { children: "để xác nhận đơn và thanh toán nhanh." })
+                  ]
+                })
+              ]
+            }),
+            (0, x.jsxDEV)("div", {
+              className: "space-y-1.5 text-right font-mono min-w-[200px]",
+              children: [
+                (0, x.jsxDEV)("div", { className: "flex justify-between text-xs text-[#888] print:text-black", children: [(0, x.jsxDEV)("span", { children: "Tạm tính:" }), (0, x.jsxDEV)("span", { children: formatPrice(order.subtotal || 0) })] }),
+                (order.discount > 0) && (0, x.jsxDEV)("div", { className: "flex justify-between text-xs text-[#CAFF00] print:text-black", children: [(0, x.jsxDEV)("span", { children: "Ưu đãi Combo:" }), (0, x.jsxDEV)("span", { children: ["-", formatPrice(order.discount)] })] }),
+                (0, x.jsxDEV)("div", { className: "flex justify-between text-base font-black text-white pt-2 border-t border-[#222238] print:border-black print:text-black", children: [(0, x.jsxDEV)("span", { children: "TỔNG CỘNG:" }), (0, x.jsxDEV)("span", { className: "text-[#CAFF00] print:text-black text-xl", children: formatPrice(order.total || 0) })] })
+              ]
+            })
+          ]
+        }),
+
+        (0, x.jsxDEV)("div", {
+          className: "text-center text-[#666] print:text-black text-[11px] font-mono pt-4 border-t border-[#1a1a28]",
+          children: "Cảm ơn bạn đã lựa chọn KeyHaus Studio! Chúc bạn có trải nghiệm gõ phím tuyệt vời nhất."
+        }),
+
+        (0, x.jsxDEV)("div", {
+          className: "mt-6 flex justify-end gap-3 print:hidden",
+          children: [
+            (0, x.jsxDEV)("button", {
+              type: "button",
+              onClick: onClose,
+              className: "px-4 py-2 rounded-xl border border-[#333] text-[#aaa] hover:text-white hover:border-[#555] text-xs font-mono transition-all cursor-pointer",
+              children: "Đóng"
+            }),
+            (0, x.jsxDEV)("button", {
+              type: "button",
+              onClick: () => window.print(),
+              className: "px-6 py-2 rounded-xl bg-[#CAFF00] text-black font-black text-xs font-mono hover:bg-[#d4ff00] transition-all flex items-center gap-1.5 shadow-[0_0_15px_rgba(202,255,0,0.3)] cursor-pointer",
+              children: "🖨️ In Hóa Đơn (Print Bill)"
+            })
+          ]
+        })
+      ]
+    })
+  });
+}
+window.OrderBillModal = OrderBillModal;
+
+function AdminOrdersPanel() {
+  const [orders, setOrders] = (0, b.useState)([]);
+  const [isLoading, setIsLoading] = (0, b.useState)(!0);
+  const [activeBillOrder, setActiveBillOrder] = (0, b.useState)(null);
+  const [searchTerm, setSearchTerm] = (0, b.useState)("");
+
+  const loadOrders = () => {
+    setIsLoading(!0);
+    fetch("/api/orders")
+      .then(r => r.json())
+      .then(data => {
+        let list = Array.isArray(data) ? data : [];
+        try {
+          const local = JSON.parse(localStorage.getItem("keyhaus_orders") || "[]");
+          const existingIds = new Set(list.map(x => x.orderCode || x.id));
+          for (const loc of local) {
+            if (!existingIds.has(loc.orderCode || loc.id)) {
+              list.push(loc);
+            }
+          }
+        } catch(e) {}
+        list.sort((a,b) => new Date(b.createdAt||0) - new Date(a.createdAt||0));
+        setOrders(list);
+        setIsLoading(!1);
+      })
+      .catch(() => {
+        try {
+          const local = JSON.parse(localStorage.getItem("keyhaus_orders") || "[]");
+          setOrders(local);
+        } catch(e) {
+          setOrders([]);
+        }
+        setIsLoading(!1);
+      });
+  };
+
+  (0, b.useEffect)(() => {
+    loadOrders();
+  }, []);
+
+  const handleDelete = (orderId) => {
+    if (!confirm("Bạn có chắc chắn muốn xóa đơn hàng này khỏi danh sách?")) return;
+    const next = orders.filter(x => (x.orderCode || x.id) !== orderId);
+    setOrders(next);
+    localStorage.setItem("keyhaus_orders", JSON.stringify(next));
+  };
+
+  const filtered = orders.filter(o => {
+    if (!searchTerm) return !0;
+    const term = searchTerm.toLowerCase();
+    const code = (o.orderCode || String(o.id)).toLowerCase();
+    const name = (o.customerName || "").toLowerCase();
+    const phone = (o.customerPhone || o.items?.customerPhone || "").toLowerCase();
+    return code.includes(term) || name.includes(term) || phone.includes(term);
+  });
+
+  return (0, x.jsxDEV)("div", {
+    className: "space-y-6 max-w-6xl mx-auto",
+    children: [
+      activeBillOrder && (0, x.jsxDEV)(OrderBillModal, { order: activeBillOrder, onClose: () => setActiveBillOrder(null) }),
+      (0, x.jsxDEV)("div", {
+        className: "flex flex-wrap items-center justify-between gap-4 border-b border-[#1a1a28] pb-4",
+        children: [
+          (0, x.jsxDEV)("div", {
+            children: [
+              (0, x.jsxDEV)("h2", { className: "text-xl font-bold text-white flex items-center gap-2", children: ["📦 QUẢN LÝ ĐƠN HÀNG & IN BILL", (0, x.jsxDEV)("span", { className: "text-xs px-2 py-0.5 rounded-full bg-[#CAFF00]/10 text-[#CAFF00] font-mono font-bold", children: `${orders.length} đơn` })] }),
+              (0, x.jsxDEV)("p", { className: "text-xs text-[#888] font-mono mt-0.5", children: "Theo dõi đơn hàng đã tạo, xem chi tiết và in hóa đơn bán hàng kèm mã QR" })
+            ]
+          }),
+          (0, x.jsxDEV)("div", {
+            className: "flex items-center gap-3",
+            children: [
+              (0, x.jsxDEV)("input", {
+                type: "text",
+                placeholder: "Tìm kiếm mã đơn, tên, sđt...",
+                value: searchTerm,
+                onChange: e => setSearchTerm(e.target.value),
+                className: "px-3.5 py-2 rounded-xl bg-[#0c0c16] border border-[#222236] text-white text-xs font-mono outline-none focus:border-[#f59e0b]/50 w-64"
+              }),
+              (0, x.jsxDEV)("button", {
+                type: "button",
+                onClick: loadOrders,
+                className: "px-3.5 py-2 rounded-xl bg-[#141424] hover:bg-[#202038] text-white text-xs font-mono border border-[#2a2a40] transition-colors cursor-pointer",
+                children: "🔄 Tải lại"
+              })
+            ]
+          })
+        ]
+      }),
+
+      isLoading ? (0, x.jsxDEV)("div", { className: "p-12 text-center text-[#888] font-mono text-sm", children: "⏳ Đang tải danh sách đơn hàng..." })
+      : filtered.length === 0 ? (0, x.jsxDEV)("div", { className: "p-16 text-center text-[#777] font-mono text-sm rounded-2xl bg-[#0c0c16] border border-[#1a1a28]", children: "Chưa có đơn hàng nào được ghi nhận." })
+      : (0, x.jsxDEV)("div", {
+        className: "overflow-x-auto rounded-2xl border border-[#1a1a28] bg-[#0c0c14]",
+        children: (0, x.jsxDEV)("table", {
+          className: "w-full text-left text-xs font-mono",
+          children: [
+            (0, x.jsxDEV)("thead", {
+              className: "border-b border-[#1a1a28] bg-[#080810] text-[#888]",
+              children: (0, x.jsxDEV)("tr", {
+                children: [
+                  (0, x.jsxDEV)("th", { className: "py-3 px-4", children: "Mã đơn" }),
+                  (0, x.jsxDEV)("th", { className: "py-3 px-4", children: "Thời gian" }),
+                  (0, x.jsxDEV)("th", { className: "py-3 px-4", children: "Khách hàng" }),
+                  (0, x.jsxDEV)("th", { className: "py-3 px-4", children: "Sản phẩm trong đơn" }),
+                  (0, x.jsxDEV)("th", { className: "py-3 px-4 text-right", children: "Tổng tiền" }),
+                  (0, x.jsxDEV)("th", { className: "py-3 px-4 text-center", children: "Trạng thái" }),
+                  (0, x.jsxDEV)("th", { className: "py-3 px-4 text-right", children: "Thao tác" })
+                ]
+              })
+            }),
+            (0, x.jsxDEV)("tbody", {
+              className: "divide-y divide-[#141420]",
+              children: filtered.map(o => {
+                const code = o.orderCode || `#KH-${o.id}`;
+                const items = o.items || {};
+                const sw = items.switches;
+                const kc = items.keycaps;
+                const cb = Array.isArray(items.cables) ? items.cables : (items.cable ? [items.cable] : []);
+
+                return (0, x.jsxDEV)("tr", {
+                  key: code,
+                  className: "hover:bg-[#121220] transition-colors",
+                  children: [
+                    (0, x.jsxDEV)("td", { className: "py-3 px-4 font-bold text-[#CAFF00]", children: code }),
+                    (0, x.jsxDEV)("td", { className: "py-3 px-4 text-[#888]", children: new Date(o.createdAt || Date.now()).toLocaleDateString("vi-VN") }),
+                    (0, x.jsxDEV)("td", { className: "py-3 px-4", children: [
+                      (0, x.jsxDEV)("p", { className: "text-white font-bold", children: o.customerName || "Khách lẻ" }),
+                      (0, x.jsxDEV)("p", { className: "text-[#888] text-[11px]", children: o.customerPhone || items.customerPhone || "—" })
+                    ] }),
+                    (0, x.jsxDEV)("td", { className: "py-3 px-4", children: (0, x.jsxDEV)("div", {
+                      className: "space-y-1 max-w-xs",
+                      children: [
+                        sw && (0, x.jsxDEV)("p", { className: "truncate text-[#ccc]", children: ["🔘 ", sw.switchName || sw.label] }),
+                        kc && (0, x.jsxDEV)("p", { className: "truncate text-[#ccc]", children: ["⌨️ ", kc.product?.name || kc.name] }),
+                        cb.map((cbi, i) => (0, x.jsxDEV)("p", { key: i, className: "truncate text-[#ccc]", children: ["🔌 ", cbi.product?.name || cbi.name, cbi.quantity > 1 ? ` (x${cbi.quantity})` : ""] }))
+                      ]
+                    }) }),
+                    (0, x.jsxDEV)("td", { className: "py-3 px-4 text-right font-bold text-white", children: formatPrice(o.total || 0) }),
+                    (0, x.jsxDEV)("td", { className: "py-3 px-4 text-center", children: (0, x.jsxDEV)("span", {
+                      className: "px-2 py-0.5 rounded-full text-[10px] bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-bold",
+                      children: "✓ Đã nhận"
+                    }) }),
+                    (0, x.jsxDEV)("td", { className: "py-3 px-4 text-right", children: (0, x.jsxDEV)("div", {
+                      className: "flex items-center justify-end gap-2",
+                      children: [
+                        (0, x.jsxDEV)("button", {
+                          type: "button",
+                          onClick: () => setActiveBillOrder(o),
+                          className: "px-3 py-1.5 rounded-lg bg-[#CAFF00]/10 hover:bg-[#CAFF00]/20 text-[#CAFF00] border border-[#CAFF00]/30 font-bold text-xs transition-colors cursor-pointer",
+                          children: "🖨️ In Bill"
+                        }),
+                        (0, x.jsxDEV)("button", {
+                          type: "button",
+                          onClick: () => handleDelete(code),
+                          className: "px-2 py-1.5 rounded-lg bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/20 font-bold text-xs transition-colors cursor-pointer",
+                          children: "×"
+                        })
+                      ]
+                    }) })
+                  ]
+                });
+              })
+            })
+          ]
+        })
+      })
+    ]
+  });
+}
+window.AdminOrdersPanel = AdminOrdersPanel;
+
+function CheckoutCustomerModal({ cart, subtotal, discount, total, onConfirmOrder, onClose }) {
+  const [name, setName] = (0, b.useState)("");
+  const [phone, setPhone] = (0, b.useState)("");
+  const [email, setEmail] = (0, b.useState)("");
+  const [address, setAddress] = (0, b.useState)("");
+  const [note, setNote] = (0, b.useState)("");
+  const [err, setErr] = (0, b.useState)("");
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (!name.trim()) { setErr("Vui lòng nhập họ và tên người nhận!"); return; }
+    if (!phone.trim()) { setErr("Vui lòng nhập số điện thoại người nhận!"); return; }
+    if (!address.trim()) { setErr("Vui lòng nhập địa chỉ nhận hàng!"); return; }
+
+    onConfirmOrder({
+      customerName: name.trim(),
+      customerPhone: phone.trim(),
+      customerEmail: email.trim() || null,
+      customerAddress: address.trim(),
+      customerNote: note.trim() || null
+    });
+  };
+
+  return (0, x.jsxDEV)("div", {
+    className: "fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md overflow-y-auto",
+    onClick: onClose,
+    children: (0, x.jsxDEV)("div", {
+      className: "bg-[#0c0c16] border border-[#222238] rounded-2xl p-6 sm:p-8 max-w-lg w-full text-white shadow-2xl relative my-8",
+      onClick: ev => ev.stopPropagation(),
+      children: [
+        (0, x.jsxDEV)("div", {
+          className: "flex justify-between items-center border-b border-[#1f1f30] pb-4 mb-5",
+          children: [
+            (0, x.jsxDEV)("div", {
+              children: [
+                (0, x.jsxDEV)("h3", { className: "text-lg font-bold text-white", style: { fontFamily: "var(--font-display)" }, children: "THÔNG TIN GIAO HÀNG & ĐẶT HÀNG" }),
+                (0, x.jsxDEV)("p", { className: "text-xs text-[#888] font-mono mt-0.5", children: "Vui lòng nhập thông tin để chúng tôi liên hệ giao bàn phím" })
+              ]
+            }),
+            (0, x.jsxDEV)("button", {
+              type: "button",
+              onClick: onClose,
+              className: "w-8 h-8 rounded-lg bg-[#141422] text-[#888] hover:text-white flex items-center justify-center cursor-pointer",
+              children: "✕"
+            })
+          ]
+        }),
+
+        err && (0, x.jsxDEV)("div", {
+          className: "p-3 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-xs font-mono mb-4",
+          children: err
+        }),
+
+        (0, x.jsxDEV)("form", {
+          onSubmit: handleSubmit,
+          className: "space-y-4 font-mono text-xs",
+          children: [
+            (0, x.jsxDEV)("div", {
+              className: "space-y-1.5",
+              children: [
+                (0, x.jsxDEV)("label", { className: "text-[#aaa] block", children: ["Họ và tên người nhận ", (0, x.jsxDEV)("span", { className: "text-red-400", children: "(*)" })] }),
+                (0, x.jsxDEV)("input", {
+                  type: "text",
+                  required: !0,
+                  value: name,
+                  onChange: e => { setName(e.target.value); setErr(""); },
+                  placeholder: "VD: Nguyễn Văn A",
+                  className: "w-full px-3.5 py-2.5 rounded-xl bg-[#06060c] border border-[#222238] text-white text-xs outline-none focus:border-[#CAFF00]/60"
+                })
+              ]
+            }),
+            (0, x.jsxDEV)("div", {
+              className: "grid grid-cols-2 gap-3",
+              children: [
+                (0, x.jsxDEV)("div", {
+                  className: "space-y-1.5",
+                  children: [
+                    (0, x.jsxDEV)("label", { className: "text-[#aaa] block", children: ["Số điện thoại ", (0, x.jsxDEV)("span", { className: "text-red-400", children: "(*)" })] }),
+                    (0, x.jsxDEV)("input", {
+                      type: "tel",
+                      required: !0,
+                      value: phone,
+                      onChange: e => { setPhone(e.target.value); setErr(""); },
+                      placeholder: "VD: 0912345678",
+                      className: "w-full px-3.5 py-2.5 rounded-xl bg-[#06060c] border border-[#222238] text-white text-xs outline-none focus:border-[#CAFF00]/60"
+                    })
+                  ]
+                }),
+                (0, x.jsxDEV)("div", {
+                  className: "space-y-1.5",
+                  children: [
+                    (0, x.jsxDEV)("label", { className: "text-[#aaa] block", children: "Email (nhận mã đơn)" }),
+                    (0, x.jsxDEV)("input", {
+                      type: "email",
+                      value: email,
+                      onChange: e => setEmail(e.target.value),
+                      placeholder: "khachhang@gmail.com",
+                      className: "w-full px-3.5 py-2.5 rounded-xl bg-[#06060c] border border-[#222238] text-white text-xs outline-none focus:border-[#CAFF00]/60"
+                    })
+                  ]
+                })
+              ]
+            }),
+            (0, x.jsxDEV)("div", {
+              className: "space-y-1.5",
+              children: [
+                (0, x.jsxDEV)("label", { className: "text-[#aaa] block", children: ["Địa chỉ nhận hàng ", (0, x.jsxDEV)("span", { className: "text-red-400", children: "(*)" })] }),
+                (0, x.jsxDEV)("input", {
+                  type: "text",
+                  required: !0,
+                  value: address,
+                  onChange: e => { setAddress(e.target.value); setErr(""); },
+                  placeholder: "Số nhà, tên đường, phường/xã, quận/huyện, tỉnh/thành",
+                  className: "w-full px-3.5 py-2.5 rounded-xl bg-[#06060c] border border-[#222238] text-white text-xs outline-none focus:border-[#CAFF00]/60"
+                })
+              ]
+            }),
+            (0, x.jsxDEV)("div", {
+              className: "space-y-1.5",
+              children: [
+                (0, x.jsxDEV)("label", { className: "text-[#aaa] block", children: "Ghi chú đơn hàng" }),
+                (0, x.jsxDEV)("textarea", {
+                  rows: 2,
+                  value: note,
+                  onChange: e => setNote(e.target.value),
+                  placeholder: "Ghi chú thời gian nhận hàng, yêu cầu đóng gói...",
+                  className: "w-full px-3.5 py-2 rounded-xl bg-[#06060c] border border-[#222238] text-white text-xs outline-none focus:border-[#CAFF00]/60 resize-none"
+                })
+              ]
+            }),
+
+            (0, x.jsxDEV)("div", {
+              className: "p-4 rounded-xl bg-[#141424] border border-[#22223a] space-y-2 mt-4",
+              children: [
+                (0, x.jsxDEV)("div", { className: "flex justify-between text-[#888]", children: [(0, x.jsxDEV)("span", { children: "Tạm tính:" }), (0, x.jsxDEV)("span", { children: formatPrice(subtotal) })] }),
+                (discount > 0) && (0, x.jsxDEV)("div", { className: "flex justify-between text-[#CAFF00]", children: [(0, x.jsxDEV)("span", { children: "Ưu đãi Combo:" }), (0, x.jsxDEV)("span", { children: ["-", formatPrice(discount)] })] }),
+                (0, x.jsxDEV)("div", { className: "flex justify-between text-base font-black text-white pt-2 border-t border-[#222238]", children: [(0, x.jsxDEV)("span", { children: "Tổng thanh toán:" }), (0, x.jsxDEV)("span", { className: "text-[#CAFF00]", children: formatPrice(total) })] })
+              ]
+            }),
+
+            (0, x.jsxDEV)("div", {
+              className: "flex gap-3 pt-3",
+              children: [
+                (0, x.jsxDEV)("button", {
+                  type: "button",
+                  onClick: onClose,
+                  className: "w-1/3 py-3 rounded-xl border border-[#333] text-[#aaa] hover:text-white font-mono transition-all cursor-pointer",
+                  children: "← Quay lại"
+                }),
+                (0, x.jsxDEV)("button", {
+                  type: "submit",
+                  className: "w-2/3 py-3 rounded-xl bg-[#CAFF00] hover:bg-[#d4ff00] text-black font-black font-mono transition-all shadow-[0_0_15px_rgba(202,255,0,0.3)] cursor-pointer text-sm",
+                  children: "✓ XÁC NHẬN ĐẶT HÀNG"
+                })
+              ]
+            })
+          ]
+        })
+      ]
+    })
+  });
+}
+window.CheckoutCustomerModal = CheckoutCustomerModal;
+
+
+
+
+function RichTextSpecsEditor({ label, value, onChange, placeholder, previewTitle = "Thông số & Mô tả" }) {
+  const textareaRef = (0, b.useRef)(null);
+  
+  const insertTag = (openTag, closeTag) => {
+    const el = textareaRef.current;
+    if (!el) return;
+    const start = el.selectionStart || 0;
+    const end = el.selectionEnd || 0;
+    const selText = el.value.substring(start, end);
+    const textToInsert = selText || "nội dung";
+    const replacement = openTag + textToInsert + closeTag;
+    const newVal = el.value.substring(0, start) + replacement + el.value.substring(end);
+    onChange(newVal);
+    setTimeout(() => {
+      el.focus();
+      el.setSelectionRange(start + openTag.length, start + openTag.length + textToInsert.length);
+    }, 50);
+  };
+
+  const applyColor = (hex) => {
+    insertTag('<span style="color:' + hex + '">', '</span>');
+  };
+
+  const presets = [
+    { name: "Neon", color: "#CAFF00" },
+    { name: "Xanh dương", color: "#00d2ff" },
+    { name: "Hồng", color: "#ff75b5" },
+    { name: "Vàng cam", color: "#f59e0b" },
+    { name: "Xanh lá", color: "#4ade80" },
+    { name: "Trắng", color: "#ffffff" },
+    { name: "Xám", color: "#9ca3af" }
+  ];
+
+  return (0, x.jsxDEV)("div", {
+    className: "space-y-2 rounded-xl bg-[#080810] border border-[#1a1a28] p-3.5",
+    children: [
+      (0, x.jsxDEV)("div", {
+        className: "flex flex-wrap items-center justify-between gap-2 border-b border-[#141420] pb-2.5",
+        children: [
+          (0, x.jsxDEV)("span", {
+            className: "text-[#f59e0b] font-mono font-bold text-xs",
+            children: label || "MÔ TẢ ĐỊNH DẠNG (RICH TEXT)"
+          }),
+          (0, x.jsxDEV)("div", {
+            className: "flex items-center gap-1.5 flex-wrap",
+            children: [
+              (0, x.jsxDEV)("span", { className: "text-[#666] text-[10px] font-mono mr-1", children: "Màu:" }),
+              presets.map(p => (0, x.jsxDEV)("button", {
+                type: "button",
+                key: p.color,
+                title: p.name,
+                onClick: () => applyColor(p.color),
+                style: { backgroundColor: p.color },
+                className: "w-3.5 h-3.5 rounded-full border border-black/40 hover:scale-125 transition-transform cursor-pointer"
+              })),
+              (0, x.jsxDEV)("input", {
+                type: "color",
+                defaultValue: "#00d2ff",
+                title: "Chọn màu tùy ý",
+                onChange: e => applyColor(e.target.value),
+                className: "w-4 h-4 rounded cursor-pointer border-0 p-0 bg-transparent"
+              }),
+              (0, x.jsxDEV)("div", { className: "w-px h-3 bg-[#222234] mx-1" }),
+              (0, x.jsxDEV)("button", {
+                type: "button",
+                title: "In đậm (Bold)",
+                onClick: () => insertTag("<b>", "</b>"),
+                className: "px-1.5 py-0.5 rounded bg-[#141420] hover:bg-[#202034] text-white font-bold text-xs font-serif cursor-pointer",
+                children: "B"
+              }),
+              (0, x.jsxDEV)("button", {
+                type: "button",
+                title: "In nghiêng (Italic)",
+                onClick: () => insertTag("<i>", "</i>"),
+                className: "px-1.5 py-0.5 rounded bg-[#141420] hover:bg-[#202034] text-white italic text-xs font-serif cursor-pointer",
+                children: "I"
+              })
+            ]
+          })
+        ]
+      }),
+      (0, x.jsxDEV)("textarea", {
+        ref: textareaRef,
+        value: value || "",
+        onChange: e => onChange(e.target.value),
+        rows: 3,
+        className: "w-full px-3 py-2 rounded-lg bg-[#05050a] border border-[#1a1a28] text-white text-xs font-mono outline-none focus:border-[#f59e0b]/50 leading-relaxed",
+        placeholder: placeholder || "Nhập text tự do (VD: Switch 1: <span style=\"color:#00d2ff\">Outemu Blue</span>)..."
+      }),
+      (0, x.jsxDEV)("div", {
+        className: "mt-2 pt-2 border-t border-[#141420]",
+        children: [
+          (0, x.jsxDEV)("div", {
+            className: "flex items-center gap-1.5 mb-1.5 text-[10px] font-mono text-[#888]",
+            children: [
+              (0, x.jsxDEV)("span", { className: "inline-block w-2 h-2 rounded-full bg-[#CAFF00] animate-pulse" }),
+              "LIVE PREVIEW (Hiển thị thực tế cột phải storefront):"
+            ]
+          }),
+          (0, x.jsxDEV)("div", {
+            className: "p-3 rounded-xl bg-[#0d0d14] border border-[#1a1a2a] text-xs font-sans leading-relaxed text-[#ddd] min-h-[44px]",
+            children: [
+              (0, x.jsxDEV)("div", {
+                className: "flex items-center gap-2 mb-1.5",
+                children: [
+                  (0, x.jsxDEV)("div", { className: "w-1 h-3.5 rounded-full bg-[#CAFF00]" }),
+                  (0, x.jsxDEV)("span", { className: "text-white font-semibold text-xs", children: previewTitle })
+                ]
+              }),
+              (0, x.jsxDEV)("div", {
+                className: "rich-text-content whitespace-pre-line text-xs pl-3",
+                dangerouslySetInnerHTML: { __html: formatTextToHtml(value) || '<span style="color:#555;font-style:italic">Chưa có nội dung mô tả...</span>' }
+              })
+            ]
+          })
+        ]
+      })
+    ]
+  });
+}
+window.RichTextSpecsEditor = RichTextSpecsEditor;
+
 function getPersonaStyle(p, field, defColor, defSize, defBold, defItalic) {
   let s = p?.styles?.[field] || p?.specs?.styles?.[field] || {};
   return {
@@ -1045,7 +1746,7 @@ React keys must be passed directly to JSX without using spread:
     ]},void 0,!0,{fileName:S,lineNumber:60,columnNumber:5},this)
   ,cropOpen_re&&(()=>{showCropModal({imageSrc:(window.__pendingCropSrc)||e,fileName:(window.__pendingCropName)||'image.jpg',aspectRatio:16/10,onCropComplete:function(url){t(url);setCropOpen_re(false);window.__pendingCropSrc=null;showToast('\u2713 Image cropped & saved!');},onClose:function(){setCropOpen_re(false);window.__pendingCropSrc=null;}});return null;})()
   ]});
-}function ie({value:e,onChange:t}){return(0,x.jsxDEV)(`div`,{className:`flex items-center gap-3`,children:[(0,x.jsxDEV)(`div`,{className:`relative`,children:(0,x.jsxDEV)(`input`,{type:`color`,value:e,onChange:e=>t(e.target.value),className:`w-9 h-9 rounded-lg cursor-pointer border-0 p-0.5 bg-transparent`},void 0,!1,{fileName:S,lineNumber:77,columnNumber:9},this)},void 0,!1,{fileName:S,lineNumber:76,columnNumber:7},this),(0,x.jsxDEV)(te,{value:e,onChange:t,placeholder:`#CAFF00`},void 0,!1,{fileName:S,lineNumber:80,columnNumber:7},this)]},void 0,!0,{fileName:S,lineNumber:75,columnNumber:5},this)}function C({tags:e,onChange:t}){let[n,r]=(0,b.useState)(``);return(0,x.jsxDEV)(`div`,{children:[(0,x.jsxDEV)(`div`,{className:`flex flex-wrap gap-1.5 mb-2`,children:e.map((n,r)=>(0,x.jsxDEV)(`span`,{className:`flex items-center gap-1 px-2.5 py-1 rounded-full border border-[#1a1a28] text-[#888] text-[10px]`,style:{fontFamily:`var(--font-mono)`,backgroundColor:`#0c0c14`},children:[n,(0,x.jsxDEV)(`button`,{onClick:()=>t(e.filter((e,t)=>t!==r)),className:`text-[#999] hover:text-[#f87171] ml-0.5 transition-colors leading-none text-base`,children:`×`},void 0,!1,{fileName:S,lineNumber:94,columnNumber:13},this)]},r,!0,{fileName:S,lineNumber:91,columnNumber:11},this))},void 0,!1,{fileName:S,lineNumber:89,columnNumber:7},this),(0,x.jsxDEV)(`div`,{className:`flex gap-2`,children:[(0,x.jsxDEV)(`input`,{value:n,onChange:e=>r(e.target.value),onKeyDown:i=>{i.key===`Enter`&&n.trim()&&(t([...e,n.trim()]),r(``))},placeholder:`Add feature, press Enter`,className:`flex-1 px-3 py-2 rounded-lg text-sm text-white placeholder-[#333] border border-[#1a1a28] outline-none focus:border-[#f59e0b]/60 transition-all`,style:{backgroundColor:`#0c0c14`,fontFamily:`var(--font-display)`,fontSize:`12px`}},void 0,!1,{fileName:S,lineNumber:100,columnNumber:9},this),(0,x.jsxDEV)(`button`,{onClick:()=>{n.trim()&&(t([...e,n.trim()]),r(``))},className:`px-3 py-2 rounded-lg border border-[#1a1a28] text-[#999] hover:text-[#888] hover:border-[#f59e0b]/40 transition-all text-sm`,children:`+`},void 0,!1,{fileName:S,lineNumber:105,columnNumber:9},this)]},void 0,!0,{fileName:S,lineNumber:99,columnNumber:7},this)]},void 0,!0,{fileName:S,lineNumber:88,columnNumber:5},this)}function ae(){let{appData:e,setAppData:t}=de(),n=e.switchPersonas,[r,i]=(0,b.useState)(n[0]?.id??``),[a,o]=(0,b.useState)(null),s=a??n.find(e=>e.id===r)??null;function c(e){i(e),o(null)}function l(){let e=`persona-${Date.now()}`,n={id:e,label:`New Persona`,tagline:`Enter tagline`,switchName:`Switch Name`,switchSpec:`Type · 45g · 4.0mm travel`,badge:`NEW`,price:45,description:`Describe this switch profile.`,features:[`Feature 1`,`Feature 2`],image:``,accent:`#CAFF00`,accentDim:`rgba(202,255,0,0.15)`};t(e=>({...e,switchPersonas:[...e.switchPersonas,n]})),i(e),o(null)}function u(e){if(n.length<=1)return;let r=n.find(t=>t.id!==e);t(t=>({...t,switchPersonas:t.switchPersonas.filter(t=>t.id!==e)})),i(r?.id??``),o(null)}function d(e,n){if(!s)return;let r={...s,[e]:n};if(e===`accent`){let e=n;r.accentDim=`rgba(${parseInt(e.slice(1,3),16)},${parseInt(e.slice(3,5),16)},${parseInt(e.slice(5,7),16)},0.15)`}t(e=>({...e,switchPersonas:e.switchPersonas.map(e=>e.id===s.id?r:e)})),o(null)}return(0,x.jsxDEV)(`div`,{className:`grid grid-cols-[220px_1fr] gap-6 h-full`,children:[(0,x.jsxDEV)(`div`,{children:[(0,x.jsxDEV)(`div`,{className:`space-y-1.5 mb-3`,children:n.map(e=>(0,x.jsxDEV)(`button`,{onClick:()=>c(e.id),className:[`w-full text-left px-3 py-2.5 rounded-xl transition-all group/item flex items-center justify-between`,r===e.id?`bg-[#f59e0b]/10 border border-[#f59e0b]/30`:`border border-transparent hover:bg-[#0c0c14]`].join(` `),children:[(0,x.jsxDEV)(`div`,{className:`flex items-center gap-2.5 min-w-0`,children:[(0,x.jsxDEV)(`div`,{className:`w-2 h-2 rounded-full shrink-0`,style:{backgroundColor:e.accent}},void 0,!1,{fileName:S,lineNumber:206,columnNumber:17},this),(0,x.jsxDEV)(`span`,{className:[`text-sm font-semibold truncate`,r===e.id?`text-white`:`text-[#999]`].join(` `),style:{fontFamily:`var(--font-display)`},children:e.label},void 0,!1,{fileName:S,lineNumber:207,columnNumber:17},this)]},void 0,!0,{fileName:S,lineNumber:205,columnNumber:15},this),(0,x.jsxDEV)(`button`,{onClick:t=>{t.stopPropagation(),u(e.id)},className:`opacity-0 group-hover/item:opacity-100 text-[#888] hover:text-[#f87171] transition-all text-base leading-none ml-1`,children:`×`},void 0,!1,{fileName:S,lineNumber:212,columnNumber:15},this)]},e.id,!0,{fileName:S,lineNumber:200,columnNumber:13},this))},void 0,!1,{fileName:S,lineNumber:198,columnNumber:9},this),(0,x.jsxDEV)(`button`,{onClick:l,className:`w-full py-2.5 rounded-xl border border-dashed border-[#1a1a28] text-[#999] hover:text-[#f59e0b] hover:border-[#f59e0b]/40 text-xs font-semibold tracking-widest uppercase transition-all`,style:{fontFamily:`var(--font-mono)`},children:`+ Add Persona`},void 0,!1,{fileName:S,lineNumber:219,columnNumber:9},this)]},void 0,!0,{fileName:S,lineNumber:197,columnNumber:7},this),s?(0,x.jsxDEV)(`div`,{className:`space-y-5 overflow-y-auto pr-1`,children:[(0,x.jsxDEV)(`div`,{className:`grid grid-cols-2 gap-4`,children:[(0,x.jsxDEV)(ee,{label:`Label (Button Name)`,children:(0,x.jsxDEV)(te,{value:s.label,onChange:e=>d(`label`,e)},void 0,!1,{fileName:S,lineNumber:231,columnNumber:15},this)},void 0,!1,{fileName:S,lineNumber:230,columnNumber:13},this),(0,x.jsxDEV)(ee,{label:`Badge`,children:(0,x.jsxDEV)(te,{value:s.badge,onChange:e=>d(`badge`,e.toUpperCase())},void 0,!1,{fileName:S,lineNumber:234,columnNumber:15},this)},void 0,!1,{fileName:S,lineNumber:233,columnNumber:13},this)]},void 0,!0,{fileName:S,lineNumber:229,columnNumber:11},this),(0,x.jsxDEV)(ee,{label:`Tagline`,children:(0,x.jsxDEV)(te,{value:s.tagline,onChange:e=>d(`tagline`,e)},void 0,!1,{fileName:S,lineNumber:238,columnNumber:13},this)},void 0,!1,{fileName:S,lineNumber:237,columnNumber:11},this),(0,x.jsxDEV)(`div`,{className:`grid grid-cols-2 gap-4`,children:[(0,x.jsxDEV)(ee,{label:`Switch Name`,children:(0,x.jsxDEV)(te,{value:s.switchName,onChange:e=>d(`switchName`,e)},void 0,!1,{fileName:S,lineNumber:242,columnNumber:15},this)},void 0,!1,{fileName:S,lineNumber:241,columnNumber:13},this),(0,x.jsxDEV)(ee,{label:`Giá (VND / $)`,children:(0,x.jsxDEV)(te,{value:s.price,type:`number`,onChange:e=>d(`price`,parseFloat(e)||0)},void 0,!1,{fileName:S,lineNumber:245,columnNumber:15},this)},void 0,!1,{fileName:S,lineNumber:244,columnNumber:13},this)]},void 0,!0,{fileName:S,lineNumber:240,columnNumber:11},this),(0,x.jsxDEV)(ee,{label:`Spec Line`,children:(0,x.jsxDEV)(te,{value:s.switchSpec,onChange:e=>d(`switchSpec`,e),placeholder:`Linear · 45g · 4.0mm travel`},void 0,!1,{fileName:S,lineNumber:249,columnNumber:13},this)},void 0,!1,{fileName:S,lineNumber:248,columnNumber:11},this),(0,x.jsxDEV)(ee,{label:`Description`,children:(0,x.jsxDEV)(ne,{value:s.description,onChange:e=>d(`description`,e),rows:3},void 0,!1,{fileName:S,lineNumber:252,columnNumber:13},this)},void 0,!1,{fileName:S,lineNumber:251,columnNumber:11},this),(0,x.jsxDEV)(ee,{label:`Image URL`,children:(0,x.jsxDEV)(ImageFieldWithCrop,{value:s.image,onChange:e=>d(`image`,e),aspectRatio:16/10},void 0,!1,{fileName:S,lineNumber:255,columnNumber:13},this)},void 0,!1,{fileName:S,lineNumber:254,columnNumber:11},this),(0,x.jsxDEV)(ee,{label:`Accent Color`,children:(0,x.jsxDEV)(ie,{value:s.accent,onChange:e=>d(`accent`,e)},void 0,!1,{fileName:S,lineNumber:258,columnNumber:13},this)},void 0,!1,{fileName:S,lineNumber:257,columnNumber:11},this),(0,x.jsxDEV)(ee,{label:`Feature Tags`,children:(0,x.jsxDEV)(C,{tags:s.features,onChange:e=>d(`features`,e)},void 0,!1,{fileName:S,lineNumber:261,columnNumber:13},this)},void 0,!1,{fileName:S,lineNumber:260,columnNumber:11},this)]},void 0,!0,{fileName:S,lineNumber:228,columnNumber:9},this):(0,x.jsxDEV)(`div`,{className:`flex items-center justify-center text-[#888] text-sm`,style:{fontFamily:`var(--font-mono)`},children:`Select a persona to edit`},void 0,!1,{fileName:S,lineNumber:265,columnNumber:9},this)]},void 0,!0,{fileName:S,lineNumber:195,columnNumber:5},this)}function w({type:e}){
+}function ie({value:e,onChange:t}){return(0,x.jsxDEV)(`div`,{className:`flex items-center gap-3`,children:[(0,x.jsxDEV)(`div`,{className:`relative`,children:(0,x.jsxDEV)(`input`,{type:`color`,value:e,onChange:e=>t(e.target.value),className:`w-9 h-9 rounded-lg cursor-pointer border-0 p-0.5 bg-transparent`},void 0,!1,{fileName:S,lineNumber:77,columnNumber:9},this)},void 0,!1,{fileName:S,lineNumber:76,columnNumber:7},this),(0,x.jsxDEV)(te,{value:e,onChange:t,placeholder:`#CAFF00`},void 0,!1,{fileName:S,lineNumber:80,columnNumber:7},this)]},void 0,!0,{fileName:S,lineNumber:75,columnNumber:5},this)}function C({tags:e,onChange:t}){let[n,r]=(0,b.useState)(``);return(0,x.jsxDEV)(`div`,{children:[(0,x.jsxDEV)(`div`,{className:`flex flex-wrap gap-1.5 mb-2`,children:e.map((n,r)=>(0,x.jsxDEV)(`span`,{className:`flex items-center gap-1 px-2.5 py-1 rounded-full border border-[#1a1a28] text-[#888] text-[10px]`,style:{fontFamily:`var(--font-mono)`,backgroundColor:`#0c0c14`},children:[n,(0,x.jsxDEV)(`button`,{onClick:()=>t(e.filter((e,t)=>t!==r)),className:`text-[#999] hover:text-[#f87171] ml-0.5 transition-colors leading-none text-base`,children:`×`},void 0,!1,{fileName:S,lineNumber:94,columnNumber:13},this)]},r,!0,{fileName:S,lineNumber:91,columnNumber:11},this))},void 0,!1,{fileName:S,lineNumber:89,columnNumber:7},this),(0,x.jsxDEV)(`div`,{className:`flex gap-2`,children:[(0,x.jsxDEV)(`input`,{value:n,onChange:e=>r(e.target.value),onKeyDown:i=>{i.key===`Enter`&&n.trim()&&(t([...e,n.trim()]),r(``))},placeholder:`Add feature, press Enter`,className:`flex-1 px-3 py-2 rounded-lg text-sm text-white placeholder-[#333] border border-[#1a1a28] outline-none focus:border-[#f59e0b]/60 transition-all`,style:{backgroundColor:`#0c0c14`,fontFamily:`var(--font-display)`,fontSize:`12px`}},void 0,!1,{fileName:S,lineNumber:100,columnNumber:9},this),(0,x.jsxDEV)(`button`,{onClick:()=>{n.trim()&&(t([...e,n.trim()]),r(``))},className:`px-3 py-2 rounded-lg border border-[#1a1a28] text-[#999] hover:text-[#888] hover:border-[#f59e0b]/40 transition-all text-sm`,children:`+`},void 0,!1,{fileName:S,lineNumber:105,columnNumber:9},this)]},void 0,!0,{fileName:S,lineNumber:99,columnNumber:7},this)]},void 0,!0,{fileName:S,lineNumber:88,columnNumber:5},this)}function ae(){let{appData:e,setAppData:t}=de(),n=e.switchPersonas,[r,i]=(0,b.useState)(n[0]?.id??``),[a,o]=(0,b.useState)(null),s=a??n.find(e=>e.id===r)??null;function c(e){i(e),o(null)}function l(){let e=`persona-${Date.now()}`,n={id:e,label:`New Persona`,tagline:`Enter tagline`,switchName:`Switch Name`,switchSpec:`Type · 45g · 4.0mm travel`,badge:`NEW`,price:45,description:`Describe this switch profile.`,features:[`Feature 1`,`Feature 2`],image:``,accent:`#CAFF00`,accentDim:`rgba(202,255,0,0.15)`};t(e=>({...e,switchPersonas:[...e.switchPersonas,n]})),i(e),o(null)}function u(e){if(n.length<=1)return;let r=n.find(t=>t.id!==e);t(t=>({...t,switchPersonas:t.switchPersonas.filter(t=>t.id!==e)})),i(r?.id??``),o(null)}function d(e,n){if(!s)return;let r={...s,[e]:n};if(e===`accent`){let e=n;r.accentDim=`rgba(${parseInt(e.slice(1,3),16)},${parseInt(e.slice(3,5),16)},${parseInt(e.slice(5,7),16)},0.15)`}t(e=>({...e,switchPersonas:e.switchPersonas.map(e=>e.id===s.id?r:e)})),o(null)}return(0,x.jsxDEV)(`div`,{className:`grid grid-cols-[220px_1fr] gap-6 h-full`,children:[(0,x.jsxDEV)(`div`,{children:[(0,x.jsxDEV)(`div`,{className:`space-y-1.5 mb-3`,children:n.map(e=>(0,x.jsxDEV)(`button`,{onClick:()=>c(e.id),className:[`w-full text-left px-3 py-2.5 rounded-xl transition-all group/item flex items-center justify-between`,r===e.id?`bg-[#f59e0b]/10 border border-[#f59e0b]/30`:`border border-transparent hover:bg-[#0c0c14]`].join(` `),children:[(0,x.jsxDEV)(`div`,{className:`flex items-center gap-2.5 min-w-0`,children:[(0,x.jsxDEV)(`div`,{className:`w-2 h-2 rounded-full shrink-0`,style:{backgroundColor:e.accent}},void 0,!1,{fileName:S,lineNumber:206,columnNumber:17},this),(0,x.jsxDEV)(`span`,{className:[`text-sm font-semibold truncate`,r===e.id?`text-white`:`text-[#999]`].join(` `),style:{fontFamily:`var(--font-display)`},children:e.label},void 0,!1,{fileName:S,lineNumber:207,columnNumber:17},this)]},void 0,!0,{fileName:S,lineNumber:205,columnNumber:15},this),(0,x.jsxDEV)(`button`,{onClick:t=>{t.stopPropagation(),u(e.id)},className:`opacity-0 group-hover/item:opacity-100 text-[#888] hover:text-[#f87171] transition-all text-base leading-none ml-1`,children:`×`},void 0,!1,{fileName:S,lineNumber:212,columnNumber:15},this)]},e.id,!0,{fileName:S,lineNumber:200,columnNumber:13},this))},void 0,!1,{fileName:S,lineNumber:198,columnNumber:9},this),(0,x.jsxDEV)(`button`,{onClick:l,className:`w-full py-2.5 rounded-xl border border-dashed border-[#1a1a28] text-[#999] hover:text-[#f59e0b] hover:border-[#f59e0b]/40 text-xs font-semibold tracking-widest uppercase transition-all`,style:{fontFamily:`var(--font-mono)`},children:`+ Add Persona`},void 0,!1,{fileName:S,lineNumber:219,columnNumber:9},this)]},void 0,!0,{fileName:S,lineNumber:197,columnNumber:7},this),s?(0,x.jsxDEV)(`div`,{className:`space-y-5 overflow-y-auto pr-1`,children:[(0,x.jsxDEV)(`div`,{className:`grid grid-cols-2 gap-4`,children:[(0,x.jsxDEV)(ee,{label:`Label (Button Name)`,children:(0,x.jsxDEV)(te,{value:s.label,onChange:e=>d(`label`,e)},void 0,!1,{fileName:S,lineNumber:231,columnNumber:15},this)},void 0,!1,{fileName:S,lineNumber:230,columnNumber:13},this),(0,x.jsxDEV)(ee,{label:`Badge`,children:(0,x.jsxDEV)(te,{value:s.badge,onChange:e=>d(`badge`,e.toUpperCase())},void 0,!1,{fileName:S,lineNumber:234,columnNumber:15},this)},void 0,!1,{fileName:S,lineNumber:233,columnNumber:13},this)]},void 0,!0,{fileName:S,lineNumber:229,columnNumber:11},this),(0,x.jsxDEV)(ee,{label:`Tagline`,children:(0,x.jsxDEV)(te,{value:s.tagline,onChange:e=>d(`tagline`,e)},void 0,!1,{fileName:S,lineNumber:238,columnNumber:13},this)},void 0,!1,{fileName:S,lineNumber:237,columnNumber:11},this),(0,x.jsxDEV)(`div`,{className:`grid grid-cols-2 gap-4`,children:[(0,x.jsxDEV)(ee,{label:`Switch Name`,children:(0,x.jsxDEV)(te,{value:s.switchName,onChange:e=>d(`switchName`,e)},void 0,!1,{fileName:S,lineNumber:242,columnNumber:15},this)},void 0,!1,{fileName:S,lineNumber:241,columnNumber:13},this),(0,x.jsxDEV)(ee,{label:`Giá (VND / $)`,children:(0,x.jsxDEV)(te,{value:s.price,type:`number`,onChange:e=>d(`price`,parseFloat(e)||0)},void 0,!1,{fileName:S,lineNumber:245,columnNumber:15},this)},void 0,!1,{fileName:S,lineNumber:244,columnNumber:13},this)]},void 0,!0,{fileName:S,lineNumber:240,columnNumber:11},this),(0,x.jsxDEV)(ee,{label:`Spec Line`,children:(0,x.jsxDEV)(te,{value:s.switchSpec,onChange:e=>d(`switchSpec`,e),placeholder:`Linear · 45g · 4.0mm travel`},void 0,!1,{fileName:S,lineNumber:249,columnNumber:13},this)},void 0,!1,{fileName:S,lineNumber:248,columnNumber:11},this),(0,x.jsxDEV)(ee,{label:`Description`,children:(0,x.jsxDEV)(ne,{value:s.description,onChange:e=>d(`description`,e),rows:3},void 0,!1,{fileName:S,lineNumber:252,columnNumber:13},this)},void 0,!1,{fileName:S,lineNumber:251,columnNumber:11},this),(0,x.jsxDEV)(ee,{label:`Image URL`,children:(0,x.jsxDEV)(ImageFieldWithCrop,{value:s.image,onChange:e=>d(`image`,e),aspectRatio:16/10})},void 0,!1,{fileName:S,lineNumber:254,columnNumber:11},this),(0,x.jsxDEV)(RichTextSpecsEditor,{label:"THONG SO / SPECS COT PHAI (RICH TEXT & LIVE PREVIEW)",value:s.freeSpecs||"",onChange:val=>d("freeSpecs",val),previewTitle:s.label||"Switch chinh"}),(0,x.jsxDEV)(ee,{label:`Accent Color`,children:(0,x.jsxDEV)(ie,{value:s.accent,onChange:e=>d(`accent`,e)},void 0,!1,{fileName:S,lineNumber:258,columnNumber:13},this)},void 0,!1,{fileName:S,lineNumber:257,columnNumber:11},this),(0,x.jsxDEV)(ee,{label:`Feature Tags`,children:(0,x.jsxDEV)(C,{tags:s.features,onChange:e=>d(`features`,e)},void 0,!1,{fileName:S,lineNumber:261,columnNumber:13},this)},void 0,!1,{fileName:S,lineNumber:260,columnNumber:11},this)]},void 0,!0,{fileName:S,lineNumber:228,columnNumber:9},this):(0,x.jsxDEV)(`div`,{className:`flex items-center justify-center text-[#888] text-sm`,style:{fontFamily:`var(--font-mono)`},children:`Select a persona to edit`},void 0,!1,{fileName:S,lineNumber:265,columnNumber:9},this)]},void 0,!0,{fileName:S,lineNumber:195,columnNumber:5},this)}function w({type:e}){
   let { appData: t, setAppData: n } = de(),
       r = e === "keycaps" ? t.keycaps : t.cables,
       [i, a] = (0, b.useState)(r[0]?.id ?? ""),
@@ -1305,15 +2006,40 @@ React keys must be passed directly to JSX without using spread:
           }),
           (0, x.jsxDEV)(ee, { label: "Subtitle / Spec Line", children: (0, x.jsxDEV)(te, { value: o.subtitle, onChange: e => l("subtitle", e) }) }),
           (0, x.jsxDEV)(ee, { label: "Badge (optional)", children: (0, x.jsxDEV)(te, { value: o.badge ?? "", onChange: e => l("badge", e || void 0), placeholder: "BESTSELLER, NEW, ARTISAN..." }) }),
-          (0, x.jsxDEV)(ee, {
-            label: "Description",
-            children: (0, x.jsxDEV)("textarea", {
-              value: o.description,
-              onChange: e => l("description", e.target.value),
-              rows: 3,
-              className: "w-full px-3 py-2.5 rounded-lg text-sm text-white placeholder-[#333] border border-[#1a1a28] outline-none focus:border-[#f59e0b]/60 transition-all font-mono resize-none",
-              style: { backgroundColor: "#080810", fontSize: "12px" }
-            })
+          (0, x.jsxDEV)("div", {
+            className: "grid grid-cols-2 gap-4",
+            children: [
+              (0, x.jsxDEV)(ee, {
+                label: "Số lượng tồn kho (Inventory Stock)",
+                children: (0, x.jsxDEV)(te, {
+                  type: "number",
+                  value: o.stock !== undefined ? o.stock : 99,
+                  onChange: val => l("stock", parseInt(val) || 0),
+                  placeholder: "99"
+                })
+              }),
+              (0, x.jsxDEV)("div", {
+                className: "flex items-center pt-6",
+                children: (0, x.jsxDEV)("label", {
+                  className: "flex items-center gap-2.5 p-2 rounded-xl bg-[#080810] border border-[#1a1a28] cursor-pointer hover:border-[#f59e0b]/40 transition-colors w-full",
+                  children: [
+                    (0, x.jsxDEV)("input", {
+                      type: "checkbox",
+                      checked: !!o.limitOne,
+                      onChange: ev => l("limitOne", ev.target.checked),
+                      className: "w-4 h-4 rounded accent-[#CAFF00] cursor-pointer"
+                    }),
+                    (0, x.jsxDEV)("span", { className: "text-white text-xs font-mono font-bold select-none", children: "Giới hạn 1 món/đơn (Limit 1)" })
+                  ]
+                })
+              })
+            ]
+          }),
+          (0, x.jsxDEV)(RichTextSpecsEditor, {
+            label: e === "cables" ? "MÔ TẢ CABLE (RICH TEXT & LIVE PREVIEW)" : "MÔ TẢ SẢN PHẨM (RICH TEXT & LIVE PREVIEW)",
+            value: o.description || "",
+            onChange: val => l("description", val),
+            previewTitle: o.name || (e === "keycaps" ? "Mô tả Keycap" : "Mô tả Cable")
           }),
           (0, x.jsxDEV)(ee, {
             label: "Image URL",
@@ -1343,16 +2069,11 @@ React keys must be passed directly to JSX without using spread:
                   placeholder: "e.g. ARCTIC-WHITE-75 or base64 colorway code"
                 })
               }),
-              (0, x.jsxDEV)(ee, {
-                label: "Free-form Specs (Thông số mô tả tự do hiển thị ở cột phải)",
-                children: (0, x.jsxDEV)("textarea", {
-                  value: o.freeSpecs || "",
-                  onChange: e => l("freeSpecs", e.target.value),
-                  rows: 3,
-                  className: "w-full px-3 py-2.5 rounded-lg text-sm text-white placeholder-[#444] border border-[#1a1a28] outline-none focus:border-[#f59e0b]/60 transition-all font-mono resize-none",
-                  style: { backgroundColor: "#080810", fontSize: "12px" },
-                  placeholder: "Cherry Profile · PBT Double-shot · 1.5mm thickness · Full ANSI 84-keys compatibility..."
-                })
+              (0, x.jsxDEV)(RichTextSpecsEditor, {
+                label: "FREE-FORM SPECS (THÔNG SỐ & MÔ TẢ TỰ DO CỘT PHẢI)",
+                value: o.freeSpecs || "",
+                onChange: val => l("freeSpecs", val),
+                previewTitle: o.name || "Thông số Keycap"
               })
             ]
           }),
@@ -1439,14 +2160,7 @@ React keys must be passed directly to JSX without using spread:
                       },
                       aspectRatio: 16 / 10
                     }),
-                    (0, x.jsxDEV)(te, {
-                      value: v.description || "",
-                      placeholder: "Mô tả mở rộng riêng cho biến thể này khi khách click chọn...",
-                      onChange: val => {
-                        const updated = (o.variants || []).map(x => x.id === v.id ? { ...x, description: val } : x);
-                        l("variants", updated);
-                      }
-                    })
+                    (0, x.jsxDEV)(RichTextSpecsEditor, {  label: "Mô tả biến thể (Rich Text & Live Preview)",  value: v.description || "",  onChange: val => {    const updated = (o.variants || []).map(x => x.id === v.id ? { ...x, description: val } : x);    l("variants", updated);  },  previewTitle: v.name || "Mô tả biến thể"})
                   ]
                 }, v.id))
               })
@@ -1506,7 +2220,99 @@ React keys must be passed directly to JSX without using spread:
       })
     ]
   });
-}var oe=[{key:`brandName`,label:`Brand Name`},{key:`brandSubtitle`,label:`Brand Subtitle`},{key:`stepperSwitches`,label:`Step 1 Name (Switches)`},{key:`stepperKeycaps`,label:`Step 2 Name (Keycaps)`},{key:`stepperCable`,label:`Step 3 Name (Cable)`},{key:`stepperSummary`,label:`Step 4 Name (Summary)`},{key:`customKeycapName`,label:`Custom Keycap Card Title (STT 9)`},{key:`customKeycapDesc`,label:`Custom Keycap Card Description (STT 9)`},{key:`switchesTitle`,label:`Switches — Step Title`},{key:`switchesSubtitle`,label:`Switches — Step Subtitle`},{key:`keycapsTitle`,label:`Keycaps — Step Title`},{key:`keycapsSubtitle`,label:`Keycaps — Step Subtitle`},{key:`cableTitle`,label:`Cable — Step Title`},{key:`cableSubtitle`,label:`Cable — Step Subtitle`},{key:`bundleHintText`,label:`Bundle Hint Text`},{key:`summaryTitle`,label:`Summary — Title`},{key:`bundleDiscountTitle`,label:`Bundle Discount — Banner Title`},{key:`checkoutBtn`,label:`Checkout Button`},{key:`startOverBtn`,label:`Start Over Button`},{key:`addContinueBtn`,label:`Add & Continue Button`,hint:`Use {name} and {next} as placeholders`},{key:`addOnlyBtn`,label:`Add Only / Exit Button`,hint:`Use {item} as placeholder`},{key:`skipBtn`,label:`Skip Button`,hint:`Use {item} as placeholder`},{key:`customizeBtn`,label:`Customize Design Button`},{key:`switchSpecsLabel`,label:`Switch Specs Sidebar Label`},{key:`buildSoFarLabel`,label:`"Your Build So Far" Label`},{key:`adminBtn`,label:`Admin Button Label`}];function se(){let{appData:e,setAppData:t}=de(),n=e.translations;function r(e,n){t(t=>({...t,translations:{...t.translations,[e]:n}}))}return(0,x.jsxDEV)(`div`,{className:`space-y-1`,children:oe.map(({key:e,label:t,hint:i})=>(0,x.jsxDEV)(`div`,{className:`grid grid-cols-[200px_1fr] gap-4 items-center py-3 border-b border-[#0f0f18]`,children:[(0,x.jsxDEV)(`div`,{children:[(0,x.jsxDEV)(`p`,{className:`text-[#666] text-xs font-semibold`,style:{fontFamily:`var(--font-display)`},children:t},void 0,!1,{fileName:S,lineNumber:429,columnNumber:13},this),i&&(0,x.jsxDEV)(`p`,{className:`text-[#888] text-[10px] mt-0.5`,style:{fontFamily:`var(--font-mono)`},children:i},void 0,!1,{fileName:S,lineNumber:430,columnNumber:22},this)]},void 0,!0,{fileName:S,lineNumber:428,columnNumber:11},this),(0,x.jsxDEV)(te,{value:n[e]??``,onChange:t=>r(e,t)},void 0,!1,{fileName:S,lineNumber:432,columnNumber:11},this)]},e,!0,{fileName:S,lineNumber:427,columnNumber:9},this))},void 0,!1,{fileName:S,lineNumber:425,columnNumber:5},this)}function T(){let{appData:e,setAppData:t,versions:n,setVersions:r}=de(),[i,a]=(0,b.useState)(``),[o,s]=(0,b.useState)(null);function c(){let t=i.trim()||`Version ${n.length+1}`,o={id:`v-${Date.now()}`,name:t,createdAt:new Date().toLocaleString(),data:JSON.parse(JSON.stringify(e))};r(e=>[o,...e]),a(``)}function l(e){t(JSON.parse(JSON.stringify(e.data))),s(e.id),setTimeout(()=>s(null),2e3)}function u(e){r(t=>t.filter(t=>t.id!==e))}return(0,x.jsxDEV)(`div`,{className:`max-w-2xl`,children:[(0,x.jsxDEV)(`div`,{className:`rounded-2xl border border-[#1a1a28] p-5 mb-6`,style:{backgroundColor:`#0c0c14`},children:[(0,x.jsxDEV)(`p`,{className:`text-white font-bold text-sm mb-3`,style:{fontFamily:`var(--font-display)`},children:`Save current state as a version`},void 0,!1,{fileName:S,lineNumber:471,columnNumber:9},this),(0,x.jsxDEV)(`div`,{className:`flex gap-3`,children:[(0,x.jsxDEV)(`input`,{value:i,onChange:e=>a(e.target.value),onKeyDown:e=>e.key===`Enter`&&c(),placeholder:`Version ${n.length+1} — ${new Date().toLocaleDateString()}`,className:`flex-1 px-3 py-2.5 rounded-lg text-sm text-white placeholder-[#333] border border-[#1a1a28] outline-none focus:border-[#f59e0b]/60 transition-all`,style:{backgroundColor:`#080810`,fontFamily:`var(--font-display)`}},void 0,!1,{fileName:S,lineNumber:475,columnNumber:11},this),(0,x.jsxDEV)(`button`,{onClick:c,className:`px-5 py-2.5 rounded-lg bg-[#f59e0b] text-[#06060a] font-bold text-sm hover:bg-[#fbbf24] transition-all`,style:{fontFamily:`var(--font-display)`},children:`Save Version`},void 0,!1,{fileName:S,lineNumber:483,columnNumber:11},this)]},void 0,!0,{fileName:S,lineNumber:474,columnNumber:9},this),(0,x.jsxDEV)(`p`,{className:`text-[#888] text-[11px] mt-2`,style:{fontFamily:`var(--font-mono)`},children:`Versions snapshot all products, personas, and translations. Restore any time.`},void 0,!1,{fileName:S,lineNumber:489,columnNumber:9},this)]},void 0,!0,{fileName:S,lineNumber:470,columnNumber:7},this),n.length===0?(0,x.jsxDEV)(`div`,{className:`text-center py-16 text-[#888] text-sm`,style:{fontFamily:`var(--font-mono)`},children:`No saved versions yet. Make some edits and save your first version.`},void 0,!1,{fileName:S,lineNumber:496,columnNumber:9},this):(0,x.jsxDEV)(`div`,{className:`space-y-3`,children:n.map((e,t)=>{let n=o===e.id;return(0,x.jsxDEV)(`div`,{className:[`rounded-2xl border p-5 transition-all duration-300`,n?`border-[#f59e0b]/50 bg-[#f59e0b]/5`:`border-[#1a1a28] bg-[#0c0c14]`].join(` `),children:(0,x.jsxDEV)(`div`,{className:`flex items-start justify-between gap-4`,children:[(0,x.jsxDEV)(`div`,{className:`flex-1 min-w-0`,children:[(0,x.jsxDEV)(`div`,{className:`flex items-center gap-2 mb-1`,children:[t===0&&(0,x.jsxDEV)(`span`,{className:`text-[9px] px-1.5 py-0.5 rounded-sm bg-[#f59e0b]/20 text-[#f59e0b] font-bold tracking-widest`,style:{fontFamily:`var(--font-mono)`},children:`LATEST`},void 0,!1,{fileName:S,lineNumber:513,columnNumber:25},this),(0,x.jsxDEV)(`h4`,{className:`text-white font-bold text-sm truncate`,style:{fontFamily:`var(--font-display)`},children:e.name},void 0,!1,{fileName:S,lineNumber:516,columnNumber:23},this)]},void 0,!0,{fileName:S,lineNumber:511,columnNumber:21},this),(0,x.jsxDEV)(`p`,{className:`text-[#999] text-[11px]`,style:{fontFamily:`var(--font-mono)`},children:e.createdAt},void 0,!1,{fileName:S,lineNumber:518,columnNumber:21},this),(0,x.jsxDEV)(`div`,{className:`flex gap-3 mt-2`,children:[`${e.data.switchPersonas.length} personas`,`${e.data.keycaps.length} keycaps`,`${e.data.cables.length} cables`].map(e=>(0,x.jsxDEV)(`span`,{className:`text-[#888] text-[10px]`,style:{fontFamily:`var(--font-mono)`},children:e},e,!1,{fileName:S,lineNumber:525,columnNumber:25},this))},void 0,!1,{fileName:S,lineNumber:519,columnNumber:21},this)]},void 0,!0,{fileName:S,lineNumber:510,columnNumber:19},this),(0,x.jsxDEV)(`div`,{className:`flex gap-2 shrink-0`,children:[(0,x.jsxDEV)(`button`,{onClick:()=>l(e),className:[`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all`,n?`bg-[#f59e0b]/20 text-[#f59e0b] border border-[#f59e0b]/40`:`bg-[#f59e0b] text-[#06060a] hover:bg-[#fbbf24]`].join(` `),style:{fontFamily:`var(--font-display)`},children:n?`✓ Restored`:`Restore`},void 0,!1,{fileName:S,lineNumber:530,columnNumber:21},this),(0,x.jsxDEV)(`button`,{onClick:()=>u(e.id),className:`px-3 py-1.5 rounded-lg border border-[#1a1a28] text-[#999] hover:text-[#f87171] hover:border-[#f87171]/30 text-xs transition-all`,style:{fontFamily:`var(--font-mono)`},children:`×`},void 0,!1,{fileName:S,lineNumber:538,columnNumber:21},this)]},void 0,!0,{fileName:S,lineNumber:529,columnNumber:19},this)]},void 0,!0,{fileName:S,lineNumber:509,columnNumber:17},this)},e.id,!1,{fileName:S,lineNumber:504,columnNumber:15},this)})},void 0,!1,{fileName:S,lineNumber:500,columnNumber:9},this)]},void 0,!0,{fileName:S,lineNumber:468,columnNumber:5},this)}
+}var oe=[{key:`brandName`,label:`Brand Name`},{key:`brandSubtitle`,label:`Brand Subtitle`},{key:`stepperSwitches`,label:`Step 1 Name (Switches)`},{key:`stepperKeycaps`,label:`Step 2 Name (Keycaps)`},{key:`stepperCable`,label:`Step 3 Name (Cable)`},{key:`stepperSummary`,label:`Step 4 Name (Summary)`},{key:`customKeycapName`,label:`Custom Keycap Card Title (STT 9)`},{key:`customKeycapDesc`,label:`Custom Keycap Card Description (STT 9)`},{key:`switchesTitle`,label:`Switches — Step Title`},{key:`switchesSubtitle`,label:`Switches — Step Subtitle`},{key:`keycapsTitle`,label:`Keycaps — Step Title`},{key:`keycapsSubtitle`,label:`Keycaps — Step Subtitle`},{key:`cableTitle`,label:`Cable — Step Title`},{key:`cableSubtitle`,label:`Cable — Step Subtitle`},{key:`bundleHintText`,label:`Bundle Hint Text`},{key:`summaryTitle`,label:`Summary — Title`},{key:`bundleDiscountTitle`,label:`Bundle Discount — Banner Title`},{key:`checkoutBtn`,label:`Checkout Button`},{key:`startOverBtn`,label:`Start Over Button`},{key:`addContinueBtn`,label:`Add & Continue Button`,hint:`Use {name} and {next} as placeholders`},{key:`addOnlyBtn`,label:`Add Only / Exit Button`,hint:`Use {item} as placeholder`},{key:`skipBtn`,label:`Skip Button`,hint:`Use {item} as placeholder`},{key:`customizeBtn`,label:`Customize Design Button`},{key:`switchSpecsLabel`,label:`Switch Specs Sidebar Label`},{key:`buildSoFarLabel`,label:`"Your Build So Far" Label`},{key:`adminBtn`,label:`Admin Button Label`}];function se(){let{appData:e,setAppData:t}=de(),n=e.translations;function r(e,n){t(t=>({...t,translations:{...t.translations,[e]:n}}))}return (0,x.jsxDEV)(`div`,{className:`space-y-4`,children:[
+(0,x.jsxDEV)("div", {
+      className: "rounded-2xl border border-[#CAFF00]/30 bg-[#0c0c14] p-5 mb-6 space-y-4",
+      children: [
+        (0,x.jsxDEV)("div", {
+          className: "flex items-center justify-between border-b border-[#1a1a28] pb-3",
+          children: [
+            (0,x.jsxDEV)("div", {
+              children: [
+                (0,x.jsxDEV)("h3", { className: "text-white font-bold text-sm", children: "Cấu hình Combo Giảm Giá (Combo Discount & Custom Messages)" }),
+                (0,x.jsxDEV)("p", { className: "text-[#888] text-[11px] font-mono mt-0.5", children: "Tùy biến mức giảm combo (theo % hoặc số tiền VND), hoặc hiển thị thông điệp khi cả % và Giá = 0." })
+              ]
+            }),
+            (0,x.jsxDEV)("span", { className: "text-[10px] px-2 py-0.5 rounded bg-[#CAFF00]/10 text-[#CAFF00] font-mono font-bold border border-[#CAFF00]/20", children: "ITEM 4" })
+          ]
+        }),
+        (0,x.jsxDEV)("div", {
+          className: "grid grid-cols-1 md:grid-cols-2 gap-4",
+          children: [
+            (0,x.jsxDEV)("div", {
+              className: "space-y-1.5",
+              children: [
+                (0,x.jsxDEV)("label", { className: "text-[#999] text-xs font-mono font-bold block", children: "Kiểu giảm giá:" }),
+                (0,x.jsxDEV)("div", {
+                  className: "flex gap-2",
+                  children: [
+                    (0,x.jsxDEV)("button", {
+                      type: "button",
+                      onClick: () => r("comboDiscountType", "percent"),
+                      className: ["px-3 py-1.5 rounded-lg text-xs font-mono font-bold border transition-all cursor-pointer", (n.comboDiscountType || "percent") === "percent" ? "bg-[#CAFF00] text-black border-[#CAFF00]" : "bg-[#141420] text-[#888] border-[#222234] hover:text-white"].join(" "),
+                      children: "Giảm theo % (Phần trăm)"
+                    }),
+                    (0,x.jsxDEV)("button", {
+                      type: "button",
+                      onClick: () => r("comboDiscountType", "fixed"),
+                      className: ["px-3 py-1.5 rounded-lg text-xs font-mono font-bold border transition-all cursor-pointer", (n.comboDiscountType) === "fixed" ? "bg-[#CAFF00] text-black border-[#CAFF00]" : "bg-[#141420] text-[#888] border-[#222234] hover:text-white"].join(" "),
+                      children: "Giảm theo mức cố định (VND)"
+                    })
+                  ]
+                })
+              ]
+            }),
+            (0,x.jsxDEV)("div", {
+              className: "space-y-1.5",
+              children: [
+                (0,x.jsxDEV)("label", { className: "text-[#999] text-xs font-mono font-bold block", children: (n.comboDiscountType === "fixed" ? "Số tiền giảm cố định (VND):" : "Mức giảm phần trăm (%):") }),
+                (0,x.jsxDEV)(te, {
+                  type: "number",
+                  value: n.comboDiscountValue !== undefined ? n.comboDiscountValue : "15",
+                  placeholder: (n.comboDiscountType === "fixed" ? "Nhập số tiền (VD: 50000)" : "Nhập % (VD: 15). Nhập 0 để dùng thông điệp custom."),
+                  onChange: val => r("comboDiscountValue", val)
+                })
+              ]
+            })
+          ]
+        }),
+        (0,x.jsxDEV)("div", {
+          className: "space-y-1.5",
+          children: [
+            (0,x.jsxDEV)("label", { className: "text-[#999] text-xs font-mono font-bold block", children: "Tiêu đề Banner Combo:" }),
+            (0,x.jsxDEV)(te, {
+              value: n.bundleDiscountTitle || "",
+              placeholder: "Tiêu đề banner (VD: Combo giảm 15% hoặc Ưu đãi đặc biệt...)",
+              onChange: val => r("bundleDiscountTitle", val)
+            })
+          ]
+        }),
+        (parseFloat(n.comboDiscountValue) === 0 || n.comboDiscountValue === "0") && (0,x.jsxDEV)("div", {
+          className: "space-y-4 pt-3 border-t border-[#1a1a28]",
+          children: [
+            (0,x.jsxDEV)("div", {
+              className: "p-3 rounded-lg bg-[#f59e0b]/10 border border-[#f59e0b]/20 text-[#f59e0b] text-xs font-mono",
+              children: "⚠️ Mức giảm đang là 0: Hệ thống sẽ hiển thị Thông điệp Custom 1 (khi đủ sản phẩm Flow 1 & 2) hoặc Thông điệp Custom 2 (khi chưa đủ). Nếu để trống Custom 1, mục này sẽ tự động ẩn hoàn toàn trên storefront."
+            }),
+            (0,x.jsxDEV)(RichTextSpecsEditor, {
+              label: "THÔNG ĐIỆP CUSTOM 1 (Khi ĐỦ sản phẩm Flow 1 & Flow 2):",
+              value: n.comboCustomMsg1 || "",
+              onChange: val => r("comboCustomMsg1", val),
+              placeholder: "Nhập thông điệp custom 1 (hỗ trợ đổi màu, bold, italic)...",
+              previewTitle: "Custom 1 — Đã đủ Switch & Keycaps"
+            }),
+            (n.comboCustomMsg1 && n.comboCustomMsg1.trim()) && (0,x.jsxDEV)(RichTextSpecsEditor, {
+              label: "THÔNG ĐIỆP CUSTOM 2 (Khi CHƯA ĐỦ sản phẩm Flow 1 & Flow 2):",
+              value: n.comboCustomMsg2 || "",
+              onChange: val => r("comboCustomMsg2", val),
+              placeholder: "Nhập thông điệp custom 2 (hỗ trợ đổi màu, bold, italic)...",
+              previewTitle: "Custom 2 — Chưa đủ sản phẩm"
+            })
+          ]
+        })
+      ]
+    }),,
+(0,x.jsxDEV)(`div`,{className:`space-y-1`,children:oe.map(({key:e,label:t,hint:i})=>(0,x.jsxDEV)(`div`,{className:`grid grid-cols-[200px_1fr] gap-4 items-center py-3 border-b border-[#0f0f18]`,children:[(0,x.jsxDEV)(`div`,{children:[(0,x.jsxDEV)(`p`,{className:`text-[#666] text-xs font-semibold`,style:{fontFamily:`var(--font-display)`},children:t},void 0,!1,{fileName:S,lineNumber:429,columnNumber:13},this),i&&(0,x.jsxDEV)(`p`,{className:`text-[#888] text-[10px] mt-0.5`,style:{fontFamily:`var(--font-mono)`},children:i},void 0,!1,{fileName:S,lineNumber:430,columnNumber:22},this)]},void 0,!0,{fileName:S,lineNumber:428,columnNumber:11},this),(0,x.jsxDEV)(te,{value:n[e]??``,onChange:t=>r(e,t)},void 0,!1,{fileName:S,lineNumber:432,columnNumber:11},this)]},e,!0,{fileName:S,lineNumber:427,columnNumber:9},this))},void 0,!1,{fileName:S,lineNumber:425,columnNumber:5},this)]});}function T(){let{appData:e,setAppData:t,versions:n,setVersions:r}=de(),[i,a]=(0,b.useState)(``),[o,s]=(0,b.useState)(null);function c(){let t=i.trim()||`Version ${n.length+1}`,o={id:`v-${Date.now()}`,name:t,createdAt:new Date().toLocaleString(),data:JSON.parse(JSON.stringify(e))};r(e=>[o,...e]),a(``)}function l(e){t(JSON.parse(JSON.stringify(e.data))),s(e.id),setTimeout(()=>s(null),2e3)}function u(e){r(t=>t.filter(t=>t.id!==e))}return(0,x.jsxDEV)(`div`,{className:`max-w-2xl`,children:[(0,x.jsxDEV)(`div`,{className:`rounded-2xl border border-[#1a1a28] p-5 mb-6`,style:{backgroundColor:`#0c0c14`},children:[(0,x.jsxDEV)(`p`,{className:`text-white font-bold text-sm mb-3`,style:{fontFamily:`var(--font-display)`},children:`Save current state as a version`},void 0,!1,{fileName:S,lineNumber:471,columnNumber:9},this),(0,x.jsxDEV)(`div`,{className:`flex gap-3`,children:[(0,x.jsxDEV)(`input`,{value:i,onChange:e=>a(e.target.value),onKeyDown:e=>e.key===`Enter`&&c(),placeholder:`Version ${n.length+1} — ${new Date().toLocaleDateString()}`,className:`flex-1 px-3 py-2.5 rounded-lg text-sm text-white placeholder-[#333] border border-[#1a1a28] outline-none focus:border-[#f59e0b]/60 transition-all`,style:{backgroundColor:`#080810`,fontFamily:`var(--font-display)`}},void 0,!1,{fileName:S,lineNumber:475,columnNumber:11},this),(0,x.jsxDEV)(`button`,{onClick:c,className:`px-5 py-2.5 rounded-lg bg-[#f59e0b] text-[#06060a] font-bold text-sm hover:bg-[#fbbf24] transition-all`,style:{fontFamily:`var(--font-display)`},children:`Save Version`},void 0,!1,{fileName:S,lineNumber:483,columnNumber:11},this)]},void 0,!0,{fileName:S,lineNumber:474,columnNumber:9},this),(0,x.jsxDEV)(`p`,{className:`text-[#888] text-[11px] mt-2`,style:{fontFamily:`var(--font-mono)`},children:`Versions snapshot all products, personas, and translations. Restore any time.`},void 0,!1,{fileName:S,lineNumber:489,columnNumber:9},this)]},void 0,!0,{fileName:S,lineNumber:470,columnNumber:7},this),n.length===0?(0,x.jsxDEV)(`div`,{className:`text-center py-16 text-[#888] text-sm`,style:{fontFamily:`var(--font-mono)`},children:`No saved versions yet. Make some edits and save your first version.`},void 0,!1,{fileName:S,lineNumber:496,columnNumber:9},this):(0,x.jsxDEV)(`div`,{className:`space-y-3`,children:n.map((e,t)=>{let n=o===e.id;return(0,x.jsxDEV)(`div`,{className:[`rounded-2xl border p-5 transition-all duration-300`,n?`border-[#f59e0b]/50 bg-[#f59e0b]/5`:`border-[#1a1a28] bg-[#0c0c14]`].join(` `),children:(0,x.jsxDEV)(`div`,{className:`flex items-start justify-between gap-4`,children:[(0,x.jsxDEV)(`div`,{className:`flex-1 min-w-0`,children:[(0,x.jsxDEV)(`div`,{className:`flex items-center gap-2 mb-1`,children:[t===0&&(0,x.jsxDEV)(`span`,{className:`text-[9px] px-1.5 py-0.5 rounded-sm bg-[#f59e0b]/20 text-[#f59e0b] font-bold tracking-widest`,style:{fontFamily:`var(--font-mono)`},children:`LATEST`},void 0,!1,{fileName:S,lineNumber:513,columnNumber:25},this),(0,x.jsxDEV)(`h4`,{className:`text-white font-bold text-sm truncate`,style:{fontFamily:`var(--font-display)`},children:e.name},void 0,!1,{fileName:S,lineNumber:516,columnNumber:23},this)]},void 0,!0,{fileName:S,lineNumber:511,columnNumber:21},this),(0,x.jsxDEV)(`p`,{className:`text-[#999] text-[11px]`,style:{fontFamily:`var(--font-mono)`},children:e.createdAt},void 0,!1,{fileName:S,lineNumber:518,columnNumber:21},this),(0,x.jsxDEV)(`div`,{className:`flex gap-3 mt-2`,children:[`${e.data.switchPersonas.length} personas`,`${e.data.keycaps.length} keycaps`,`${e.data.cables.length} cables`].map(e=>(0,x.jsxDEV)(`span`,{className:`text-[#888] text-[10px]`,style:{fontFamily:`var(--font-mono)`},children:e},e,!1,{fileName:S,lineNumber:525,columnNumber:25},this))},void 0,!1,{fileName:S,lineNumber:519,columnNumber:21},this)]},void 0,!0,{fileName:S,lineNumber:510,columnNumber:19},this),(0,x.jsxDEV)(`div`,{className:`flex gap-2 shrink-0`,children:[(0,x.jsxDEV)(`button`,{onClick:()=>l(e),className:[`px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all`,n?`bg-[#f59e0b]/20 text-[#f59e0b] border border-[#f59e0b]/40`:`bg-[#f59e0b] text-[#06060a] hover:bg-[#fbbf24]`].join(` `),style:{fontFamily:`var(--font-display)`},children:n?`✓ Restored`:`Restore`},void 0,!1,{fileName:S,lineNumber:530,columnNumber:21},this),(0,x.jsxDEV)(`button`,{onClick:()=>u(e.id),className:`px-3 py-1.5 rounded-lg border border-[#1a1a28] text-[#999] hover:text-[#f87171] hover:border-[#f87171]/30 text-xs transition-all`,style:{fontFamily:`var(--font-mono)`},children:`×`},void 0,!1,{fileName:S,lineNumber:538,columnNumber:21},this)]},void 0,!0,{fileName:S,lineNumber:529,columnNumber:19},this)]},void 0,!0,{fileName:S,lineNumber:509,columnNumber:17},this)},e.id,!1,{fileName:S,lineNumber:504,columnNumber:15},this)})},void 0,!1,{fileName:S,lineNumber:500,columnNumber:9},this)]},void 0,!0,{fileName:S,lineNumber:468,columnNumber:5},this)}
 function RenderLightingSubPanel(){
   let defaultLighting = {
     lightIntensity: 1.0,
@@ -2258,13 +3064,13 @@ function Settings3DPanel(){
 
 function ce({onExit:e}){
   let{appData:t,versions:n,setVersions:r,setAppData:i}=de(),
-  getAdminTab=()=>{const p=(window.location.pathname||'').toLowerCase();if(p.includes('keycap'))return'keycaps';if(p.includes('cable'))return'cables';if(p.includes('translat'))return'translations';if(p.includes('version'))return'versions';if(p.includes('3d')||p.includes('setting'))return'3d-settings';return'personas';},
+  getAdminTab=()=>{const p=(window.location.pathname||'').toLowerCase();if(p.includes('keycap'))return'keycaps';if(p.includes('cable'))return'cables';if(p.includes('translat'))return'translations';if(p.includes('version'))return'versions';if(p.includes('3d')||p.includes('setting'))return'3d-settings';if(p.includes('order'))return'orders';return'personas';},
   [a,o]=(0,b.useState)(getAdminTab),
   [s,c]=(0,b.useState)(!1),[l,u]=(0,b.useState)(``),[d,f]=(0,b.useState)(!1),p=(0,b.useRef)(null),
   [isSyncing,setIsSyncing]=(0,b.useState)(!1),[syncMsg,setSyncMsg]=(0,b.useState)(null),
   [adminTheme,setAdminTheme]=(0,b.useState)(()=>localStorage.getItem('keyhaus_theme')||(document.documentElement.classList.contains('light')?'light':'dark')),
-  m=[{id:`personas`,label:`Switch Personas`,group:`Products`},{id:`keycaps`,label:`Keycap Sets`,group:`Products`},{id:`cables`,label:`Cable Options`,group:`Products`},{id:`translations`,label:`Translations`,group:`Settings`},{id:`versions`,label:`Versions`,group:`Settings`},{id:`3d-settings`,label:`3D Setting`,group:`Settings`}],
-  h=[`Products`,`Settings`];
+  m=[{id:`personas`,label:`Switch Personas`,group:`Products`},{id:`keycaps`,label:`Keycap Sets`,group:`Products`},{id:`cables`,label:`Cable Options`,group:`Products`},{id:`translations`,label:`Translations`,group:`Settings`},{id:`versions`,label:`Versions`,group:`Settings`},{id:`3d-settings`,label:`3D Setting`,group:`Settings`},{id:`orders`,label:`📦 Quản Lý Đơn Hàng`,group:`Management`}],
+  h=[`Products`,`Settings`,`Management`];
 (0,b.useEffect)(()=>{
   const fn=()=>{o(getAdminTab());};
   window.addEventListener('popstate',fn);
@@ -2297,7 +3103,7 @@ function handleSaveVPS(){
     setSyncMsg("Error: "+err);
   });
 }
-function g(){let e=l.trim()||`Version ${n.length+1} — ${new Date().toLocaleDateString()}`,i={id:`v-${Date.now()}`,name:e,createdAt:new Date().toLocaleString(),data:JSON.parse(JSON.stringify(t))};r(e=>[i,...e]),c(!1),u(``),f(!0),setTimeout(()=>f(!1),2e3)}return(0,x.jsxDEV)(`div`,{className:`min-h-screen flex flex-col`,style:{backgroundColor:`#06060a`,fontFamily:`var(--font-display)`},children:[(0,x.jsxDEV)(`div`,{className:`border-b border-[#1a1a28] px-6 py-4 flex items-center justify-between sticky top-0 z-50`,style:{backgroundColor:`rgba(6,6,10,0.96)`,backdropFilter:`blur(20px)`},children:[(0,x.jsxDEV)(`div`,{className:`flex items-center gap-4`,children:[(0,x.jsxDEV)(`button`,{onClick:()=>{e();window.history.pushState(null,'','/switches');},className:`flex items-center gap-2 text-[#999] hover:text-white transition-colors text-sm font-medium group`,style:{fontFamily:`var(--font-display)`},children:[(0,x.jsxDEV)(`svg`,{width:`16`,height:`16`,viewBox:`0 0 16 16`,fill:`none`,className:`group-hover:-translate-x-0.5 transition-transform`,children:(0,x.jsxDEV)(`path`,{d:`M10 12L6 8l4-4`,stroke:`currentColor`,strokeWidth:`1.5`,strokeLinecap:`round`,strokeLinejoin:`round`},void 0,!1,{fileName:S,lineNumber:606,columnNumber:15},this)},void 0,!1,{fileName:S,lineNumber:605,columnNumber:13},this),`Back to Store`]},void 0,!0,{fileName:S,lineNumber:602,columnNumber:11},this),(0,x.jsxDEV)(`div`,{className:`w-px h-4 bg-[#1a1a28]`},void 0,!1,{fileName:S,lineNumber:610,columnNumber:11},this),(0,x.jsxDEV)(`div`,{className:`flex items-center gap-2.5`,children:[(0,x.jsxDEV)(`div`,{className:`w-2 h-2 rounded-full bg-[#f59e0b] animate-pulse`},void 0,!1,{fileName:S,lineNumber:612,columnNumber:13},this),(0,x.jsxDEV)(`span`,{className:`text-white font-bold text-sm`,style:{fontFamily:`var(--font-display)`},children:`Keyhaus Admin`},void 0,!1,{fileName:S,lineNumber:613,columnNumber:13},this),(0,x.jsxDEV)(`span`,{className:`text-[9px] px-1.5 py-0.5 rounded-sm bg-[#f59e0b]/20 text-[#f59e0b] font-bold tracking-widest`,style:{fontFamily:`var(--font-mono)`},children:`ADMIN MODE`},void 0,!1,{fileName:S,lineNumber:616,columnNumber:13},this)]},void 0,!0,{fileName:S,lineNumber:611,columnNumber:11},this)]},void 0,!0,{fileName:S,lineNumber:601,columnNumber:9},this),(0,x.jsxDEV)(`div`,{className:`flex items-center gap-3`,children:[syncMsg&&(0,x.jsxDEV)(`span`,{className:`text-[#CAFF00] text-xs font-bold animate-fade-up`,style:{fontFamily:`var(--font-mono)`},children:syncMsg},void 0,!1,{fileName:S,lineNumber:624,columnNumber:13},this),
+function g(){let e=l.trim()||`Version ${n.length+1} — ${new Date().toLocaleDateString()}`,i={id:`v-${Date.now()}`,name:e,createdAt:new Date().toLocaleString(),data:JSON.parse(JSON.stringify(t))};r(e=>[i,...e]),c(!1),u(``),f(!0),setTimeout(()=>f(!1),2e3)}return(0,x.jsxDEV)(`div`,{className:`min-h-screen flex flex-col`,style:{backgroundColor:`#06060a`,fontFamily:`var(--font-display)`},children:[(0,x.jsxDEV)(`div`,{className:`border-b border-[#1a1a28] px-6 py-4 flex items-center justify-between sticky top-0 z-50`,style:{backgroundColor:`rgba(6,6,10,0.96)`,backdropFilter:`blur(20px)`},children:[(0,x.jsxDEV)(`div`,{className:`flex items-center gap-4`,children:[(0,x.jsxDEV)(`button`,{onClick:()=>{e();window.history.pushState(null,'','/switches');},className:`flex items-center gap-2 text-[#999] hover:text-white transition-colors text-sm font-medium group`,style:{fontFamily:`var(--font-display)`},children:[(0,x.jsxDEV)(`svg`,{width:`16`,height:`16`,viewBox:`0 0 16 16`,fill:`none`,className:`group-hover:-translate-x-0.5 transition-transform`,children:(0,x.jsxDEV)(`path`,{d:`M10 12L6 8l4-4`,stroke:`currentColor`,strokeWidth:`1.5`,strokeLinecap:`round`,strokeLinejoin:`round`},void 0,!1,{fileName:S,lineNumber:606,columnNumber:15},this)},void 0,!1,{fileName:S,lineNumber:605,columnNumber:13},this),`← Quay lại Cửa hàng`]},void 0,!0,{fileName:S,lineNumber:602,columnNumber:11},this),(0,x.jsxDEV)(`div`,{className:`w-px h-4 bg-[#1a1a28]`},void 0,!1,{fileName:S,lineNumber:610,columnNumber:11},this),(0,x.jsxDEV)(`div`,{className:`flex items-center gap-2.5`,children:[(0,x.jsxDEV)(`div`,{className:`w-2 h-2 rounded-full bg-[#f59e0b] animate-pulse`},void 0,!1,{fileName:S,lineNumber:612,columnNumber:13},this),(0,x.jsxDEV)(`span`,{className:`text-white font-bold text-sm`,style:{fontFamily:`var(--font-display)`},children:`Keyhaus Admin`},void 0,!1,{fileName:S,lineNumber:613,columnNumber:13},this),(0,x.jsxDEV)(`span`,{className:`text-[9px] px-1.5 py-0.5 rounded-sm bg-[#f59e0b]/20 text-[#f59e0b] font-bold tracking-widest`,style:{fontFamily:`var(--font-mono)`},children:`ADMIN MODE`},void 0,!1,{fileName:S,lineNumber:616,columnNumber:13},this)]},void 0,!0,{fileName:S,lineNumber:611,columnNumber:11},this)]},void 0,!0,{fileName:S,lineNumber:601,columnNumber:9},this),(0,x.jsxDEV)(`div`,{className:`flex items-center gap-3`,children:[syncMsg&&(0,x.jsxDEV)(`span`,{className:`text-[#CAFF00] text-xs font-bold animate-fade-up`,style:{fontFamily:`var(--font-mono)`},children:syncMsg},void 0,!1,{fileName:S,lineNumber:624,columnNumber:13},this),
 
 (0,x.jsxDEV)("label",{
   className:"theme-toggle-btn theme-toggle-admin group",
@@ -2328,7 +3134,35 @@ function g(){let e=l.trim()||`Version ${n.length+1} — ${new Date().toLocaleDat
       children:adminTheme==="light"?"Light":"Dark"
     })
   ]
-},void 0,!0,{fileName:S,lineNumber:624,columnNumber:30},this),d&&(0,x.jsxDEV)(`span`,{className:`text-[#f59e0b] text-xs font-medium animate-fade-up`,style:{fontFamily:`var(--font-mono)`},children:`✓ Version saved`},void 0,!1,{fileName:S,lineNumber:625,columnNumber:13},this),s?(0,x.jsxDEV)(`div`,{className:`flex items-center gap-2`,children:[(0,x.jsxDEV)(`input`,{ref:p,autoFocus:!0,value:l,onChange:e=>u(e.target.value),onKeyDown:e=>{e.key===`Enter`&&g(),e.key===`Escape`&&c(!1)},placeholder:`Version ${n.length+1}`,className:`px-3 py-1.5 rounded-lg text-sm text-white placeholder-[#444] border border-[#f59e0b]/40 outline-none focus:border-[#f59e0b]/70 bg-[#0c0c14]`,style:{width:`200px`,fontFamily:`var(--font-display)`}},void 0,!1,{fileName:S,lineNumber:631,columnNumber:15},this),(0,x.jsxDEV)(`button`,{onClick:g,className:`px-3.5 py-1.5 rounded-lg bg-[#f59e0b] text-[#06060a] font-bold text-xs hover:bg-[#fbbf24] transition-all`,style:{fontFamily:`var(--font-display)`},children:`Save`},void 0,!1,{fileName:S,lineNumber:641,columnNumber:15},this),(0,x.jsxDEV)(`button`,{onClick:()=>c(!1),className:`px-3 py-1.5 rounded-lg border border-[#1a1a28] text-[#999] hover:text-white transition-all text-xs`,style:{fontFamily:`var(--font-mono)`},children:`✕`},void 0,!1,{fileName:S,lineNumber:646,columnNumber:15},this)]},void 0,!0,{fileName:S,lineNumber:630,columnNumber:13},this):(0,x.jsxDEV)(`button`,{onClick:()=>{c(!0),setTimeout(()=>p.current?.focus(),50)},className:`flex items-center gap-2 px-4 py-2 rounded-lg bg-[#f59e0b] text-[#06060a] font-bold text-xs hover:bg-[#fbbf24] transition-all`,style:{fontFamily:`var(--font-display)`},children:[(0,x.jsxDEV)(`svg`,{width:`12`,height:`12`,viewBox:`0 0 12 12`,fill:`none`,children:[(0,x.jsxDEV)(`rect`,{x:`1`,y:`1`,width:`10`,height:`10`,rx:`1.5`,stroke:`currentColor`,strokeWidth:`1.2`},void 0,!1,{fileName:S,lineNumber:657,columnNumber:17},this),(0,x.jsxDEV)(`path`,{d:`M3.5 7.5 6 10l2.5-2.5M6 3v7`,stroke:`currentColor`,strokeWidth:`1.2`,strokeLinecap:`round`,strokeLinejoin:`round`},void 0,!1,{fileName:S,lineNumber:658,columnNumber:17},this)]},void 0,!0,{fileName:S,lineNumber:656,columnNumber:15},this),`Save Version`]},void 0,!0,{fileName:S,lineNumber:653,columnNumber:13},this)]},void 0,!0,{fileName:S,lineNumber:623,columnNumber:9},this)]},void 0,!0,{fileName:S,lineNumber:599,columnNumber:7},this),(0,x.jsxDEV)(`div`,{className:`flex flex-1 min-h-0`,children:[(0,x.jsxDEV)(`nav`,{className:`w-52 shrink-0 border-r border-[#0f0f18] py-6 px-3`,style:{backgroundColor:`#080810`},children:h.map(e=>(0,x.jsxDEV)(`div`,{className:`mb-5`,children:[(0,x.jsxDEV)(`p`,{className:`text-[#888] text-[9px] font-bold tracking-widest uppercase px-3 mb-2`,style:{fontFamily:`var(--font-mono)`},children:e},void 0,!1,{fileName:S,lineNumber:672,columnNumber:15},this),m.filter(t=>t.group===e).map(e=>(0,x.jsxDEV)(`button`,{onClick:()=>{o(e.id);window.history.pushState(null,'','/admin/'+e.id);},className:[`w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-all mb-0.5`,a===e.id?`bg-[#f59e0b]/10 text-[#f59e0b] border border-[#f59e0b]/20`:`text-[#999] hover:text-[#888] hover:bg-[#0c0c14] border border-transparent`].join(` `),style:{fontFamily:`var(--font-display)`},children:[e.label,e.id===`versions`&&n.length>0&&(0,x.jsxDEV)(`span`,{className:`ml-auto float-right text-[10px] px-1.5 py-0.5 rounded bg-[#f59e0b]/20 text-[#f59e0b]`,style:{fontFamily:`var(--font-mono)`},children:n.length},void 0,!1,{fileName:S,lineNumber:687,columnNumber:21},this)]},e.id,!0,{fileName:S,lineNumber:677,columnNumber:17},this))]},e,!0,{fileName:S,lineNumber:671,columnNumber:13},this))},void 0,!1,{fileName:S,lineNumber:669,columnNumber:9},this),(0,x.jsxDEV)(`main`,{className:`flex-1 overflow-y-auto p-8`,children:[(0,x.jsxDEV)(`div`,{className:`mb-6 flex items-center justify-between`,children:(0,x.jsxDEV)(`div`,{children:[(0,x.jsxDEV)(`h1`,{className:`text-2xl font-extrabold text-white tracking-tight`,style:{fontFamily:`var(--font-display)`},children:{personas:`Switch Personas`,keycaps:`Keycap Sets`,cables:`Cable Options`,translations:`Translations`,versions:`Version History`,'3d-settings':`3D Setting`}[a]},void 0,!1,{fileName:S,lineNumber:702,columnNumber:15},this),(0,x.jsxDEV)(`p`,{className:`text-[#888] text-xs mt-1`,style:{fontFamily:`var(--font-mono)`},children:[a===`personas`&&`Edit or add switch persona option cards shown in Step 1`,a===`keycaps`&&`Edit or add keycap product cards shown in Step 2`,a===`cables`&&`Edit or add cable product cards shown in Step 3`,a===`translations`&&`Edit all static UI text — changes reflect immediately in the storefront`,a===`versions`&&`Save snapshots of the current storefront state and restore previous versions`,a===`3d-settings`&&`Configure 3D rendering lighting, GMK & SA color presets, and model transforms`]},void 0,!0,{fileName:S,lineNumber:705,columnNumber:15},this)]},void 0,!0,{fileName:S,lineNumber:701,columnNumber:13},this)},void 0,!1,{fileName:S,lineNumber:700,columnNumber:11},this),(0,x.jsxDEV)(`div`,{style:{minHeight:`400px`},children:[a===`personas`&&(0,x.jsxDEV)(ae,{},void 0,!1,{fileName:S,lineNumber:716,columnNumber:40},this),a===`keycaps`&&(0,x.jsxDEV)(w,{type:`keycaps`},void 0,!1,{fileName:S,lineNumber:717,columnNumber:39},this),a===`cables`&&(0,x.jsxDEV)(w,{type:`cables`},void 0,!1,{fileName:S,lineNumber:718,columnNumber:38},this),a===`translations`&&(0,x.jsxDEV)(se,{},void 0,!1,{fileName:S,lineNumber:719,columnNumber:44},this),a===`versions`&&(0,x.jsxDEV)(T,{},void 0,!1,{fileName:S,lineNumber:720,columnNumber:40},this),a===`3d-settings`&&(0,x.jsxDEV)(Settings3DPanel,{},void 0,!1,{fileName:S,lineNumber:721,columnNumber:40},this)]},void 0,!0,{fileName:S,lineNumber:715,columnNumber:11},this)]},void 0,!0,{fileName:S,lineNumber:699,columnNumber:9},this)]},void 0,!0,{fileName:S,lineNumber:667,columnNumber:7},this)]},void 0,!0,{fileName:S,lineNumber:597,columnNumber:5},this)}var E=`/workspaces/.cached-preview/src/App.tsx`,le={switchPersonas:[{id:`office`,label:`Office`,tagline:`Silent & Focused`,switchName:`Gateron Silent Pink`,switchSpec:`Linear · 45g · Ultra-quiet`,badge:`SILENT`,price:45,description:`Engineered for open offices and focused deep work. Near-zero operating noise with a factory-dampened stem and pre-lubed bore. Long typing sessions feel effortless at 45g.`,features:[`45g actuation`,`Dampened stem`,`Pre-lubed`,`SMD LED compat.`],image:`/uploads/switch_office.jpg`,accent:`#60a5fa`,accentDim:`rgba(96,165,250,0.15)`},{id:`gamer`,label:`Gamer`,tagline:`Speed & Precision`,switchName:`Gateron Yellow Pro`,switchSpec:`Linear · 35g · 1.0mm pre-travel`,badge:`FAST`,price:45,description:`Lowest pre-travel actuation in its class. Factory-lubed linear motion eliminates any scratch. Built for competitive play where every millisecond of input lag matters.`,features:[`35g actuation`,`1.0mm pre-travel`,`Factory lubed`,`N-key rollover`],image:`/uploads/switch_gamer.jpg`,accent:`#f87171`,accentDim:`rgba(248,113,113,0.15)`},{id:`typist`,label:`Typist`,tagline:`Sound & Thock`,switchName:`Holy Panda X`,switchSpec:`Tactile · 67g · Thocky bump`,badge:`THOCK`,price:65,description:`The sound profile that sparked a thousand ASMR videos. A defined tactile bump at 2.0mm delivers auditory and physical confirmation of every keystroke.`,features:[`67g actuation`,`Rounded tactile bump`,`Long-pole stem`,`Thocky resonance`],image:`/uploads/switch_typist.jpg`,accent:`#a78bfa`,accentDim:`rgba(167,139,250,0.15)`},{id:`designer`,label:`Designer`,tagline:`Feedback & Flow`,switchName:`Boba U4T`,switchSpec:`Tactile · 62g · Fast + Feedback`,badge:`PRECISE`,price:55,description:`Sharp tactile bump that never interrupts flow state. Cerakote-coated housing creates a refined, muted sound signature — clean feedback without the drama.`,features:[`62g actuation`,`Sharp tactile bump`,`Cerakote housing`,`Muted sound sig.`],image:`/uploads/switch_designer.jpg`,accent:`#34d399`,accentDim:`rgba(52,211,153,0.15)`}],keycaps:[{id:`arctic-white`,name:`Arctic White`,subtitle:`PBT Double-shot · Cherry Profile`,price:89,image:`/uploads/keycap_arctic_white.jpg`,badge:`BESTSELLER`,description:`Ultra-clean legends with zero shine-through. PBT texture that only improves with age.`,accent:`#e8e8e8`},{id:`midnight-void`,name:`Midnight Void`,subtitle:`ABS · Laser-engraved · SA Profile`,price:79,image:`/uploads/cable_void_braided.jpg`,description:`Stealth matte finish with barely-there legends. For setups that prefer to disappear.`,accent:`#4a4a6a`},{id:`forest-sage`,name:`Forest Sage`,subtitle:`PBT Dye-sublimated · SA Profile`,price:95,image:`/uploads/keycap_forest_sage.jpg`,badge:`NEW`,description:`Muted earth tones with botanical-inspired colorway. Pairs beautifully with brass and walnut.`,accent:`#3d6b38`},{id:`neon-pulse`,name:`Neon Pulse`,subtitle:`ABS · Double-shot · OEM Profile`,price:85,image:`/uploads/keycap_neon_pulse.jpg`,description:`High-contrast RGB-transparent legends. Engineered for backlit builds that demand attention.`,accent:`#e84393`}],cables:[{id:`cosmos-coil`,name:`Cosmos Coil`,subtitle:`Coiled · Paracord Sleeved · USB-C`,price:55,image:`/uploads/cable_cosmos_coil.jpg`,badge:`ARTISAN`,description:`Hand-built coiled cable with custom GX16 aviator connector and milled brass barrel ends.`,accent:`#CAFF00`},{id:`void-braided`,name:`Void Braided`,subtitle:`Straight · Techflex · USB-C to USB-A`,price:28,image:`/uploads/cable_void_braided.jpg`,description:`No-frills quality. 1.8m techflex braid, triple-shielded core, zero cable drag.`,accent:`#6b7280`},{id:`aurora-coil`,name:`Aurora Coil`,subtitle:`Coiled · Transparent Sleeving · USB-C`,price:48,image:`/uploads/cable_aurora_coil.jpg`,badge:`NEW`,description:`Crystal-clear sleeving reveals the internal helix. Pairs with any keycap colorway seamlessly.`,accent:`#a5f3fc`}],translations:{brandName:`Keyhaus`,brandSubtitle:`Build Studio`,switchesTitle:`Choose your switches`,switchesSubtitle:`Four archetypes. Pick the one that fits how you work.`,keycapsTitle:`Choose your keycaps`,keycapsSubtitle:`Select one to customize and add to your build.`,cableTitle:`Choose your cable`,cableSubtitle:`Select one to customize and add to your build.`,bundleHintText:`Complete the full build and save 15% on your entire order.`,summaryTitle:`Your Build`,bundleDiscountTitle:`15% Bundle Discount Applied`,checkoutBtn:`Proceed to Checkout →`,startOverBtn:`Start Over`,addContinueBtn:`Add {name} + Continue to {next} →`,addOnlyBtn:`Add {item} only, exit flow`,skipBtn:`Skip {item}, continue without →`,customizeBtn:`Customize Design`,switchSpecsLabel:`Switch specs`,buildSoFarLabel:`Your build so far`,adminBtn:`Admin`}},ue=(0,b.createContext)(null);function de(){return(0,b.useContext)(ue)}function fe(){let{appData:e}=de();return(t,n)=>{let r=e.translations[t]??t;if(n)for(let[e,t]of Object.entries(n))r=r.replaceAll(`{${e}}`,t);return r}}var pe={keycaps:{Profile:[`Cherry`,`SA`,`OEM`,`XDA`,`MT3`],Material:[`PBT`,`ABS`],"Legend Style":[`Double-shot`,`Dye-sub`,`Laser-engraved`],Shine:[`Standard`,`Matte Coat`,`Glossy Coat`]},cable:{Connector:[`USB-C to USB-C`,`USB-C to USB-A`,`USB-C to USB-B Mini`],Length:[`0.8m`,`1.2m`,`1.5m`,`2.0m`],"Color Sleeve":[`Stock Color`,`Black`,`White`,`Custom (+$12)`],"Aviator Connector":[`None`,`GX16 Silver`,`GX16 Gold`,`GX16 Black`]}},me=.15;function he(e){return((e.keycaps?.product?.price??e.keycaps?.price??0)+(e.switches?.product?.price??e.switches?.price??0)+(e.cable?.product?.price??e.cable?.price??0))}function ge(e){let t={};for(let[n,r]of Object.entries(pe[e]??{}))t[n]=r[0];return t}function _e({text:e}){return(0,x.jsxDEV)(`span`,{className:`px-1.5 py-0.5 rounded-sm bg-[#CAFF00] text-[#06060a] font-semibold tracking-widest`,style:{fontFamily:`var(--font-mono)`,fontSize:`9px`},children:e},void 0,!1,{fileName:E,lineNumber:229,columnNumber:5},this)}function ve({current:e,cart:t,onStepClick:n}){let r=[`switches`,`keycaps`,`cable`,`summary`],i=r.indexOf(e),a=e=>e===`switches`?!!t.switches:e===`keycaps`?!!t.keycaps:e===`cable`?!!t.cable:!1,o=[{id:`switches`,label:a(`stepperSwitches`)||`Switches`,num:1},{id:`keycaps`,label:a(`stepperKeycaps`)||`Keycaps`,num:2},{id:`cable`,label:a(`stepperCable`)||`Cable`,num:3},{id:`summary`,label:a(`stepperSummary`)||`Summary`,num:4}];return(0,x.jsxDEV)(`div`,{className:`flex items-center`,children:o.map((t,s)=>{let c=r.indexOf(t.id),l=c<i,u=t.id===e,d=a(t.id);return(0,x.jsxDEV)(`div`,{className:`flex items-center`,children:[(0,x.jsxDEV)(`button`,{onClick:()=>n(t.id),className:`flex items-center gap-2.5 group/step cursor-pointer px-3.5 py-1.5 rounded-full transition-all border border-transparent`,children:[(0,x.jsxDEV)(`div`,{className:[`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-300`,u?`bg-[#CAFF00] text-[#06060a] ring-4 ring-[#CAFF00]/20 shadow-[0_0_12px_rgba(202,255,0,0.35)]`:d?`border-2 border-[#CAFF00] text-[#CAFF00] bg-[#CAFF00]/10`:`bg-[#1e1e2e] group-hover/step:bg-[#2a2a3e]`].join(` `),style:{fontFamily:`var(--font-mono)`,fontSize:`11px`,color:u?`#06060a`:d?`#CAFF00`:`#999999`},children:d&&!u?`✓`:t.num},void 0,!1,{fileName:E,lineNumber:274,columnNumber:15},this),(0,x.jsxDEV)(`span`,{className:[`text-sm font-semibold transition-colors`,u?`text-white`:`hover:text-white`].join(` `),style:{fontFamily:`var(--font-display)`,color:u?`#ffffff`:`#999999`},children:t.label},void 0,!1,{fileName:E,lineNumber:289,columnNumber:15},this)]},void 0,!0,{fileName:E,lineNumber:270,columnNumber:13},this),s<o.length-1&&(0,x.jsxDEV)(`div`,{className:`mx-3`,children:(0,x.jsxDEV)(`div`,{className:[`h-px w-12 transition-all duration-500`,c<i?`bg-[#CAFF00]/40`:`bg-[#1a1a2a]`].join(` `)},void 0,!1,{fileName:E,lineNumber:301,columnNumber:17},this)},void 0,!1,{fileName:E,lineNumber:300,columnNumber:15},this)]},t.id,!0,{fileName:E,lineNumber:269,columnNumber:11},this)})},void 0,!1,{fileName:E,lineNumber:261,columnNumber:5},this)}function ye({label:e,values:t,selected:n,onChange:r}){return(0,x.jsxDEV)(`div`,{children:[(0,x.jsxDEV)(`div`,{className:`flex items-center justify-between mb-2`,children:[(0,x.jsxDEV)(`span`,{className:`text-[#999] text-[10px] font-medium tracking-widest uppercase`,style:{fontFamily:`var(--font-mono)`},children:e},void 0,!1,{fileName:E,lineNumber:325,columnNumber:9},this),(0,x.jsxDEV)(`span`,{className:`text-[#CAFF00] text-[11px]`,style:{fontFamily:`var(--font-mono)`},children:n},void 0,!1,{fileName:E,lineNumber:328,columnNumber:9},this)]},void 0,!0,{fileName:E,lineNumber:324,columnNumber:7},this),(0,x.jsxDEV)(`div`,{className:`flex flex-wrap gap-1.5`,children:t.map(e=>(0,x.jsxDEV)(`button`,{onClick:()=>r(e),className:[`px-2.5 py-1 rounded-md text-[10px] font-medium transition-all duration-150`,n===e?`bg-[#CAFF00] text-[#06060a]`:`bg-[#111118] text-[#999] hover:text-[#888] border border-[#1e1e2e]`].join(` `),style:{fontFamily:`var(--font-mono)`},children:e},e,!1,{fileName:E,lineNumber:332,columnNumber:11},this))},void 0,!1,{fileName:E,lineNumber:330,columnNumber:7},this)]},void 0,!0,{fileName:E,lineNumber:323,columnNumber:5},this)}function be({entry:e,label:t}){let p=e?.product||e||{};return(0,x.jsxDEV)(`div`,{className:`flex items-center gap-3 py-3 border-b border-[#0f0f18] last:border-0`,children:[(0,x.jsxDEV)(`img`,{src:p.image,alt:p.name,className:`w-10 h-10 rounded-lg object-cover bg-[#0d0d14] shrink-0`},void 0,!1,{fileName:E,lineNumber:354,columnNumber:7},this),(0,x.jsxDEV)(`div`,{className:`flex-1 min-w-0`,children:[(0,x.jsxDEV)(`p`,{className:`text-[#999] text-[10px] font-medium tracking-widest uppercase`,style:{fontFamily:`var(--font-mono)`},children:t},void 0,!1,{fileName:E,lineNumber:356,columnNumber:9},this),(0,x.jsxDEV)(`p`,{className:`text-white text-sm font-semibold truncate`,style:{fontFamily:`var(--font-display)`},children:p.name},void 0,!1,{fileName:E,lineNumber:357,columnNumber:9},this)]},void 0,!0,{fileName:E,lineNumber:355,columnNumber:7},this),(0,x.jsxDEV)(`span`,{className:`text-white font-bold text-sm shrink-0`,style:{fontFamily:`var(--font-mono)`},children:formatPrice(p.price??0)},void 0,!0,{fileName:E,lineNumber:359,columnNumber:7},this)]},void 0,!0,{fileName:E,lineNumber:353,columnNumber:5},this)}function xe({cart:e,onAdd:t,onAddOnly:n,onSkip:r}){let{appData:i}=de(),a=fe(),o=i.switchPersonas,[s,c]=(0,b.useState)(o[0]?.id??``),[l,u]=(0,b.useState)(!0),[d,f]=(0,b.useState)(!1),p=o.find(e=>e.id===s)??o[0];(0,b.useEffect)(()=>{!o.find(e=>e.id===s)&&o[0]&&c(o[0].id)},[o]);function m(e){e!==s&&(u(!1),setTimeout(()=>{c(e),u(!0)},180))}function h(){return{product:{id:p.id,name:p.switchName,subtitle:p.switchSpec,price:p.price,image:p.image,description:p.description,accent:p.accent,badge:p.badge},opts:{Profile:p.label,Sound:p.badge}}}return p?(0,x.jsxDEV)(`div`,{className:`animate-fade-up`,children:[(0,x.jsxDEV)(`div`,{className:`mb-6`,children:[(0,x.jsxDEV)(`h2`,{className:`text-3xl font-extrabold text-white tracking-tight`,style:{fontFamily:`var(--font-display)`},children:a(`switchesTitle`)},void 0,!1,{fileName:E,lineNumber:414,columnNumber:9},this),(0,x.jsxDEV)(`p`,{className:`text-[#999] text-sm mt-1`,children:a(`switchesSubtitle`)},void 0,!1,{fileName:E,lineNumber:417,columnNumber:9},this)]},void 0,!0,{fileName:E,lineNumber:413,columnNumber:7},this),(0,x.jsxDEV)(`div`,{className:`flex gap-3 mb-5 flex-wrap`,children:o.map(e=>{let t=s===e.id;return(0,x.jsxDEV)(`button`,{onClick:()=>m(e.id),className:[`relative rounded-2xl p-4 text-left transition-all duration-200 border min-w-[140px]`,t?`border-transparent`:`border-[#1a1a2a] bg-[#0d0d14] hover:border-[#2a2a3a]`].join(` `),style:t?{backgroundColor:e.accentDim,borderColor:e.accent+`60`}:{},children:[t&&(0,x.jsxDEV)(`div`,{className:`absolute inset-0 rounded-2xl opacity-20 pointer-events-none`,style:{background:`radial-gradient(circle at top left, ${e.accent}, transparent 70%)`}},void 0,!1,{fileName:E,lineNumber:435,columnNumber:17},this),(0,x.jsxDEV)(`div`,{className:`relative`,children:[(0,x.jsxDEV)(`div`,{className:`flex items-center justify-between mb-2`,children:[(0,x.jsxDEV)(`span`,{className:[`text-[9px] font-bold tracking-widest px-1.5 py-0.5 rounded-sm`,t?`text-[#06060a]`:`text-[#888] bg-[#111118]`].join(` `),style:{fontFamily:`var(--font-mono)`,backgroundColor:t?e.accent:void 0},children:e.badge},void 0,!1,{fileName:E,lineNumber:440,columnNumber:19},this),t&&(0,x.jsxDEV)(`div`,{className:`w-2 h-2 rounded-full`,style:{backgroundColor:e.accent}},void 0,!1,{fileName:E,lineNumber:444,columnNumber:30},this)]},void 0,!0,{fileName:E,lineNumber:439,columnNumber:17},this),(0,x.jsxDEV)(`p`,{className:[`font-bold text-base leading-none`,t?`text-white`:`text-[#999]`].join(` `),style:{fontFamily:`var(--font-display)`},children:e.label},void 0,!1,{fileName:E,lineNumber:446,columnNumber:17},this),(0,x.jsxDEV)(`p`,{className:[`text-[11px] mt-1`,t?`text-[#888]`:`text-[#888]`].join(` `),style:{fontFamily:`var(--font-mono)`},children:e.tagline},void 0,!1,{fileName:E,lineNumber:449,columnNumber:17},this)]},void 0,!0,{fileName:E,lineNumber:438,columnNumber:15},this)]},e.id,!0,{fileName:E,lineNumber:425,columnNumber:13},this)})},void 0,!1,{fileName:E,lineNumber:421,columnNumber:7},this),(0,x.jsxDEV)(`div`,{className:`grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-5 items-start`,children:[(0,x.jsxDEV)(`div`,{children:[(0,x.jsxDEV)(`div`,{className:`relative rounded-3xl overflow-hidden cursor-pointer`,style:{backgroundColor:`#0d0d14`,height:`440px`},onMouseEnter:()=>f(!0),onMouseLeave:()=>f(!1),children:[(0,x.jsxDEV)(`img`,{src:p.image,alt:p.switchName,className:`w-full h-full object-cover transition-all duration-700`,style:{opacity:l?.85:0,transform:l?`scale(1)`:`scale(1.03)`}},void 0,!1,{fileName:E,lineNumber:463,columnNumber:13},this),(0,x.jsxDEV)(`div`,{className:`absolute bottom-0 left-0 right-0 px-7 py-6 transition-opacity duration-300`,style:{background:`linear-gradient(to top, rgba(6,6,10,0.95) 0%, rgba(6,6,10,0.5) 60%, transparent 100%)`,opacity:d?0:1},children:(0,x.jsxDEV)(`div`,{className:`flex items-end justify-between`,children:[(0,x.jsxDEV)(`div`,{children:[(0,x.jsxDEV)(`div`,{className:`flex items-center gap-2 mb-1`,children:(0,x.jsxDEV)(`span`,{className:`text-[9px] font-bold tracking-widest px-1.5 py-0.5 rounded-sm text-[#06060a]`,style:{fontFamily:`var(--font-mono)`,backgroundColor:p.accent},children:p.badge},void 0,!1,{fileName:E,lineNumber:472,columnNumber:21},this)},void 0,!1,{fileName:E,lineNumber:471,columnNumber:19},this),(0,x.jsxDEV)(`h3`,{className:`text-white font-extrabold text-2xl leading-none`,style:{fontFamily:`var(--font-display)`},children:p.switchName},void 0,!1,{fileName:E,lineNumber:475,columnNumber:19},this),(0,x.jsxDEV)(`p`,{className:`text-[#999] text-xs mt-1`,style:{fontFamily:`var(--font-mono)`},children:p.switchSpec},void 0,!1,{fileName:E,lineNumber:476,columnNumber:19},this)]},void 0,!0,{fileName:E,lineNumber:470,columnNumber:17},this),(0,x.jsxDEV)(`div`,{className:`font-black text-3xl`,style:{fontFamily:`var(--font-mono)`,color:p.accent},children:formatPrice(p.price)},void 0,!0,{fileName:E,lineNumber:478,columnNumber:17},this)]},void 0,!0,{fileName:E,lineNumber:469,columnNumber:15},this)},void 0,!1,{fileName:E,lineNumber:467,columnNumber:13},this),(0,x.jsxDEV)(`div`,{className:`absolute inset-0 transition-opacity duration-300 flex flex-col justify-end`,style:{opacity:d?1:0,background:`linear-gradient(to top, rgba(6,6,10,0.97) 0%, rgba(6,6,10,0.75) 50%, rgba(6,6,10,0.3) 100%)`,pointerEvents:d?`auto`:`none`},children:(0,x.jsxDEV)(`div`,{className:`px-7 py-7`,children:[(0,x.jsxDEV)(`p`,{className:`text-[#aaa] text-sm leading-relaxed mb-4 max-w-lg`,children:p.description},void 0,!1,{fileName:E,lineNumber:490,columnNumber:17},this),(0,x.jsxDEV)(`div`,{className:`flex flex-wrap gap-2 mb-6`,children:p.features.map(e=>(0,x.jsxDEV)(`span`,{className:`px-2.5 py-1 rounded-full border text-[10px] font-medium`,style:{fontFamily:`var(--font-mono)`,borderColor:p.accent+`50`,color:p.accent,backgroundColor:p.accentDim},children:e},e,!1,{fileName:E,lineNumber:493,columnNumber:21},this))},void 0,!1,{fileName:E,lineNumber:491,columnNumber:17},this),(0,x.jsxDEV)(`div`,{className:`flex items-center gap-3`,children:[(0,x.jsxDEV)(`button`,{onClick:()=>n(h()),className:`flex-1 py-3 rounded-xl font-bold text-sm text-[#06060a] transition-all duration-150 hover:brightness-110 active:scale-[0.98]`,style:{fontFamily:`var(--font-display)`,backgroundColor:p.accent},children:`Add to cart → Checkout`},void 0,!1,{fileName:E,lineNumber:500,columnNumber:19},this),(0,x.jsxDEV)(`button`,{onClick:r,className:`px-5 py-3 rounded-xl border border-[#2a2a3a] text-[#999] hover:text-[#888] hover:border-[#3a3a4a] text-sm font-semibold transition-all`,style:{fontFamily:`var(--font-display)`},children:`Skip →`},void 0,!1,{fileName:E,lineNumber:505,columnNumber:19},this)]},void 0,!0,{fileName:E,lineNumber:499,columnNumber:17},this)]},void 0,!0,{fileName:E,lineNumber:489,columnNumber:15},this)},void 0,!1,{fileName:E,lineNumber:483,columnNumber:13},this)]},void 0,!0,{fileName:E,lineNumber:461,columnNumber:11},this),(0,x.jsxDEV)(`button`,{onClick:()=>t(h()),className:`mt-3 w-full py-3.5 rounded-xl bg-[#CAFF00] text-[#06060a] font-bold text-sm hover:bg-[#d4ff00] active:scale-[0.99] transition-all`,style:{fontFamily:`var(--font-display)`},children:a(`addContinueBtn`,{name:p.switchName,next:`Keycaps`})},void 0,!1,{fileName:E,lineNumber:515,columnNumber:11},this)]},void 0,!0,{fileName:E,lineNumber:459,columnNumber:9},this),(0,x.jsxDEV)(`div`,{className:`space-y-4`,children:[(0,x.jsxDEV)(`div`,{className:`rounded-2xl p-5 border border-[#1a1a2a] transition-all duration-300`,style:{backgroundColor:`#0d0d14`},children:[(0,x.jsxDEV)(`div`,{className:`flex items-center gap-2 mb-4`,children:[(0,x.jsxDEV)(`div`,{className:`w-1 h-4 rounded-full`,style:{backgroundColor:p.accent}},void 0,!1,{fileName:E,lineNumber:526,columnNumber:15},this),(0,x.jsxDEV)(`span`,{className:`text-white font-semibold text-sm`,style:{fontFamily:`var(--font-display)`},children:a(`switchSpecsLabel`)},void 0,!1,{fileName:E,lineNumber:527,columnNumber:15},this)]},void 0,!0,{fileName:E,lineNumber:525,columnNumber:13},this),(0,x.jsxDEV)(`div`,{className:`space-y-3`,children:[{label:`Type`,value:p.badge},{label:`Actuation`,value:p.switchSpec.split(`·`)[1]?.trim()??`—`},{label:`Travel`,value:`4.0mm total`},{label:`Housing`,value:p.id===`designer`?`Cerakote PC`:`Nylon PA66`}].map(e=>(0,x.jsxDEV)(`div`,{className:`flex items-center justify-between`,children:[(0,x.jsxDEV)(`span`,{className:`text-[#999] text-[11px]`,style:{fontFamily:`var(--font-mono)`},children:e.label},void 0,!1,{fileName:E,lineNumber:537,columnNumber:19},this),(0,x.jsxDEV)(`span`,{className:`text-[11px] font-medium`,style:{fontFamily:`var(--font-mono)`,color:p.accent},children:e.value},void 0,!1,{fileName:E,lineNumber:538,columnNumber:19},this)]},e.label,!0,{fileName:E,lineNumber:536,columnNumber:17},this))},void 0,!1,{fileName:E,lineNumber:529,columnNumber:13},this)]},void 0,!0,{fileName:E,lineNumber:524,columnNumber:11},this),(e.keycaps||e.cable)&&(0,x.jsxDEV)(`div`,{className:`rounded-2xl p-4 border border-[#111118] bg-[#0a0a10]`,children:[(0,x.jsxDEV)(`p`,{className:`text-[#888] text-[10px] font-semibold tracking-widest uppercase mb-3`,style:{fontFamily:`var(--font-mono)`},children:a(`buildSoFarLabel`)},void 0,!1,{fileName:E,lineNumber:546,columnNumber:15},this),e.keycaps&&(0,x.jsxDEV)(be,{entry:e.keycaps,label:`Keycaps`},void 0,!1,{fileName:E,lineNumber:547,columnNumber:32},this),e.cable&&(0,x.jsxDEV)(be,{entry:e.cable,label:`Cable`},void 0,!1,{fileName:E,lineNumber:548,columnNumber:30},this)]},void 0,!0,{fileName:E,lineNumber:545,columnNumber:13},this),(0,x.jsxDEV)(`div`,{className:`rounded-xl px-4 py-3 border border-[#CAFF00]/20 bg-[#CAFF00]/5`,children:(0,x.jsxDEV)(`p`,{className:`text-[#CAFF00]/70 leading-relaxed`,style:{fontFamily:`var(--font-mono)`,fontSize:`11px`},children:[`◆ `,a(`bundleHintText`).replace(`15%`,``),(0,x.jsxDEV)(`span`,{className:`text-[#CAFF00] font-bold`,children:`15%`},void 0,!1,{fileName:E,lineNumber:555,columnNumber:15},this),`.`]},void 0,!0,{fileName:E,lineNumber:553,columnNumber:13},this)},void 0,!1,{fileName:E,lineNumber:552,columnNumber:11},this)]},void 0,!0,{fileName:E,lineNumber:523,columnNumber:9},this)]},void 0,!0,{fileName:E,lineNumber:458,columnNumber:7},this)]},void 0,!0,{fileName:E,lineNumber:412,columnNumber:5},this):null}function Se({product:e,selected:t,onSelect:n,onCustomize:r}){let i=fe();return(0,x.jsxDEV)(`div`,{className:[`group relative w-full rounded-2xl overflow-hidden transition-all duration-300`,t?`ring-2 ring-[#CAFF00] shadow-[0_0_32px_rgba(202,255,0,0.12)]`:`ring-1 ring-[#1a1a2a] hover:ring-[#2e2e44]`].join(` `),style:{backgroundColor:`#0d0d14`},children:[(0,x.jsxDEV)(`div`,{onClick:n,className:`product-card-info w-full text-left cursor-pointer block`,children:(0,x.jsxDEV)(`div`,{className:`relative h-44 overflow-hidden bg-[#0a0a12]`,children:[(0,x.jsxDEV)(`img`,{src:e.image,alt:e.name,className:`w-full h-full object-cover opacity-80 group-hover:opacity-95 group-hover:scale-[1.03] transition-all duration-500`},void 0,!1,{fileName:E,lineNumber:579,columnNumber:11},this),(0,x.jsxDEV)(`div`,{className:`absolute inset-0 bg-gradient-to-t from-[#0d0d14] via-transparent to-transparent`},void 0,!1,{fileName:E,lineNumber:581,columnNumber:11},this),e.badge&&(0,x.jsxDEV)(`div`,{className:`absolute top-3 left-3`,children:(0,x.jsxDEV)(_e,{text:e.badge},void 0,!1,{fileName:E,lineNumber:582,columnNumber:68},this)},void 0,!1,{fileName:E,lineNumber:582,columnNumber:29},this),t&&(0,x.jsxDEV)(`div`,{className:`absolute top-3 right-3 w-6 h-6 rounded-full bg-[#CAFF00] flex items-center justify-center`,children:(0,x.jsxDEV)(`span`,{className:`text-[#06060a] text-xs font-black`,children:`✓`},void 0,!1,{fileName:E,lineNumber:585,columnNumber:15},this)},void 0,!1,{fileName:E,lineNumber:584,columnNumber:13},this)]},void 0,!0,{fileName:E,lineNumber:578,columnNumber:9},this)},void 0,!1,{fileName:E,lineNumber:577,columnNumber:7},this),(0,x.jsxDEV)(`div`,{className:`p-4`,children:[(0,x.jsxDEV)(`div`,{onClick:n,className:`product-card-info w-full text-left cursor-pointer block`,children:[(0,x.jsxDEV)(`div`,{className:`flex items-start justify-between gap-2`,children:[(0,x.jsxDEV)(`div`,{children:[(0,x.jsxDEV)(`h3`,{className:`text-white font-bold text-base leading-tight`,style:{fontFamily:`var(--font-display)`},children:e.name},void 0,!1,{fileName:E,lineNumber:594,columnNumber:15},this),(0,x.jsxDEV)(`p`,{className:`text-[#999] text-xs mt-0.5`,style:{fontFamily:`var(--font-mono)`},children:e.subtitle},void 0,!1,{fileName:E,lineNumber:595,columnNumber:15},this)]},void 0,!0,{fileName:E,lineNumber:593,columnNumber:13},this),(0,x.jsxDEV)(`div`,{className:`text-[#CAFF00] font-bold text-lg shrink-0`,style:{fontFamily:`var(--font-mono)`},children:formatPrice(e.price)},void 0,!0,{fileName:E,lineNumber:597,columnNumber:13},this)]},void 0,!0,{fileName:E,lineNumber:592,columnNumber:11},this),(0,x.jsxDEV)(`p`,{className:`text-[#999] text-xs leading-relaxed mt-2.5 line-clamp-2`,children:e.description},void 0,!1,{fileName:E,lineNumber:599,columnNumber:11},this)]},void 0,!0,{fileName:E,lineNumber:591,columnNumber:9},this),r&&(0,x.jsxDEV)(`button`,{onClick:r,className:`mt-3 w-full flex items-center justify-center gap-1.5 py-2 rounded-lg border border-dashed border-[#2a2a3e] text-[#999] hover:text-[#CAFF00] hover:border-[#CAFF00]/40 transition-all duration-200 group/cust`,children:[(0,x.jsxDEV)(`svg`,{width:`12`,height:`12`,viewBox:`0 0 12 12`,fill:`none`,className:`opacity-60 group-hover/cust:opacity-100 transition-opacity`,children:(0,x.jsxDEV)(`path`,{d:`M8.5 1.5a1.414 1.414 0 0 1 2 2L4 10H2v-2L8.5 1.5Z`,stroke:`currentColor`,strokeWidth:`1.2`,strokeLinecap:`round`,strokeLinejoin:`round`},void 0,!1,{fileName:E,lineNumber:605,columnNumber:15},this)},void 0,!1,{fileName:E,lineNumber:604,columnNumber:13},this),(0,x.jsxDEV)(`span`,{className:`text-[10px] font-semibold tracking-widest uppercase`,style:{fontFamily:`var(--font-mono)`},children:i(`customizeBtn`)},void 0,!1,{fileName:E,lineNumber:607,columnNumber:13},this)]},void 0,!0,{fileName:E,lineNumber:602,columnNumber:11},this)]},void 0,!0,{fileName:E,lineNumber:590,columnNumber:7},this)]},void 0,!0,{fileName:E,lineNumber:574,columnNumber:5},this)}function Ce({stepId:e,products:t,stepLabel:n,nextLabel:r,cart:i,onAdd:a,onAddOnly:o,onSkip:s,onCustomizeProduct:cstm}){
+},void 0,!0,{fileName:S,lineNumber:624,columnNumber:30},this),d&&(0,x.jsxDEV)(`span`,{className:`text-[#f59e0b] text-xs font-medium animate-fade-up`,style:{fontFamily:`var(--font-mono)`},children:`✓ Version saved`},void 0,!1,{fileName:S,lineNumber:625,columnNumber:13},this),s?(0,x.jsxDEV)(`div`,{className:`flex items-center gap-2`,children:[(0,x.jsxDEV)(`input`,{ref:p,autoFocus:!0,value:l,onChange:e=>u(e.target.value),onKeyDown:e=>{e.key===`Enter`&&g(),e.key===`Escape`&&c(!1)},placeholder:`Version ${n.length+1}`,className:`px-3 py-1.5 rounded-lg text-sm text-white placeholder-[#444] border border-[#f59e0b]/40 outline-none focus:border-[#f59e0b]/70 bg-[#0c0c14]`,style:{width:`200px`,fontFamily:`var(--font-display)`}},void 0,!1,{fileName:S,lineNumber:631,columnNumber:15},this),(0,x.jsxDEV)(`button`,{onClick:g,className:`px-3.5 py-1.5 rounded-lg bg-[#f59e0b] text-[#06060a] font-bold text-xs hover:bg-[#fbbf24] transition-all`,style:{fontFamily:`var(--font-display)`},children:`Save`},void 0,!1,{fileName:S,lineNumber:641,columnNumber:15},this),(0,x.jsxDEV)(`button`,{onClick:()=>c(!1),className:`px-3 py-1.5 rounded-lg border border-[#1a1a28] text-[#999] hover:text-white transition-all text-xs`,style:{fontFamily:`var(--font-mono)`},children:`✕`},void 0,!1,{fileName:S,lineNumber:646,columnNumber:15},this)]},void 0,!0,{fileName:S,lineNumber:630,columnNumber:13},this):(0,x.jsxDEV)(`button`,{onClick:()=>{c(!0),setTimeout(()=>p.current?.focus(),50)},className:`flex items-center gap-2 px-4 py-2 rounded-lg bg-[#f59e0b] text-[#06060a] font-bold text-xs hover:bg-[#fbbf24] transition-all`,style:{fontFamily:`var(--font-display)`},children:[(0,x.jsxDEV)(`svg`,{width:`12`,height:`12`,viewBox:`0 0 12 12`,fill:`none`,children:[(0,x.jsxDEV)(`rect`,{x:`1`,y:`1`,width:`10`,height:`10`,rx:`1.5`,stroke:`currentColor`,strokeWidth:`1.2`},void 0,!1,{fileName:S,lineNumber:657,columnNumber:17},this),(0,x.jsxDEV)(`path`,{d:`M3.5 7.5 6 10l2.5-2.5M6 3v7`,stroke:`currentColor`,strokeWidth:`1.2`,strokeLinecap:`round`,strokeLinejoin:`round`},void 0,!1,{fileName:S,lineNumber:658,columnNumber:17},this)]},void 0,!0,{fileName:S,lineNumber:656,columnNumber:15},this),`Save Version`]},void 0,!0,{fileName:S,lineNumber:653,columnNumber:13},this)]},void 0,!0,{fileName:S,lineNumber:623,columnNumber:9},this)]},void 0,!0,{fileName:S,lineNumber:599,columnNumber:7},this),(0,x.jsxDEV)(`div`,{className:`flex flex-1 min-h-0`,children:[(0,x.jsxDEV)(`nav`,{className:`w-52 shrink-0 border-r border-[#0f0f18] py-6 px-3`,style:{backgroundColor:`#080810`},children:h.map(e=>(0,x.jsxDEV)(`div`,{className:`mb-5`,children:[(0,x.jsxDEV)(`p`,{className:`text-[#888] text-[9px] font-bold tracking-widest uppercase px-3 mb-2`,style:{fontFamily:`var(--font-mono)`},children:e},void 0,!1,{fileName:S,lineNumber:672,columnNumber:15},this),m.filter(t=>t.group===e).map(e=>(0,x.jsxDEV)(`button`,{onClick:()=>{o(e.id);window.history.pushState(null,'','/admin/'+e.id);},className:[`w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-all mb-0.5`,a===e.id?`bg-[#f59e0b]/10 text-[#f59e0b] border border-[#f59e0b]/20`:`text-[#999] hover:text-[#888] hover:bg-[#0c0c14] border border-transparent`].join(` `),style:{fontFamily:`var(--font-display)`},children:[e.label,e.id===`versions`&&n.length>0&&(0,x.jsxDEV)(`span`,{className:`ml-auto float-right text-[10px] px-1.5 py-0.5 rounded bg-[#f59e0b]/20 text-[#f59e0b]`,style:{fontFamily:`var(--font-mono)`},children:n.length},void 0,!1,{fileName:S,lineNumber:687,columnNumber:21},this)]},e.id,!0,{fileName:S,lineNumber:677,columnNumber:17},this))]},e,!0,{fileName:S,lineNumber:671,columnNumber:13},this))},void 0,!1,{fileName:S,lineNumber:669,columnNumber:9},this),(0,x.jsxDEV)(`main`,{className:`flex-1 overflow-y-auto p-8`,children:[(0,x.jsxDEV)(`div`,{className:`mb-6 flex items-center justify-between`,children:(0,x.jsxDEV)(`div`,{children:[(0,x.jsxDEV)(`h1`,{className:`text-2xl font-extrabold text-white tracking-tight`,style:{fontFamily:`var(--font-display)`},children:{personas:`Switch Personas`,keycaps:`Keycap Sets`,cables:`Cable Options`,translations:`Translations`,versions:`Version History`,'3d-settings':`3D Setting`}[a]},void 0,!1,{fileName:S,lineNumber:702,columnNumber:15},this),(0,x.jsxDEV)(`p`,{className:`text-[#888] text-xs mt-1`,style:{fontFamily:`var(--font-mono)`},children:[a===`personas`&&`Edit or add switch persona option cards shown in Step 1`,a===`keycaps`&&`Edit or add keycap product cards shown in Step 2`,a===`cables`&&`Edit or add cable product cards shown in Step 3`,a===`translations`&&`Edit all static UI text — changes reflect immediately in the storefront`,a===`versions`&&`Save snapshots of the current storefront state and restore previous versions`,a===`3d-settings`&&`Configure 3D rendering lighting, GMK & SA color presets, and model transforms`]},void 0,!0,{fileName:S,lineNumber:705,columnNumber:15},this)]},void 0,!0,{fileName:S,lineNumber:701,columnNumber:13},this)},void 0,!1,{fileName:S,lineNumber:700,columnNumber:11},this),(0,x.jsxDEV)(`div`,{style:{minHeight:`400px`},children:[a===`personas`&&(0,x.jsxDEV)(ae,{},void 0,!1,{fileName:S,lineNumber:716,columnNumber:40},this),a===`keycaps`&&(0,x.jsxDEV)(w,{type:`keycaps`},void 0,!1,{fileName:S,lineNumber:717,columnNumber:39},this),a===`cables`&&(0,x.jsxDEV)(w,{type:`cables`},void 0,!1,{fileName:S,lineNumber:718,columnNumber:38},this),a===`translations`&&(0,x.jsxDEV)(se,{},void 0,!1,{fileName:S,lineNumber:719,columnNumber:44},this),a===`versions`&&(0,x.jsxDEV)(T,{},void 0,!1,{fileName:S,lineNumber:720,columnNumber:40},this),a===`3d-settings`&&(0,x.jsxDEV)(Settings3DPanel,{},void 0,!1,{fileName:S,lineNumber:721,columnNumber:40},this),a===`orders`&&(0,x.jsxDEV)(AdminOrdersPanel,{},void 0,!1,{fileName:S,lineNumber:722,columnNumber:40},this)]},void 0,!0,{fileName:S,lineNumber:715,columnNumber:11},this)]},void 0,!0,{fileName:S,lineNumber:699,columnNumber:9},this)]},void 0,!0,{fileName:S,lineNumber:667,columnNumber:7},this)]},void 0,!0,{fileName:S,lineNumber:597,columnNumber:5},this)}var E=`/workspaces/.cached-preview/src/App.tsx`,le={switchPersonas:[{id:`office`,label:`Office`,tagline:`Silent & Focused`,switchName:`Gateron Silent Pink`,switchSpec:`Linear · 45g · Ultra-quiet`,badge:`SILENT`,price:45,description:`Engineered for open offices and focused deep work. Near-zero operating noise with a factory-dampened stem and pre-lubed bore. Long typing sessions feel effortless at 45g.`,features:[`45g actuation`,`Dampened stem`,`Pre-lubed`,`SMD LED compat.`],image:`/uploads/switch_office.jpg`,accent:`#60a5fa`,accentDim:`rgba(96,165,250,0.15)`},{id:`gamer`,label:`Gamer`,tagline:`Speed & Precision`,switchName:`Gateron Yellow Pro`,switchSpec:`Linear · 35g · 1.0mm pre-travel`,badge:`FAST`,price:45,description:`Lowest pre-travel actuation in its class. Factory-lubed linear motion eliminates any scratch. Built for competitive play where every millisecond of input lag matters.`,features:[`35g actuation`,`1.0mm pre-travel`,`Factory lubed`,`N-key rollover`],image:`/uploads/switch_gamer.jpg`,accent:`#f87171`,accentDim:`rgba(248,113,113,0.15)`},{id:`typist`,label:`Typist`,tagline:`Sound & Thock`,switchName:`Holy Panda X`,switchSpec:`Tactile · 67g · Thocky bump`,badge:`THOCK`,price:65,description:`The sound profile that sparked a thousand ASMR videos. A defined tactile bump at 2.0mm delivers auditory and physical confirmation of every keystroke.`,features:[`67g actuation`,`Rounded tactile bump`,`Long-pole stem`,`Thocky resonance`],image:`/uploads/switch_typist.jpg`,accent:`#a78bfa`,accentDim:`rgba(167,139,250,0.15)`},{id:`designer`,label:`Designer`,tagline:`Feedback & Flow`,switchName:`Boba U4T`,switchSpec:`Tactile · 62g · Fast + Feedback`,badge:`PRECISE`,price:55,description:`Sharp tactile bump that never interrupts flow state. Cerakote-coated housing creates a refined, muted sound signature — clean feedback without the drama.`,features:[`62g actuation`,`Sharp tactile bump`,`Cerakote housing`,`Muted sound sig.`],image:`/uploads/switch_designer.jpg`,accent:`#34d399`,accentDim:`rgba(52,211,153,0.15)`}],keycaps:[{id:`arctic-white`,name:`Arctic White`,subtitle:`PBT Double-shot · Cherry Profile`,price:89,image:`/uploads/keycap_arctic_white.jpg`,badge:`BESTSELLER`,description:`Ultra-clean legends with zero shine-through. PBT texture that only improves with age.`,accent:`#e8e8e8`},{id:`midnight-void`,name:`Midnight Void`,subtitle:`ABS · Laser-engraved · SA Profile`,price:79,image:`/uploads/cable_void_braided.jpg`,description:`Stealth matte finish with barely-there legends. For setups that prefer to disappear.`,accent:`#4a4a6a`},{id:`forest-sage`,name:`Forest Sage`,subtitle:`PBT Dye-sublimated · SA Profile`,price:95,image:`/uploads/keycap_forest_sage.jpg`,badge:`NEW`,description:`Muted earth tones with botanical-inspired colorway. Pairs beautifully with brass and walnut.`,accent:`#3d6b38`},{id:`neon-pulse`,name:`Neon Pulse`,subtitle:`ABS · Double-shot · OEM Profile`,price:85,image:`/uploads/keycap_neon_pulse.jpg`,description:`High-contrast RGB-transparent legends. Engineered for backlit builds that demand attention.`,accent:`#e84393`}],cables:[{id:`cosmos-coil`,name:`Cosmos Coil`,subtitle:`Coiled · Paracord Sleeved · USB-C`,price:55,image:`/uploads/cable_cosmos_coil.jpg`,badge:`ARTISAN`,description:`Hand-built coiled cable with custom GX16 aviator connector and milled brass barrel ends.`,accent:`#CAFF00`},{id:`void-braided`,name:`Void Braided`,subtitle:`Straight · Techflex · USB-C to USB-A`,price:28,image:`/uploads/cable_void_braided.jpg`,description:`No-frills quality. 1.8m techflex braid, triple-shielded core, zero cable drag.`,accent:`#6b7280`},{id:`aurora-coil`,name:`Aurora Coil`,subtitle:`Coiled · Transparent Sleeving · USB-C`,price:48,image:`/uploads/cable_aurora_coil.jpg`,badge:`NEW`,description:`Crystal-clear sleeving reveals the internal helix. Pairs with any keycap colorway seamlessly.`,accent:`#a5f3fc`}],translations:{brandName:`Keyhaus`,brandSubtitle:`Build Studio`,switchesTitle:`Choose your switches`,switchesSubtitle:`Four archetypes. Pick the one that fits how you work.`,keycapsTitle:`Choose your keycaps`,keycapsSubtitle:`Select one to customize and add to your build.`,cableTitle:`Choose your cable`,cableSubtitle:`Select one to customize and add to your build.`,bundleHintText:`Complete the full build and save 15% on your entire order.`,summaryTitle:`Your Build`,bundleDiscountTitle:`15% Bundle Discount Applied`,checkoutBtn:`Proceed to Checkout →`,startOverBtn:`Start Over`,addContinueBtn:`Add {name} + Continue to {next} →`,addOnlyBtn:`Add {item} only, exit flow`,skipBtn:`Skip {item}, continue without →`,customizeBtn:`Customize Design`,switchSpecsLabel:`Switch specs`,buildSoFarLabel:`Your build so far`,adminBtn:`Admin`}},ue=(0,b.createContext)(null);function de(){return(0,b.useContext)(ue)}function fe(){let{appData:e}=de();return(t,n)=>{let r=e.translations[t]??t;if(n)for(let[e,t]of Object.entries(n))r=r.replaceAll(`{${e}}`,t);return r}}var pe={keycaps:{Profile:[`Cherry`,`SA`,`OEM`,`XDA`,`MT3`],Material:[`PBT`,`ABS`],"Legend Style":[`Double-shot`,`Dye-sub`,`Laser-engraved`],Shine:[`Standard`,`Matte Coat`,`Glossy Coat`]},cable:{Connector:[`USB-C to USB-C`,`USB-C to USB-A`,`USB-C to USB-B Mini`],Length:[`0.8m`,`1.2m`,`1.5m`,`2.0m`],"Color Sleeve":[`Stock Color`,`Black`,`White`,`Custom (+$12)`],"Aviator Connector":[`None`,`GX16 Silver`,`GX16 Gold`,`GX16 Black`]}},me=.15;function he(e){
+  let sw = (e.switches?.product?.price ?? e.switches?.price ?? 0);
+  let kc = (e.keycaps?.product?.price ?? e.keycaps?.price ?? 0);
+  let cb = 0;
+  if (Array.isArray(e.cables) && e.cables.length > 0) {
+    cb = e.cables.reduce((acc, item) => {
+      const p = (item?.product?.price ?? item?.price ?? 0);
+      const q = item?.quantity || 1;
+      return acc + (p * q);
+    }, 0);
+  } else if (e.cable) {
+    const p = (e.cable?.product?.price ?? e.cable?.price ?? 0);
+    const q = e.cable?.quantity || 1;
+    cb = p * q;
+  }
+  return sw + kc + cb;
+}function ge(e){let t={};for(let[n,r]of Object.entries(pe[e]??{}))t[n]=r[0];return t}function _e({text:e}){return(0,x.jsxDEV)(`span`,{className:`px-1.5 py-0.5 rounded-sm bg-[#CAFF00] text-[#06060a] font-semibold tracking-widest`,style:{fontFamily:`var(--font-mono)`,fontSize:`9px`},children:e},void 0,!1,{fileName:E,lineNumber:229,columnNumber:5},this)}function ve({current:e,cart:t,onStepClick:n}){
+  let tr=fe();
+  let r=[`switches`,`keycaps`,`cable`,`summary`],
+      i=r.indexOf(e),
+      hasItem=x=>x===`switches`?!!t.switches:x===`keycaps`?!!t.keycaps:x===`cable`?!!(t.cable||(t.cables&&t.cables.length)):!1,
+      o=[
+        {id:`switches`,label:tr(`stepperSwitches`)||`1. Switches`,num:1},
+        {id:`keycaps`,label:tr(`stepperKeycaps`)||`2. Keycaps`,num:2},
+        {id:`cable`,label:tr(`stepperCable`)||`3. Phụ kiện`,num:3},
+        {id:`summary`,label:tr(`stepperSummary`)||`4. Hoàn Thành`,num:4}
+      ];
+  return(0,x.jsxDEV)(`div`,{className:`flex items-center`,children:o.map((t,s)=>{
+    let c=r.indexOf(t.id),l=c<i,u=t.id===e,d=hasItem(t.id);return(0,x.jsxDEV)(`div`,{className:`flex items-center`,children:[(0,x.jsxDEV)(`button`,{onClick:()=>n(t.id),className:`flex items-center gap-2.5 group/step cursor-pointer px-3.5 py-1.5 rounded-full transition-all border border-transparent`,children:[(0,x.jsxDEV)(`div`,{className:[`w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-300`,u?`bg-[#CAFF00] text-[#06060a] ring-4 ring-[#CAFF00]/20 shadow-[0_0_12px_rgba(202,255,0,0.35)]`:d?`border-2 border-[#CAFF00] text-[#CAFF00] bg-[#CAFF00]/10`:`bg-[#1e1e2e] group-hover/step:bg-[#2a2a3e]`].join(` `),style:{fontFamily:`var(--font-mono)`,fontSize:`11px`,color:u?`#06060a`:d?`#CAFF00`:`#999999`},children:d&&!u?`✓`:t.num},void 0,!1,{fileName:E,lineNumber:274,columnNumber:15},this),(0,x.jsxDEV)(`span`,{className:[`text-sm font-semibold transition-colors`,u?`text-white`:`hover:text-white`].join(` `),style:{fontFamily:`var(--font-display)`,color:u?`#ffffff`:`#999999`},children:t.label},void 0,!1,{fileName:E,lineNumber:289,columnNumber:15},this)]},void 0,!0,{fileName:E,lineNumber:270,columnNumber:13},this),s<o.length-1&&(0,x.jsxDEV)(`div`,{className:`mx-3`,children:(0,x.jsxDEV)(`div`,{className:[`h-px w-12 transition-all duration-500`,c<i?`bg-[#CAFF00]/40`:`bg-[#1a1a2a]`].join(` `)},void 0,!1,{fileName:E,lineNumber:301,columnNumber:17},this)},void 0,!1,{fileName:E,lineNumber:300,columnNumber:15},this)]},t.id,!0,{fileName:E,lineNumber:269,columnNumber:11},this)})},void 0,!1,{fileName:E,lineNumber:261,columnNumber:5},this)}function ye({label:e,values:t,selected:n,onChange:r}){return(0,x.jsxDEV)(`div`,{children:[(0,x.jsxDEV)(`div`,{className:`flex items-center justify-between mb-2`,children:[(0,x.jsxDEV)(`span`,{className:`text-[#999] text-[10px] font-medium tracking-widest uppercase`,style:{fontFamily:`var(--font-mono)`},children:e},void 0,!1,{fileName:E,lineNumber:325,columnNumber:9},this),(0,x.jsxDEV)(`span`,{className:`text-[#CAFF00] text-[11px]`,style:{fontFamily:`var(--font-mono)`},children:n},void 0,!1,{fileName:E,lineNumber:328,columnNumber:9},this)]},void 0,!0,{fileName:E,lineNumber:324,columnNumber:7},this),(0,x.jsxDEV)(`div`,{className:`flex flex-wrap gap-1.5`,children:t.map(e=>(0,x.jsxDEV)(`button`,{onClick:()=>r(e),className:[`px-2.5 py-1 rounded-md text-[10px] font-medium transition-all duration-150`,n===e?`bg-[#CAFF00] text-[#06060a]`:`bg-[#111118] text-[#999] hover:text-[#888] border border-[#1e1e2e]`].join(` `),style:{fontFamily:`var(--font-mono)`},children:e},e,!1,{fileName:E,lineNumber:332,columnNumber:11},this))},void 0,!1,{fileName:E,lineNumber:330,columnNumber:7},this)]},void 0,!0,{fileName:E,lineNumber:323,columnNumber:5},this)}function be({entry:e,label:t}){let p=e?.product||e||{};return(0,x.jsxDEV)(`div`,{className:`flex items-center gap-3 py-3 border-b border-[#0f0f18] last:border-0`,children:[(0,x.jsxDEV)(`img`,{src:p.image,alt:p.name,className:`w-10 h-10 rounded-lg object-cover bg-[#0d0d14] shrink-0`},void 0,!1,{fileName:E,lineNumber:354,columnNumber:7},this),(0,x.jsxDEV)(`div`,{className:`flex-1 min-w-0`,children:[(0,x.jsxDEV)(`p`,{className:`text-[#999] text-[10px] font-medium tracking-widest uppercase`,style:{fontFamily:`var(--font-mono)`},children:t},void 0,!1,{fileName:E,lineNumber:356,columnNumber:9},this),(0,x.jsxDEV)(`p`,{className:`text-white text-sm font-semibold truncate`,style:{fontFamily:`var(--font-display)`},children:p.name},void 0,!1,{fileName:E,lineNumber:357,columnNumber:9},this)]},void 0,!0,{fileName:E,lineNumber:355,columnNumber:7},this),(0,x.jsxDEV)(`span`,{className:`text-white font-bold text-sm shrink-0`,style:{fontFamily:`var(--font-mono)`},children:formatPrice(p.price??0)},void 0,!0,{fileName:E,lineNumber:359,columnNumber:7},this)]},void 0,!0,{fileName:E,lineNumber:353,columnNumber:5},this)}function xe({cart:e,onAdd:t,onAddOnly:n,onSkip:r}){let{appData:i}=de(),a=fe(),o=i.switchPersonas,[s,c]=(0,b.useState)(o[0]?.id??``),[l,u]=(0,b.useState)(!0),[d,f]=(0,b.useState)(!1),p=o.find(e=>e.id===s)??o[0];(0,b.useEffect)(()=>{!o.find(e=>e.id===s)&&o[0]&&c(o[0].id)},[o]);function m(e){e!==s&&(u(!1),setTimeout(()=>{c(e),u(!0)},180))}function h(){return{product:{id:p.id,name:p.switchName,subtitle:p.switchSpec,price:p.price,image:p.image,description:p.description,accent:p.accent,badge:p.badge},opts:{Profile:p.label,Sound:p.badge}}}return p?(0,x.jsxDEV)(`div`,{className:`animate-fade-up`,children:[(0,x.jsxDEV)(`div`,{className:`mb-6`,children:[(0,x.jsxDEV)(`h2`,{className:`text-3xl font-extrabold text-white tracking-tight`,style:{fontFamily:`var(--font-display)`},children:a(`switchesTitle`)},void 0,!1,{fileName:E,lineNumber:414,columnNumber:9},this),(0,x.jsxDEV)(`p`,{className:`text-[#999] text-sm mt-1`,children:a(`switchesSubtitle`)},void 0,!1,{fileName:E,lineNumber:417,columnNumber:9},this)]},void 0,!0,{fileName:E,lineNumber:413,columnNumber:7},this),(0,x.jsxDEV)(`div`,{className:`flex gap-3 mb-5 flex-wrap`,children:o.map(e=>{let t=s===e.id;return(0,x.jsxDEV)(`button`,{onClick:()=>m(e.id),className:[`relative rounded-2xl p-4 text-left transition-all duration-200 border min-w-[140px]`,t?`border-transparent`:`border-[#1a1a2a] bg-[#0d0d14] hover:border-[#2a2a3a]`].join(` `),style:t?{backgroundColor:e.accentDim,borderColor:e.accent+`60`}:{},children:[t&&(0,x.jsxDEV)(`div`,{className:`absolute inset-0 rounded-2xl opacity-20 pointer-events-none`,style:{background:`radial-gradient(circle at top left, ${e.accent}, transparent 70%)`}},void 0,!1,{fileName:E,lineNumber:435,columnNumber:17},this),(0,x.jsxDEV)(`div`,{className:`relative`,children:[(0,x.jsxDEV)(`div`,{className:`flex items-center justify-between mb-2`,children:[(0,x.jsxDEV)(`span`,{className:[`text-[9px] font-bold tracking-widest px-1.5 py-0.5 rounded-sm`,t?`text-[#06060a]`:`text-[#888] bg-[#111118]`].join(` `),style:{fontFamily:`var(--font-mono)`,backgroundColor:t?e.accent:void 0},children:e.badge},void 0,!1,{fileName:E,lineNumber:440,columnNumber:19},this),t&&(0,x.jsxDEV)(`div`,{className:`w-2 h-2 rounded-full`,style:{backgroundColor:e.accent}},void 0,!1,{fileName:E,lineNumber:444,columnNumber:30},this)]},void 0,!0,{fileName:E,lineNumber:439,columnNumber:17},this),(0,x.jsxDEV)(`p`,{className:[`font-bold text-base leading-none`,t?`text-white`:`text-[#999]`].join(` `),style:{fontFamily:`var(--font-display)`},children:e.label},void 0,!1,{fileName:E,lineNumber:446,columnNumber:17},this),(0,x.jsxDEV)(`p`,{className:[`text-[11px] mt-1`,t?`text-[#888]`:`text-[#888]`].join(` `),style:{fontFamily:`var(--font-mono)`},children:e.tagline},void 0,!1,{fileName:E,lineNumber:449,columnNumber:17},this)]},void 0,!0,{fileName:E,lineNumber:438,columnNumber:15},this)]},e.id,!0,{fileName:E,lineNumber:425,columnNumber:13},this)})},void 0,!1,{fileName:E,lineNumber:421,columnNumber:7},this),(0,x.jsxDEV)(`div`,{className:`grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-5 items-start`,children:[(0,x.jsxDEV)(`div`,{children:[(0,x.jsxDEV)(`div`,{className:`relative rounded-3xl overflow-hidden cursor-pointer`,style:{backgroundColor:`#0d0d14`,height:`440px`},onMouseEnter:()=>f(!0),onMouseLeave:()=>f(!1),children:[(0,x.jsxDEV)(`img`,{src:p.image,alt:p.switchName,className:`w-full h-full object-cover transition-all duration-700`,style:{opacity:l?.85:0,transform:l?`scale(1)`:`scale(1.03)`}},void 0,!1,{fileName:E,lineNumber:463,columnNumber:13},this),(0,x.jsxDEV)(`div`,{className:`absolute bottom-0 left-0 right-0 px-7 py-6 transition-opacity duration-300`,style:{background:`linear-gradient(to top, rgba(6,6,10,0.95) 0%, rgba(6,6,10,0.5) 60%, transparent 100%)`,opacity:d?0:1},children:(0,x.jsxDEV)(`div`,{className:`flex items-end justify-between`,children:[(0,x.jsxDEV)(`div`,{children:[(0,x.jsxDEV)(`div`,{className:`flex items-center gap-2 mb-1`,children:(0,x.jsxDEV)(`span`,{className:`text-[9px] font-bold tracking-widest px-1.5 py-0.5 rounded-sm text-[#06060a]`,style:{fontFamily:`var(--font-mono)`,backgroundColor:p.accent},children:p.badge},void 0,!1,{fileName:E,lineNumber:472,columnNumber:21},this)},void 0,!1,{fileName:E,lineNumber:471,columnNumber:19},this),(0,x.jsxDEV)(`h3`,{className:`text-white font-extrabold text-2xl leading-none`,style:{fontFamily:`var(--font-display)`},children:p.switchName},void 0,!1,{fileName:E,lineNumber:475,columnNumber:19},this),(0,x.jsxDEV)(`p`,{className:`text-[#999] text-xs mt-1`,style:{fontFamily:`var(--font-mono)`},children:p.switchSpec},void 0,!1,{fileName:E,lineNumber:476,columnNumber:19},this)]},void 0,!0,{fileName:E,lineNumber:470,columnNumber:17},this),(0,x.jsxDEV)(`div`,{className:`font-black text-3xl`,style:{fontFamily:`var(--font-mono)`,color:p.accent},children:formatPrice(p.price)},void 0,!0,{fileName:E,lineNumber:478,columnNumber:17},this)]},void 0,!0,{fileName:E,lineNumber:469,columnNumber:15},this)},void 0,!1,{fileName:E,lineNumber:467,columnNumber:13},this),(0,x.jsxDEV)(`div`,{className:`absolute inset-0 transition-opacity duration-300 flex flex-col justify-end`,style:{opacity:d?1:0,background:`linear-gradient(to top, rgba(6,6,10,0.97) 0%, rgba(6,6,10,0.75) 50%, rgba(6,6,10,0.3) 100%)`,pointerEvents:d?`auto`:`none`},children:(0,x.jsxDEV)(`div`,{className:`px-7 py-7`,children:[(0,x.jsxDEV)(`p`,{className:`text-[#aaa] text-sm leading-relaxed mb-4 max-w-lg`,children:p.description},void 0,!1,{fileName:E,lineNumber:490,columnNumber:17},this),(0,x.jsxDEV)(`div`,{className:`flex flex-wrap gap-2 mb-6`,children:p.features.map(e=>(0,x.jsxDEV)(`span`,{className:`px-2.5 py-1 rounded-full border text-[10px] font-medium`,style:{fontFamily:`var(--font-mono)`,borderColor:p.accent+`50`,color:p.accent,backgroundColor:p.accentDim},children:e},e,!1,{fileName:E,lineNumber:493,columnNumber:21},this))},void 0,!1,{fileName:E,lineNumber:491,columnNumber:17},this),(0,x.jsxDEV)(`div`,{className:`flex items-center gap-3`,children:[(0,x.jsxDEV)(`button`,{onClick:()=>n(h()),className:`flex-1 py-3 rounded-xl font-bold text-sm text-[#06060a] transition-all duration-150 hover:brightness-110 active:scale-[0.98]`,style:{fontFamily:`var(--font-display)`,backgroundColor:p.accent},children:`Add to cart → Checkout`},void 0,!1,{fileName:E,lineNumber:500,columnNumber:19},this),(0,x.jsxDEV)(`button`,{onClick:r,className:`px-5 py-3 rounded-xl border border-[#2a2a3a] text-[#999] hover:text-[#888] hover:border-[#3a3a4a] text-sm font-semibold transition-all`,style:{fontFamily:`var(--font-display)`},children:`Skip →`},void 0,!1,{fileName:E,lineNumber:505,columnNumber:19},this)]},void 0,!0,{fileName:E,lineNumber:499,columnNumber:17},this)]},void 0,!0,{fileName:E,lineNumber:489,columnNumber:15},this)},void 0,!1,{fileName:E,lineNumber:483,columnNumber:13},this)]},void 0,!0,{fileName:E,lineNumber:461,columnNumber:11},this),(0,x.jsxDEV)(`button`,{onClick:()=>t(h()),className:`mt-3 w-full py-3.5 rounded-xl bg-[#CAFF00] text-[#06060a] font-bold text-sm hover:bg-[#d4ff00] active:scale-[0.99] transition-all`,style:{fontFamily:`var(--font-display)`},children:a(`addContinueBtn`,{name:p.switchName,next:a(`stepperKeycaps`)||`Keycaps`,item:`Switch`})},void 0,!1,{fileName:E,lineNumber:515,columnNumber:11},this)]},void 0,!0,{fileName:E,lineNumber:459,columnNumber:9},this),(0,x.jsxDEV)(`div`,{className:`space-y-4`,children:[(0,x.jsxDEV)(`div`,{className:`rounded-2xl p-5 border border-[#1a1a2a] transition-all duration-300`,style:{backgroundColor:`#0d0d14`},children:[(0,x.jsxDEV)(`div`,{className:`flex items-center gap-2 mb-4`,children:[(0,x.jsxDEV)(`div`,{className:`w-1 h-4 rounded-full`,style:{backgroundColor:p.accent}},void 0,!1,{fileName:E,lineNumber:526,columnNumber:15},this),(0,x.jsxDEV)(`span`,{className:`text-white font-semibold text-sm`,style:{fontFamily:`var(--font-display)`},children:a(`switchSpecsLabel`)},void 0,!1,{fileName:E,lineNumber:527,columnNumber:15},this)]},void 0,!0,{fileName:E,lineNumber:525,columnNumber:13},this),(p.freeSpecs && p.freeSpecs.trim()) ? (0,x.jsxDEV)(`div`,{className:`rich-text-content whitespace-pre-line text-xs leading-relaxed text-[#ddd]`,dangerouslySetInnerHTML:{__html:formatTextToHtml(p.freeSpecs)}}) : (0,x.jsxDEV)(`div`,{className:`space-y-3`,children:[{label:`Type`,value:p.badge},{label:`Actuation`,value:p.switchSpec.split(`·`)[1]?.trim()??`—`},{label:`Travel`,value:`4.0mm total`},{label:`Housing`,value:p.id===`designer`?`Cerakote PC`:`Nylon PA66`}].map(e=>(0,x.jsxDEV)(`div`,{className:`flex items-center justify-between`,children:[(0,x.jsxDEV)(`span`,{className:`text-[#999] text-[11px]`,style:{fontFamily:`var(--font-mono)`},children:e.label},void 0,!1,{fileName:E,lineNumber:537,columnNumber:19},this),(0,x.jsxDEV)(`span`,{className:`text-[11px] font-medium`,style:{fontFamily:`var(--font-mono)`,color:p.accent},children:e.value},void 0,!1,{fileName:E,lineNumber:538,columnNumber:19},this)]},e.label,!0,{fileName:E,lineNumber:536,columnNumber:17},this))},void 0,!1,{fileName:E,lineNumber:529,columnNumber:13},this)]},void 0,!0,{fileName:E,lineNumber:524,columnNumber:11},this),(e.keycaps||e.cable)&&(0,x.jsxDEV)(`div`,{className:`rounded-2xl p-4 border border-[#111118] bg-[#0a0a10]`,children:[(0,x.jsxDEV)(`p`,{className:`text-[#888] text-[10px] font-semibold tracking-widest uppercase mb-3`,style:{fontFamily:`var(--font-mono)`},children:a(`buildSoFarLabel`)},void 0,!1,{fileName:E,lineNumber:546,columnNumber:15},this),e.keycaps&&(0,x.jsxDEV)(be,{entry:e.keycaps,label:`Keycaps`},void 0,!1,{fileName:E,lineNumber:547,columnNumber:32},this),e.cable&&(0,x.jsxDEV)(be,{entry:e.cable,label:`Cable`},void 0,!1,{fileName:E,lineNumber:548,columnNumber:30},this)]},void 0,!0,{fileName:E,lineNumber:545,columnNumber:13},this),renderComboHint(a, e)]},void 0,!0,{fileName:E,lineNumber:523,columnNumber:9},this)]},void 0,!0,{fileName:E,lineNumber:458,columnNumber:7},this)]},void 0,!0,{fileName:E,lineNumber:412,columnNumber:5},this):null}function Se({product:e,selected:t,onSelect:n,onCustomize:r}){let i=fe();return(0,x.jsxDEV)(`div`,{className:[`group relative w-full rounded-2xl overflow-hidden transition-all duration-300`,t?`ring-2 ring-[#CAFF00] shadow-[0_0_32px_rgba(202,255,0,0.12)]`:`ring-1 ring-[#1a1a2a] hover:ring-[#2e2e44]`].join(` `),style:{backgroundColor:`#0d0d14`},children:[(0,x.jsxDEV)(`div`,{onClick:n,className:`product-card-info w-full text-left cursor-pointer block`,children:(0,x.jsxDEV)(`div`,{className:`relative h-44 overflow-hidden bg-[#0a0a12]`,children:[(0,x.jsxDEV)(`img`,{src:e.image,alt:e.name,className:`w-full h-full object-cover opacity-80 group-hover:opacity-95 group-hover:scale-[1.03] transition-all duration-500`},void 0,!1,{fileName:E,lineNumber:579,columnNumber:11},this),(0,x.jsxDEV)(`div`,{className:`absolute inset-0 bg-gradient-to-t from-[#0d0d14] via-transparent to-transparent`},void 0,!1,{fileName:E,lineNumber:581,columnNumber:11},this),e.badge&&(0,x.jsxDEV)(`div`,{className:`absolute top-3 left-3`,children:(0,x.jsxDEV)(_e,{text:e.badge},void 0,!1,{fileName:E,lineNumber:582,columnNumber:68},this)},void 0,!1,{fileName:E,lineNumber:582,columnNumber:29},this),t&&(0,x.jsxDEV)(`div`,{className:`absolute top-3 right-3 w-6 h-6 rounded-full bg-[#CAFF00] flex items-center justify-center`,children:(0,x.jsxDEV)(`span`,{className:`text-[#06060a] text-xs font-black`,children:`✓`},void 0,!1,{fileName:E,lineNumber:585,columnNumber:15},this)},void 0,!1,{fileName:E,lineNumber:584,columnNumber:13},this)]},void 0,!0,{fileName:E,lineNumber:578,columnNumber:9},this)},void 0,!1,{fileName:E,lineNumber:577,columnNumber:7},this),(0,x.jsxDEV)(`div`,{className:`p-4`,children:[(0,x.jsxDEV)(`div`,{onClick:n,className:`product-card-info w-full text-left cursor-pointer block`,children:[(0,x.jsxDEV)(`div`,{className:`flex items-start justify-between gap-2`,children:[(0,x.jsxDEV)(`div`,{children:[(0,x.jsxDEV)(`h3`,{className:`text-white font-bold text-base leading-tight`,style:{fontFamily:`var(--font-display)`},children:e.name},void 0,!1,{fileName:E,lineNumber:594,columnNumber:15},this),(0,x.jsxDEV)(`p`,{className:`text-[#999] text-xs mt-0.5`,style:{fontFamily:`var(--font-mono)`},children:e.subtitle},void 0,!1,{fileName:E,lineNumber:595,columnNumber:15},this)]},void 0,!0,{fileName:E,lineNumber:593,columnNumber:13},this),(0,x.jsxDEV)(`div`,{className:`text-[#CAFF00] font-bold text-lg shrink-0`,style:{fontFamily:`var(--font-mono)`},children:formatPrice(e.price)},void 0,!0,{fileName:E,lineNumber:597,columnNumber:13},this)]},void 0,!0,{fileName:E,lineNumber:592,columnNumber:11},this),(0,x.jsxDEV)(`p`,{className:`text-[#999] text-xs leading-relaxed mt-2.5 line-clamp-2`,children:e.description},void 0,!1,{fileName:E,lineNumber:599,columnNumber:11},this)]},void 0,!0,{fileName:E,lineNumber:591,columnNumber:9},this),r&&(0,x.jsxDEV)(`button`,{onClick:r,className:`mt-3 w-full flex items-center justify-center gap-1.5 py-2 rounded-lg border border-dashed border-[#2a2a3e] text-[#999] hover:text-[#CAFF00] hover:border-[#CAFF00]/40 transition-all duration-200 group/cust`,children:[(0,x.jsxDEV)(`svg`,{width:`12`,height:`12`,viewBox:`0 0 12 12`,fill:`none`,className:`opacity-60 group-hover/cust:opacity-100 transition-opacity`,children:(0,x.jsxDEV)(`path`,{d:`M8.5 1.5a1.414 1.414 0 0 1 2 2L4 10H2v-2L8.5 1.5Z`,stroke:`currentColor`,strokeWidth:`1.2`,strokeLinecap:`round`,strokeLinejoin:`round`},void 0,!1,{fileName:E,lineNumber:605,columnNumber:15},this)},void 0,!1,{fileName:E,lineNumber:604,columnNumber:13},this),(0,x.jsxDEV)(`span`,{className:`text-[10px] font-semibold tracking-widest uppercase`,style:{fontFamily:`var(--font-mono)`},children:i(`customizeBtn`)},void 0,!1,{fileName:E,lineNumber:607,columnNumber:13},this)]},void 0,!0,{fileName:E,lineNumber:602,columnNumber:11},this)]},void 0,!0,{fileName:E,lineNumber:590,columnNumber:7},this)]},void 0,!0,{fileName:E,lineNumber:574,columnNumber:5},this)}function Ce({stepId:e,products:t,stepLabel:n,nextLabel:r,cart:i,onAdd:a,onAddOnly:o,onSkip:s,onCustomizeProduct:cstm}){
   let c=fe(),[l,u]=(0,b.useState)(null),[d,f]=(0,b.useState)(ge(e)),[customizingProduct,setCustomizingProduct]=(0,b.useState)(null),[isKeysimFullscreen,setIsKeysimFullscreen]=(0,b.useState)(!1);
   (0,b.useEffect)(()=>{
     const onKey=(ev)=>{if(ev.key==='Escape')setCustomizingProduct(null);};
@@ -2402,7 +3236,7 @@ function g(){let e=l.trim()||`Version ${n.length+1} — ${new Date().toLocaleDat
   e==='keycaps'?(0,x.jsxDEV)(`div`,{className:`space-y-4`,children:[
     (0,x.jsxDEV)(`div`,{className:`p-3.5 rounded-xl bg-[#0a0a12] border border-[#1a1a28] space-y-2`,children:[
       (0,x.jsxDEV)(`span`,{className:`text-[#888] text-[10px] font-semibold tracking-widest uppercase font-mono block`,children:`Thông Số & Mô Tả Chi Tiết`}),
-      (0,x.jsxDEV)(`p`,{className:`text-[#ddd] text-xs leading-relaxed whitespace-pre-line`,children:l.freeSpecs||l.description||l.subtitle})
+      (0,x.jsxDEV)(`p`,{className:`text-[#ddd] text-xs leading-relaxed whitespace-pre-line`,dangerouslySetInnerHTML:{__html:formatTextToHtml(l.freeSpecs||l.description||l.subtitle)}})
     ]}),
     (0,x.jsxDEV)(`div`,{className:`p-3.5 rounded-xl bg-[#0a0a12] border border-[#1a1a28] space-y-2`,children:[
       (0,x.jsxDEV)(`div`,{className:`flex items-center justify-between`,children:[
@@ -2420,26 +3254,86 @@ function g(){let e=l.trim()||`Version ${n.length+1} — ${new Date().toLocaleDat
           let isSel=(l.activeVariant?.id||l.variants[0]?.id)===v.id;
           return (0,x.jsxDEV)(`button`,{type:`button`,onClick:()=>{u({...l,activeVariant:v,image:v.image||l.image,description:v.description||l.description,price:v.price!==undefined?v.price:l.price});},className:[`px-3 py-1.5 rounded-lg text-xs font-medium border transition-all cursor-pointer`,isSel?`bg-[#CAFF00] text-black border-[#CAFF00] font-bold shadow-md`:`bg-[#141420] text-[#ccc] border-[#222234] hover:border-[#444]`].join(` `),children:v.name+(v.price!==undefined&&v.price!==null?` (${formatPrice(v.price)})`:``)},v.id);
         })}),
-        (l.activeVariant?.description||l.description)&&(0,x.jsxDEV)(`p`,{className:`text-[#aaa] text-xs mt-2 italic bg-[#0a0a12] p-2.5 rounded-lg border border-[#161624]`,children:l.activeVariant?.description||l.description})
+        (l.activeVariant?.description||l.description)&&(0,x.jsxDEV)(`p`,{className:`text-[#aaa] text-xs mt-2 italic bg-[#0a0a12] p-2.5 rounded-lg border border-[#161624]`,dangerouslySetInnerHTML:{__html:formatTextToHtml(l.activeVariant?.description||l.description)}})
       ]}):(
         Object.entries(p).map(([k,vals])=>(0,x.jsxDEV)(ye,{label:k,values:vals,selected:d[k]??vals[0],onChange:val=>f(prev=>({...prev,[k]:val}))},k,!1,{fileName:E,lineNumber:663,columnNumber:17},this))
       ),
       (0,x.jsxDEV)(`button`,{type:`button`,onClick:()=>{
-        let addedItem={
-          id:(l.activeVariant?l.id+`-`+l.activeVariant.id:l.id)+`-`+Date.now(),
-          name:l.name+(l.activeVariant?` - `+l.activeVariant.name:``),
-          price:l.activeVariant?.price??l.price,
-          image:l.activeVariant?.image||l.image,
-          opts:d
-        };
-        if(typeof a===`function`){a(addedItem);}
-        showToast(`✓ Đã thêm "`+addedItem.name+`" vào giỏ hàng!`);
-      },className:`w-full py-2.5 rounded-xl bg-[#CAFF00] text-black font-bold text-xs flex items-center justify-center gap-1.5 cursor-pointer shadow-lg hover:bg-[#d4ff00] transition-all`,children:`🛒 Thêm Phụ Kiện Này Vào Cấu Hình`})
+        if (!l) return;
+        const isLimitOne = !!(l.limitOne || l.activeVariant?.limitOne);
+        const curCables = Array.isArray(i?.cables) ? i.cables : (i?.cable ? [i.cable] : []);
+        const itemKey = l.activeVariant ? `${l.id}-${l.activeVariant.id}` : l.id;
+        const existingIdx = curCables.findIndex(x => x.itemKey === itemKey);
+
+        if (isLimitOne && existingIdx !== -1) {
+          showToast(`⚠️ Sản phẩm "${l.name}" có giới hạn 1 món mỗi đơn hàng!`, "error");
+          return;
+        }
+
+        let updatedList = [...curCables];
+        if (existingIdx !== -1) {
+          updatedList[existingIdx] = {
+            ...updatedList[existingIdx],
+            quantity: (updatedList[existingIdx].quantity || 1) + 1
+          };
+        } else {
+          updatedList.push({
+            id: itemKey + `-` + Date.now(),
+            itemKey: itemKey,
+            productId: l.id,
+            name: l.name + (l.activeVariant ? ` - ` + l.activeVariant.name : ``),
+            price: l.activeVariant?.price ?? l.price,
+            image: l.activeVariant?.image || l.image,
+            activeVariant: l.activeVariant || null,
+            quantity: 1,
+            limitOne: isLimitOne,
+            opts: d
+          });
+        }
+
+        if (typeof a === `function`) {
+          a({ cables: updatedList, cable: updatedList[0], product: l, opts: d }, !0);
+        }
+        showToast(`✓ Đã thêm "${l.name}" vào danh sách phụ kiện!`);
+      },className:`w-full py-2.5 rounded-xl bg-[#CAFF00] hover:bg-[#d4ff00] text-black font-bold text-xs flex items-center justify-center gap-1.5 cursor-pointer shadow-lg transition-all`,children:`🛒 Thêm Phụ Kiện Này Vào Cấu Hình`})
     ]}):(
       Object.entries(p).map(([k,vals])=>(0,x.jsxDEV)(ye,{label:k,values:vals,selected:d[k]??vals[0],onChange:val=>f(prev=>({...prev,[k]:val}))},k,!1,{fileName:E,lineNumber:663,columnNumber:17},this))
     )
   )
-]},void 0,!1,{fileName:E,lineNumber:661,columnNumber:13},this)]},void 0,!0,{fileName:E,lineNumber:653,columnNumber:9},this),m&&(0,x.jsxDEV)(`div`,{className:`rounded-2xl p-4 border border-[#111118] bg-[#0a0a10]`,children:[(0,x.jsxDEV)(`p`,{className:`text-[#888] text-[10px] font-semibold tracking-widest uppercase mb-3`,style:{fontFamily:`var(--font-mono)`},children:c(`buildSoFarLabel`)},void 0,!1,{fileName:E,lineNumber:672,columnNumber:13},this),i.switches&&(0,x.jsxDEV)(be,{entry:i.switches,label:`Switches`},void 0,!1,{fileName:E,lineNumber:673,columnNumber:31},this),i.keycaps&&(0,x.jsxDEV)(be,{entry:i.keycaps,label:`Keycaps`},void 0,!1,{fileName:E,lineNumber:674,columnNumber:30},this),i.cable&&(0,x.jsxDEV)(be,{entry:i.cable,label:`Cable`},void 0,!1,{fileName:E,lineNumber:675,columnNumber:28},this)]},void 0,!0,{fileName:E,lineNumber:671,columnNumber:11},this),(0,x.jsxDEV)(`div`,{className:`rounded-xl px-4 py-3 border border-[#CAFF00]/20 bg-[#CAFF00]/5`,children:(0,x.jsxDEV)(`p`,{className:`text-[#CAFF00]/70 leading-relaxed`,style:{fontFamily:`var(--font-mono)`,fontSize:`11px`},children:[`◆ `,c(`bundleHintText`).replace(`15%`,``),(0,x.jsxDEV)(`span`,{className:`text-[#CAFF00] font-bold`,children:`15%`},void 0,!1,{fileName:E,lineNumber:681,columnNumber:55},this),`.`]},void 0,!0,{fileName:E,lineNumber:680,columnNumber:11},this)},void 0,!1,{fileName:E,lineNumber:679,columnNumber:9},this),(0,x.jsxDEV)(`div`,{className:`space-y-2`,children:[(0,x.jsxDEV)(`button`,{disabled:!l,onClick:()=>l&&a({product:l,opts:d}),className:[`w-full py-3.5 rounded-xl font-bold text-sm transition-all duration-200`,l?`bg-[#CAFF00] text-[#06060a] hover:bg-[#d4ff00] active:scale-[0.98]`:`bg-[#111118] text-[#888] cursor-not-allowed`].join(` `),style:{fontFamily:`var(--font-display)`},children:l?c(`addContinueBtn`,{name:l.name,next:r}):`Select a ${n} to continue`},void 0,!1,{fileName:E,lineNumber:686,columnNumber:11},this),l&&(0,x.jsxDEV)(`button`,{onClick:()=>l&&o({product:l,opts:d}),className:`w-full py-3 rounded-xl font-semibold text-sm text-[#999] hover:text-[#888] border border-[#111118] hover:border-[#1e1e2e] transition-all`,style:{fontFamily:`var(--font-display)`},children:c(`addOnlyBtn`,{item:n})},void 0,!1,{fileName:E,lineNumber:694,columnNumber:13},this),(0,x.jsxDEV)(`button`,{onClick:s,className:`w-full py-2.5 text-xs text-[#888] hover:text-[#999] transition-colors`,style:{fontFamily:`var(--font-mono)`,fontSize:`11px`},children:c(`skipBtn`,{item:n})},void 0,!1,{fileName:E,lineNumber:700,columnNumber:11},this)]},void 0,!0,{fileName:E,lineNumber:685,columnNumber:9},this)]},void 0,!0,{fileName:E,lineNumber:652,columnNumber:7},this)]},void 0,!0,{fileName:E,lineNumber:638,columnNumber:5},this)}function D({cart:e,onCheckout:t,onReset:n}){let r=fe(),i=he(e),a=!!(e.keycaps&&e.switches&&e.cable),o=a?i*me:0,s=i-o;return(0,x.jsxDEV)(`div`,{className:`animate-fade-up max-w-2xl mx-auto`,children:[(0,x.jsxDEV)(`div`,{className:`mb-8 text-center`,children:[(0,x.jsxDEV)(`h2`,{className:`text-4xl font-extrabold text-white tracking-tight`,style:{fontFamily:`var(--font-display)`},children:r(`summaryTitle`)},void 0,!1,{fileName:E,lineNumber:727,columnNumber:9},this),a&&(0,x.jsxDEV)(`p`,{className:`mt-2 text-sm text-[#999]`,children:`Full bundle — 15% discount applied`},void 0,!1,{fileName:E,lineNumber:728,columnNumber:22},this)]},void 0,!0,{fileName:E,lineNumber:726,columnNumber:7},this),a&&(0,x.jsxDEV)(`div`,{className:`mb-6 rounded-2xl border border-[#CAFF00]/30 bg-[#CAFF00]/5 px-6 py-4 flex items-center justify-between`,children:[(0,x.jsxDEV)(`div`,{children:[(0,x.jsxDEV)(`p`,{className:`discount-shimmer text-xl font-black`,style:{fontFamily:`var(--font-display)`},children:r(`bundleDiscountTitle`)},void 0,!1,{fileName:E,lineNumber:734,columnNumber:13},this),(0,x.jsxDEV)(`p`,{className:`text-[#999] text-xs mt-0.5`,style:{fontFamily:`var(--font-mono)`},children:[`Tiết kiệm được `, formatPrice(o), ` khi chọn đủ combo`]},void 0,!0,{fileName:E,lineNumber:735,columnNumber:13},this)]},void 0,!0,{fileName:E,lineNumber:733,columnNumber:11},this),(0,x.jsxDEV)(`div`,{className:`text-[#CAFF00] text-3xl font-black shrink-0`,style:{fontFamily:`var(--font-display)`},children:[`−$`,o.toFixed(2)]},void 0,!0,{fileName:E,lineNumber:737,columnNumber:11},this)]},void 0,!0,{fileName:E,lineNumber:732,columnNumber:9},this),(0,x.jsxDEV)(`div`,{className:`rounded-2xl border border-[#1a1a2a] bg-[#0d0d14] overflow-hidden mb-4`,children:[{key:`switches`,label:`Switches`},{key:`keycaps`,label:`Keycaps`},{key:`cable`,label:`Cable`}].map(({key:t,label:n})=>{let r=e[t];let prod=r?.product||r||{},opts=r?.opts||{};return r?(0,x.jsxDEV)(`div`,{className:`flex items-center gap-4 px-6 py-4 border-b border-[#111118] last:border-0`,children:[(0,x.jsxDEV)(`img`,{src:prod.image,alt:prod.name,className:`w-16 h-16 rounded-xl object-cover bg-[#0a0a10] shrink-0`},void 0,!1,{fileName:E,lineNumber:755,columnNumber:15},this),(0,x.jsxDEV)(`div`,{className:`flex-1 min-w-0`,children:[(0,x.jsxDEV)(`p`,{className:`text-[#999] text-[10px] tracking-widest uppercase font-medium`,style:{fontFamily:`var(--font-mono)`},children:n},void 0,!1,{fileName:E,lineNumber:757,columnNumber:17},this),(0,x.jsxDEV)(`p`,{className:`text-white font-bold text-base mt-0.5`,style:{fontFamily:`var(--font-display)`},children:prod.name},void 0,!1,{fileName:E,lineNumber:758,columnNumber:17},this),(0,x.jsxDEV)(`p`,{className:`text-[#888] text-xs mt-1 truncate`,style:{fontFamily:`var(--font-mono)`},children:Object.entries(opts).map(([e,t])=>`${e}: ${t}`).join(` · `)},void 0,!1,{fileName:E,lineNumber:759,columnNumber:17},this),
+]},void 0,!1,{fileName:E,lineNumber:661,columnNumber:13},this)]},void 0,!0,{fileName:E,lineNumber:653,columnNumber:9},this),m&&(0,x.jsxDEV)(`div`,{className:`rounded-2xl p-4 border border-[#111118] bg-[#0a0a10]`,children:[(0,x.jsxDEV)(`p`,{className:`text-[#888] text-[10px] font-semibold tracking-widest uppercase mb-3`,style:{fontFamily:`var(--font-mono)`},children:c(`buildSoFarLabel`)},void 0,!1,{fileName:E,lineNumber:672,columnNumber:13},this),i.switches&&(0,x.jsxDEV)(be,{entry:i.switches,label:`Switches`},void 0,!1,{fileName:E,lineNumber:673,columnNumber:31},this),i.keycaps&&(0,x.jsxDEV)(be,{entry:i.keycaps,label:`Keycaps`},void 0,!1,{fileName:E,lineNumber:674,columnNumber:30},this),i.cable&&(0,x.jsxDEV)(be,{entry:i.cable,label:`Cable`},void 0,!1,{fileName:E,lineNumber:675,columnNumber:28},this)]},void 0,!0,{fileName:E,lineNumber:671,columnNumber:11},this),renderComboHint(c, i),(0,x.jsxDEV)(`div`,{className:`space-y-2`,children:[(0,x.jsxDEV)(`button`,{disabled:!l,onClick:()=>l&&a({product:l,opts:d}),className:[`w-full py-3.5 rounded-xl font-bold text-sm transition-all duration-200`,l?`bg-[#CAFF00] text-[#06060a] hover:bg-[#d4ff00] active:scale-[0.98]`:`bg-[#111118] text-[#888] cursor-not-allowed`].join(` `),style:{fontFamily:`var(--font-display)`},children:l?c(`addContinueBtn`,{name:l.name,next:r,item:n}):`Vui lòng chọn ${n} để tiếp tục`},void 0,!1,{fileName:E,lineNumber:686,columnNumber:11},this),l&&(0,x.jsxDEV)(`button`,{onClick:()=>l&&o({product:l,opts:d}),className:`w-full py-3 rounded-xl font-semibold text-sm text-[#999] hover:text-[#888] border border-[#111118] hover:border-[#1e1e2e] transition-all`,style:{fontFamily:`var(--font-display)`},children:c(`addOnlyBtn`,{item:n})},void 0,!1,{fileName:E,lineNumber:694,columnNumber:13},this),(0,x.jsxDEV)(`button`,{onClick:s,className:`w-full py-2.5 text-xs text-[#888] hover:text-[#999] transition-colors`,style:{fontFamily:`var(--font-mono)`,fontSize:`11px`},children:c(`skipBtn`,{item:n})},void 0,!1,{fileName:E,lineNumber:700,columnNumber:11},this)]},void 0,!0,{fileName:E,lineNumber:685,columnNumber:9},this)]},void 0,!0,{fileName:E,lineNumber:652,columnNumber:7},this)]},void 0,!0,{fileName:E,lineNumber:638,columnNumber:5},this)}function D({cart:e,onCheckout:t,onReset:n}){
+  let r=fe(),
+      i=he(e),
+      hasFlow1And2=!!(e.switches&&e.keycaps),
+      cType=r('comboDiscountType')==='fixed'?'fixed':'percent',
+      cValRaw=r('comboDiscountValue'),
+      cVal=(cValRaw!==undefined&&cValRaw!==null&&cValRaw!=='')?parseFloat(cValRaw):15,
+      customMsg1=(r('comboCustomMsg1')||'').trim(),
+      customMsg2=(r('comboCustomMsg2')||'').trim(),
+      isComboZero=(cVal===0),
+      hasDiscount=(hasFlow1And2 && cVal > 0),
+      o=hasDiscount?(cType==='percent'?Math.round(i*(cVal/100)):Math.min(i,cVal)):0,
+      s=i-o;
+  let a = hasDiscount || (isComboZero && !!customMsg1);
+return(0,x.jsxDEV)(`div`,{className:`animate-fade-up max-w-2xl mx-auto`,children:[(0,x.jsxDEV)(`div`,{className:`mb-8 text-center`,children:[(0,x.jsxDEV)(`h2`,{className:`text-4xl font-extrabold text-white tracking-tight`,style:{fontFamily:`var(--font-display)`},children:r(`summaryTitle`)},void 0,!1,{fileName:E,lineNumber:727,columnNumber:9},this),a&&(0,x.jsxDEV)(`p`,{className:`mt-2 text-sm text-[#CAFF00] font-mono`,children:`Đã kích hoạt ưu đãi combo`},void 0,!1,{fileName:E,lineNumber:728,columnNumber:22},this)]},void 0,!0,{fileName:E,lineNumber:726,columnNumber:7},this),(() => {
+  if (hasDiscount) {
+    return (0,x.jsxDEV)(`div`,{className:`mb-6 rounded-2xl border border-[#CAFF00]/30 bg-[#CAFF00]/5 px-6 py-4 flex items-center justify-between`,children:[
+      (0,x.jsxDEV)(`div`,{children:[
+        (0,x.jsxDEV)(`p`,{className:`discount-shimmer text-xl font-black`,style:{fontFamily:`var(--font-display)`},children:r(`bundleDiscountTitle`) || (cType === 'percent' ? `Combo giảm ${cVal}%` : `Combo giảm ${formatPrice(cVal)}`)},void 0,!1,{fileName:E,lineNumber:734,columnNumber:13},this),
+        (0,x.jsxDEV)(`p`,{className:`text-[#999] text-xs mt-0.5`,style:{fontFamily:`var(--font-mono)`},children:[`Tiết kiệm được `, formatPrice(o), ` khi chọn đủ combo`]},void 0,!0,{fileName:E,lineNumber:735,columnNumber:13},this)
+      ]}),
+      (0,x.jsxDEV)(`div`,{className:`text-[#CAFF00] text-3xl font-black shrink-0`,style:{fontFamily:`var(--font-display)`},children:[`-`, formatPrice(o)]})
+    ]});
+  }
+  if (isComboZero && customMsg1) {
+    const activeMsg = hasFlow1And2 ? customMsg1 : customMsg2;
+    if (!activeMsg) return null;
+    return (0,x.jsxDEV)(`div`,{className:`mb-6 rounded-2xl border border-[#CAFF00]/30 bg-[#CAFF00]/5 px-6 py-4 text-left`,children:[
+      r(`bundleDiscountTitle`) && (0,x.jsxDEV)(`p`,{className:`discount-shimmer text-xl font-black mb-1`,style:{fontFamily:`var(--font-display)`},children:r(`bundleDiscountTitle`)}),
+      (0,x.jsxDEV)(`div`,{className:`rich-text-content text-sm leading-relaxed text-[#ddd]`,dangerouslySetInnerHTML:{__html:formatTextToHtml(activeMsg)}})
+    ]});
+  }
+  return null;
+})(),(0,x.jsxDEV)(`div`,{className:`rounded-2xl border border-[#1a1a2a] bg-[#0d0d14] overflow-hidden mb-4`,children:[{key:`switches`,label:`Switches`},{key:`keycaps`,label:`Keycaps`},{key:`cable`,label:`Cable`}].map(({key:t,label:n})=>{let r=e[t];let prod=r?.product||r||{},opts=r?.opts||{};return r?(0,x.jsxDEV)(`div`,{className:`flex items-center gap-4 px-6 py-4 border-b border-[#111118] last:border-0`,children:[(0,x.jsxDEV)(`img`,{src:prod.image,alt:prod.name,className:`w-16 h-16 rounded-xl object-cover bg-[#0a0a10] shrink-0`},void 0,!1,{fileName:E,lineNumber:755,columnNumber:15},this),(0,x.jsxDEV)(`div`,{className:`flex-1 min-w-0`,children:[(0,x.jsxDEV)(`p`,{className:`text-[#999] text-[10px] tracking-widest uppercase font-medium`,style:{fontFamily:`var(--font-mono)`},children:n},void 0,!1,{fileName:E,lineNumber:757,columnNumber:17},this),(0,x.jsxDEV)(`p`,{className:`text-white font-bold text-base mt-0.5`,style:{fontFamily:`var(--font-display)`},children:prod.name},void 0,!1,{fileName:E,lineNumber:758,columnNumber:17},this),(0,x.jsxDEV)(`p`,{className:`text-[#888] text-xs mt-1 truncate`,style:{fontFamily:`var(--font-mono)`},children:Object.entries(opts).map(([e,t])=>`${e}: ${t}`).join(` · `)},void 0,!1,{fileName:E,lineNumber:759,columnNumber:17},this),
               r.qrDataUrl && (0,x.jsxDEV)("div", {
                 className: "summary-qr-box mt-2.5 pt-2 border-t border-[#1f1f30] flex items-center gap-3",
                 children: [
@@ -2487,10 +3381,22 @@ function g(){let e=l.trim()||`Version ${n.length+1} — ${new Date().toLocaleDat
                     ]
                   }, void 0, !0, { fileName: E, lineNumber: 760, columnNumber: 17 }, this)
                 ]
-              }, void 0, !0, { fileName: E, lineNumber: 758, columnNumber: 15 }, this)]},void 0,!0,{fileName:E,lineNumber:756,columnNumber:15},this),(0,x.jsxDEV)(`div`,{className:`text-white font-bold text-lg shrink-0`,style:{fontFamily:`var(--font-mono)`},children:formatPrice(prod.price??0)},void 0,!0,{fileName:E,lineNumber:763,columnNumber:15},this)]},t,!0,{fileName:E,lineNumber:754,columnNumber:13},this):(0,x.jsxDEV)(`div`,{className:`flex items-center gap-4 px-6 py-4 border-b border-[#111118] last:border-0`,children:[(0,x.jsxDEV)(`div`,{className:`w-16 h-16 rounded-xl bg-[#0a0a10] border border-[#111118] flex items-center justify-center text-[#222] text-xl`,children:`–`},void 0,!1,{fileName:E,lineNumber:746,columnNumber:15},this),(0,x.jsxDEV)(`div`,{className:`flex-1`,children:[(0,x.jsxDEV)(`p`,{className:`text-[#222] text-xs tracking-widest uppercase font-medium`,style:{fontFamily:`var(--font-mono)`},children:n},void 0,!1,{fileName:E,lineNumber:748,columnNumber:17},this),(0,x.jsxDEV)(`p`,{className:`text-[#888] text-sm mt-0.5`,children:`Not added`},void 0,!1,{fileName:E,lineNumber:749,columnNumber:17},this)]},void 0,!0,{fileName:E,lineNumber:747,columnNumber:15},this)]},t,!0,{fileName:E,lineNumber:745,columnNumber:13},this)})},void 0,!1,{fileName:E,lineNumber:741,columnNumber:7},this),(0,x.jsxDEV)(`div`,{className:`rounded-2xl border border-[#1a1a2a] bg-[#0d0d14] px-6 py-5 mb-6`,children:[(0,x.jsxDEV)(`div`,{className:`flex justify-between text-sm text-[#999] mb-3`,style:{fontFamily:`var(--font-mono)`},children:[(0,x.jsxDEV)(`span`,{children:`Subtotal`},void 0,!1,{fileName:E,lineNumber:771,columnNumber:11},this),(0,x.jsxDEV)(`span`,{children:formatPrice(i)},void 0,!0,{fileName:E,lineNumber:771,columnNumber:32},this)]},void 0,!0,{fileName:E,lineNumber:770,columnNumber:9},this),a&&(0,x.jsxDEV)(`div`,{className:`flex justify-between text-sm text-[#CAFF00] mb-3`,style:{fontFamily:`var(--font-mono)`},children:[(0,x.jsxDEV)(`span`,{children:`Bundle Discount (15%)`},void 0,!1,{fileName:E,lineNumber:775,columnNumber:13},this),(0,x.jsxDEV)(`span`,{children:[`−$`,o.toFixed(2)]},void 0,!0,{fileName:E,lineNumber:775,columnNumber:47},this)]},void 0,!0,{fileName:E,lineNumber:774,columnNumber:11},this),(0,x.jsxDEV)(`div`,{className:`border-t border-[#1a1a2a] pt-3 flex justify-between items-center`,children:[(0,x.jsxDEV)(`span`,{className:`text-white font-bold text-lg`,style:{fontFamily:`var(--font-display)`},children:`Total`},void 0,!1,{fileName:E,lineNumber:779,columnNumber:11},this),(0,x.jsxDEV)(`span`,{className:`text-[#CAFF00] font-black text-2xl`,style:{fontFamily:`var(--font-mono)`},children:formatPrice(s)},void 0,!0,{fileName:E,lineNumber:780,columnNumber:11},this)]},void 0,!0,{fileName:E,lineNumber:778,columnNumber:9},this)]},void 0,!0,{fileName:E,lineNumber:769,columnNumber:7},this),(0,x.jsxDEV)(`div`,{className:`flex gap-3`,children:[(0,x.jsxDEV)(`button`,{onClick:t,className:`flex-1 py-4 rounded-xl bg-[#CAFF00] text-[#06060a] font-black text-base hover:bg-[#d4ff00] active:scale-[0.99] transition-all`,style:{fontFamily:`var(--font-display)`},children:r(`checkoutBtn`)},void 0,!1,{fileName:E,lineNumber:785,columnNumber:9},this),(0,x.jsxDEV)(`button`,{onClick:n,className:`px-5 py-4 rounded-xl border border-[#1a1a2a] text-[#999] hover:text-[#666] hover:border-[#2a2a3a] text-sm font-medium transition-all`,style:{fontFamily:`var(--font-display)`},children:r(`startOverBtn`)},void 0,!1,{fileName:E,lineNumber:790,columnNumber:9},this)]},void 0,!0,{fileName:E,lineNumber:784,columnNumber:7},this)]},void 0,!0,{fileName:E,lineNumber:725,columnNumber:5},this)}function we(){
+              }, void 0, !0, { fileName: E, lineNumber: 758, columnNumber: 15 }, this)]},void 0,!0,{fileName:E,lineNumber:756,columnNumber:15},this),(0,x.jsxDEV)(`div`,{className:`text-white font-bold text-lg shrink-0`,style:{fontFamily:`var(--font-mono)`},children:formatPrice(prod.price??0)},void 0,!0,{fileName:E,lineNumber:763,columnNumber:15},this)]},t,!0,{fileName:E,lineNumber:754,columnNumber:13},this):(0,x.jsxDEV)(`div`,{className:`flex items-center gap-4 px-6 py-4 border-b border-[#111118] last:border-0`,children:[(0,x.jsxDEV)(`div`,{className:`w-16 h-16 rounded-xl bg-[#0a0a10] border border-[#111118] flex items-center justify-center text-[#222] text-xl`,children:`–`},void 0,!1,{fileName:E,lineNumber:746,columnNumber:15},this),(0,x.jsxDEV)(`div`,{className:`flex-1`,children:[(0,x.jsxDEV)(`p`,{className:`text-[#222] text-xs tracking-widest uppercase font-medium`,style:{fontFamily:`var(--font-mono)`},children:n},void 0,!1,{fileName:E,lineNumber:748,columnNumber:17},this),(0,x.jsxDEV)(`p`,{className:`text-[#888] text-sm mt-0.5`,children:`Chưa chọn`},void 0,!1,{fileName:E,lineNumber:749,columnNumber:17},this)]},void 0,!0,{fileName:E,lineNumber:747,columnNumber:15},this)]},t,!0,{fileName:E,lineNumber:745,columnNumber:13},this)})},void 0,!1,{fileName:E,lineNumber:741,columnNumber:7},this),(0,x.jsxDEV)(`div`,{className:`rounded-2xl border border-[#1a1a2a] bg-[#0d0d14] px-6 py-5 mb-6`,children:[(0,x.jsxDEV)(`div`,{className:`flex justify-between text-sm text-[#999] mb-3`,style:{fontFamily:`var(--font-mono)`},children:[(0,x.jsxDEV)(`span`,{children:`Tạm tính`},void 0,!1,{fileName:E,lineNumber:771,columnNumber:11},this),(0,x.jsxDEV)(`span`,{children:formatPrice(i)},void 0,!0,{fileName:E,lineNumber:771,columnNumber:32},this)]},void 0,!0,{fileName:E,lineNumber:770,columnNumber:9},this),hasDiscount&&(0,x.jsxDEV)(`div`,{className:`flex justify-between text-sm text-[#CAFF00] mb-3`,style:{fontFamily:`var(--font-mono)`},children:[(0,x.jsxDEV)(`span`,{children:`Ưu đãi Combo:`}),(0,x.jsxDEV)(`span`,{children:[`-`,formatPrice(o)]})] }),(0,x.jsxDEV)(`div`,{className:`border-t border-[#1a1a2a] pt-3 flex justify-between items-center`,children:[(0,x.jsxDEV)(`span`,{className:`text-white font-bold text-lg`,style:{fontFamily:`var(--font-display)`},children:`Total`},void 0,!1,{fileName:E,lineNumber:779,columnNumber:11},this),(0,x.jsxDEV)(`span`,{className:`text-[#CAFF00] font-black text-2xl`,style:{fontFamily:`var(--font-mono)`},children:formatPrice(s)},void 0,!0,{fileName:E,lineNumber:780,columnNumber:11},this)]},void 0,!0,{fileName:E,lineNumber:778,columnNumber:9},this)]},void 0,!0,{fileName:E,lineNumber:769,columnNumber:7},this),(0,x.jsxDEV)(`div`,{className:`flex gap-3`,children:[(0,x.jsxDEV)(`button`,{onClick:t,className:`flex-1 py-4 rounded-xl bg-[#CAFF00] text-[#06060a] font-black text-base hover:bg-[#d4ff00] active:scale-[0.99] transition-all`,style:{fontFamily:`var(--font-display)`},children:r(`checkoutBtn`)},void 0,!1,{fileName:E,lineNumber:785,columnNumber:9},this),(0,x.jsxDEV)(`button`,{onClick:n,className:`px-5 py-4 rounded-xl border border-[#1a1a2a] text-[#999] hover:text-[#666] hover:border-[#2a2a3a] text-sm font-medium transition-all`,style:{fontFamily:`var(--font-display)`},children:r(`startOverBtn`)},void 0,!1,{fileName:E,lineNumber:790,columnNumber:9},this)]},void 0,!0,{fileName:E,lineNumber:784,columnNumber:7},this)]},void 0,!0,{fileName:E,lineNumber:725,columnNumber:5},this)}function we(){
   const getNav=()=>{const p=(window.location.pathname||'').toLowerCase();let step='switches';if(p.includes('keycap'))step='keycaps';else if(p.includes('cable'))step='cable';else if(p.includes('summary'))step='summary';return{isAdmin:p.startsWith('/admin')||p.startsWith('admin'),step};};
   let[e,t]=(0,b.useState)(le),[n,r]=(0,b.useState)([]),[i,a]=(0,b.useState)(()=>getNav().isAdmin),[o,s]=(0,b.useState)(()=>getNav().step),[c,l]=(0,b.useState)({}),[placedOrder,setPlacedOrder]=(0,b.useState)(null),[customizingProduct,setCustomizingProduct]=(0,b.useState)(null),[qrModalData,setQrModalData]=(0,b.useState)(null),[isKeysimFullscreen,setIsKeysimFullscreen]=(0,b.useState)(!1),[isNewKeyModel,setIsNewKeyModel]=(0,b.useState)(!0),[isSubmitting,setIsSubmitting]=(0,b.useState)(!1),[baseTransform,setBaseTransform]=(0,b.useState)(null),[transformTarget,setTransformTarget]=(0,b.useState)("rctl"),
-  [theme,setTheme]=(0,b.useState)(()=>localStorage.getItem('keyhaus_theme')||(document.documentElement.classList.contains('light')?'light':'dark')),u=[{id:`switches`,label:`Switches`,products:[]},{id:`keycaps`,label:`Keycaps`,products:e.keycaps},{id:`cable`,label:`Cable`,products:e.cables}],d=u.findIndex(e=>e.id===o),f=u[d],p=u[d+1],m=p?.label??`Summary`;window.openKeySimQrModal=(url,title)=>setQrModalData({url,title});
+  [theme,setTheme]=(0,b.useState)(()=>localStorage.getItem('keyhaus_theme')||(document.documentElement.classList.contains('light')?'light':'dark')),
+  [isCheckoutOpen,setIsCheckoutOpen]=(0,b.useState)(!1),
+  [confirmedOrder,setConfirmedOrder]=(0,b.useState)(null);
+let trMain=fe();
+let u=[
+  {id:`switches`,label:trMain(`stepperSwitches`)||`Switches`,name:`Switch`,products:[]},
+  {id:`keycaps`,label:trMain(`stepperKeycaps`)||`Keycaps`,name:trMain(`stepperKeycaps`)||`Keycaps`,products:e.keycaps},
+  {id:`cable`,label:trMain(`stepperCable`)||`Phụ kiện`,name:trMain(`stepperCable`)||`Phụ kiện`,products:e.cables}
+],
+d=u.findIndex(x=>x.id===o),
+f=u[d],
+p=u[d+1],
+m=p?.label??(trMain(`stepperSummary`)||`Hoàn Thành`);window.openKeySimQrModal=(url,title)=>setQrModalData({url,title});
   const sendBaseAdjust=(dx,dy,dz,drx,ds,dsx,dsz,target)=>{const ifr=document.querySelector('.keysim-modal-body iframe')||document.querySelector('iframe');ifr?.contentWindow?.postMessage({type:'KEYSIM_ADJUST_BASE',dx,dy,dz,drx,ds,dsx,dsz,target:target||transformTarget},'*');};
   const sendBaseReset=(target)=>{const ifr=document.querySelector('.keysim-modal-body iframe')||document.querySelector('iframe');ifr?.contentWindow?.postMessage({type:'KEYSIM_RESET_BASE',target:target||transformTarget},'*');};
   (0,b.useEffect)(()=>{const fn=()=>{const nav=getNav();a(nav.isAdmin);s(nav.step);};window.addEventListener('popstate',fn);return()=>window.removeEventListener('popstate',fn);},[]);
@@ -2576,7 +3482,39 @@ function handleCheckout(){
     showToast("Checkout error: "+err, "error");
   });
 }
-function h(e){const next=p?p.id:`summary`;l(t=>({...t,[o]:e})),s(next);window.history.pushState(null,'','/'+next);}function g(e){l(t=>({...t,[o]:e})),s(`summary`);window.history.pushState(null,'','/summary');}function _(){const next=p?p.id:`summary`;s(next);window.history.pushState(null,'','/'+next);}function v(){l({}),s(`switches`);window.history.pushState(null,'','/switches');}return(0,x.jsxDEV)(ue.Provider,{value:{appData:e,setAppData:t,versions:n,setVersions:r},children:i?(0,x.jsxDEV)(ce,{onExit:()=>{a(!1);window.history.pushState(null,'','/'+o);}},void 0,!1,{fileName:E,lineNumber:841,columnNumber:9},this):(0,x.jsxDEV)(`div`,{className:`min-h-screen`,style:{backgroundColor:`#06060a`,fontFamily:`var(--font-display)`},children:[(0,x.jsxDEV)(`header`,{className:`border-b border-[#0f0f18] px-8 py-5 flex items-center justify-between sticky top-0 z-50`,style:{backgroundColor:`rgba(6,6,10,0.92)`,backdropFilter:`blur(20px)`},children:[(0,x.jsxDEV)(`div`,{className:`flex items-center gap-3`,children:[(0,x.jsxDEV)(`div`,{className:`w-7 h-7 rounded-md bg-[#CAFF00] flex items-center justify-center`,children:(0,x.jsxDEV)(`span`,{className:`text-[#06060a] text-xs font-black`,children:`K`},void 0,!1,{fileName:E,lineNumber:848,columnNumber:17},this)},void 0,!1,{fileName:E,lineNumber:847,columnNumber:15},this),(0,x.jsxDEV)(`span`,{className:`text-white font-bold text-lg tracking-tight`,style:{fontFamily:`var(--font-display)`},children:e.translations.brandName},void 0,!1,{fileName:E,lineNumber:850,columnNumber:15},this),(0,x.jsxDEV)(`span`,{className:`text-[#1e1e2e] mx-1 text-xl font-thin`,children:`|`},void 0,!1,{fileName:E,lineNumber:853,columnNumber:15},this),(0,x.jsxDEV)(`span`,{className:`text-[#888] text-sm`,style:{fontFamily:`var(--font-mono)`,fontSize:`12px`},children:e.translations.brandSubtitle},void 0,!1,{fileName:E,lineNumber:854,columnNumber:15},this)]},void 0,!0,{fileName:E,lineNumber:846,columnNumber:13},this),(0,x.jsxDEV)(ve,{current:o,cart:c,onStepClick:e=>{s(e);window.history.pushState(null,'','/'+e);}},void 0,!1,{fileName:E,lineNumber:859,columnNumber:13},this),(0,x.jsxDEV)(`div`,{className:`flex items-center gap-3`,children:[(c.keycaps||c.switches||c.cable)&&(0,x.jsxDEV)(`div`,{className:`flex items-center gap-2 px-3 py-1.5 rounded-full border border-[#1e1e2e] bg-[#0d0d14]`,children:[(0,x.jsxDEV)(`span`,{className:`text-[#CAFF00] text-xs font-medium`,style:{fontFamily:`var(--font-mono)`,fontSize:`11px`},children:[[c.keycaps,c.switches,c.cable].filter(Boolean).length,`/3 items`]},void 0,!0,{fileName:E,lineNumber:864,columnNumber:19},this),(0,x.jsxDEV)(`span`,{className:`text-white font-bold text-sm`,style:{fontFamily:`var(--font-mono)`},children:[`$`,he(c)]},void 0,!0,{fileName:E,lineNumber:867,columnNumber:19},this)]},void 0,!0,{fileName:E,lineNumber:863,columnNumber:17},this),(0,x.jsxDEV)(`button`,{onClick:()=>{a(!0);window.history.pushState(null,'','/admin/personas');},className:`flex items-center gap-1.5 px-3.5 py-2 rounded-lg border border-[#1e1e2e] text-[#999] hover:text-white hover:border-[#2a2a3a] transition-all text-xs font-medium cursor-pointer`,style:{fontFamily:`var(--font-mono)`},children:[(0,x.jsxDEV)(`svg`,{width:`12`,height:`12`,viewBox:`0 0 12 12`,fill:`none`,children:[(0,x.jsxDEV)(`circle`,{cx:`6`,cy:`4`,r:`2`,stroke:`currentColor`,strokeWidth:`1.2`},void 0,!1,{fileName:E,lineNumber:876,columnNumber:19},this),(0,x.jsxDEV)(`path`,{d:`M2 10c0-2.21 1.79-4 4-4s4 1.79 4 4`,stroke:`currentColor`,strokeWidth:`1.2`,strokeLinecap:`round`},void 0,!1,{fileName:E,lineNumber:877,columnNumber:19},this)]},void 0,!0,{fileName:E,lineNumber:875,columnNumber:17},this),e.translations.adminBtn]},void 0,!0,{fileName:E,lineNumber:870,columnNumber:15},this),
+function h(e, keepStep = false){
+  if (o === 'cable' && e && e.cables) {
+    l(t => ({ ...t, cables: e.cables, cable: e.cables[0] }));
+    if (!keepStep) {
+      const next = p ? p.id : 'summary';
+      s(next);
+      window.history.pushState(null, '', '/' + next);
+    }
+    return;
+  }
+  const next = p ? p.id : 'summary';
+  l(t => {
+    if (o === 'cable') {
+      const curCables = Array.isArray(t.cables) ? t.cables : (t.cable ? [t.cable] : []);
+      const itemToAdd = e.product ? {
+        id: (e.product.activeVariant ? `${e.product.id}-${e.product.activeVariant.id}` : e.product.id) + '-' + Date.now(),
+        itemKey: e.product.activeVariant ? `${e.product.id}-${e.product.activeVariant.id}` : e.product.id,
+        name: e.product.name + (e.product.activeVariant ? ' - ' + e.product.activeVariant.name : ''),
+        price: e.product.activeVariant?.price ?? e.product.price,
+        image: e.product.activeVariant?.image || e.product.image,
+        quantity: 1,
+        opts: e.opts
+      } : e;
+      const nextList = curCables.length > 0 ? curCables : [itemToAdd];
+      return { ...t, cable: nextList[0], cables: nextList };
+    }
+    return { ...t, [o]: e };
+  });
+  if (!keepStep) {
+    s(next);
+    window.history.pushState(null, '', '/' + next);
+  }
+}function g(e){l(t=>({...t,[o]:e})),s(`summary`);window.history.pushState(null,'','/summary');}function _(){const next=p?p.id:`summary`;s(next);window.history.pushState(null,'','/'+next);}function v(){l({}),s(`switches`);window.history.pushState(null,'','/switches');}return(0,x.jsxDEV)(ue.Provider,{value:{appData:e,setAppData:t,versions:n,setVersions:r},children:i?(0,x.jsxDEV)(ce,{onExit:()=>{a(!1);window.history.pushState(null,'','/'+o);}},void 0,!1,{fileName:E,lineNumber:841,columnNumber:9},this):(0,x.jsxDEV)(`div`,{className:`min-h-screen`,style:{backgroundColor:`#06060a`,fontFamily:`var(--font-display)`},children:[(0,x.jsxDEV)(`header`,{className:`border-b border-[#0f0f18] px-8 py-5 flex items-center justify-between sticky top-0 z-50`,style:{backgroundColor:`rgba(6,6,10,0.92)`,backdropFilter:`blur(20px)`},children:[(0,x.jsxDEV)(`div`,{className:`flex items-center gap-3`,children:[(0,x.jsxDEV)(`div`,{className:`w-7 h-7 rounded-md bg-[#CAFF00] flex items-center justify-center`,children:(0,x.jsxDEV)(`span`,{className:`text-[#06060a] text-xs font-black`,children:`K`},void 0,!1,{fileName:E,lineNumber:848,columnNumber:17},this)},void 0,!1,{fileName:E,lineNumber:847,columnNumber:15},this),(0,x.jsxDEV)(`span`,{className:`text-white font-bold text-lg tracking-tight`,style:{fontFamily:`var(--font-display)`},children:e.translations.brandName},void 0,!1,{fileName:E,lineNumber:850,columnNumber:15},this),(0,x.jsxDEV)(`span`,{className:`text-[#1e1e2e] mx-1 text-xl font-thin`,children:`|`},void 0,!1,{fileName:E,lineNumber:853,columnNumber:15},this),(0,x.jsxDEV)(`span`,{className:`text-[#888] text-sm`,style:{fontFamily:`var(--font-mono)`,fontSize:`12px`},children:e.translations.brandSubtitle},void 0,!1,{fileName:E,lineNumber:854,columnNumber:15},this)]},void 0,!0,{fileName:E,lineNumber:846,columnNumber:13},this),(0,x.jsxDEV)(ve,{current:o,cart:c,onStepClick:e=>{s(e);window.history.pushState(null,'','/'+e);}},void 0,!1,{fileName:E,lineNumber:859,columnNumber:13},this),(0,x.jsxDEV)(`div`,{className:`flex items-center gap-3`,children:[(c.keycaps||c.switches||c.cable)&&(0,x.jsxDEV)(`div`,{className:`flex items-center gap-2 px-3 py-1.5 rounded-full border border-[#1e1e2e] bg-[#0d0d14]`,children:[(0,x.jsxDEV)(`span`,{className:`text-[#CAFF00] text-xs font-medium`,style:{fontFamily:`var(--font-mono)`,fontSize:`11px`},children:[[c.keycaps,c.switches,c.cable||(c.cables&&c.cables.length)].filter(Boolean).length,`/3 món`]},void 0,!0,{fileName:E,lineNumber:864,columnNumber:19},this),(0,x.jsxDEV)(`span`,{className:`text-white font-bold text-sm`,style:{fontFamily:`var(--font-mono)`},children:formatPrice(he(c))},void 0,!0,{fileName:E,lineNumber:867,columnNumber:19},this)]},void 0,!0,{fileName:E,lineNumber:863,columnNumber:17},this),(0,x.jsxDEV)(`button`,{onClick:()=>{a(!0);window.history.pushState(null,'','/admin/personas');},className:`flex items-center gap-1.5 px-3.5 py-2 rounded-lg border border-[#1e1e2e] text-[#999] hover:text-white hover:border-[#2a2a3a] transition-all text-xs font-medium cursor-pointer`,style:{fontFamily:`var(--font-mono)`},children:[(0,x.jsxDEV)(`svg`,{width:`12`,height:`12`,viewBox:`0 0 12 12`,fill:`none`,children:[(0,x.jsxDEV)(`circle`,{cx:`6`,cy:`4`,r:`2`,stroke:`currentColor`,strokeWidth:`1.2`},void 0,!1,{fileName:E,lineNumber:876,columnNumber:19},this),(0,x.jsxDEV)(`path`,{d:`M2 10c0-2.21 1.79-4 4-4s4 1.79 4 4`,stroke:`currentColor`,strokeWidth:`1.2`,strokeLinecap:`round`},void 0,!1,{fileName:E,lineNumber:877,columnNumber:19},this)]},void 0,!0,{fileName:E,lineNumber:875,columnNumber:17},this),e.translations.adminBtn]},void 0,!0,{fileName:E,lineNumber:870,columnNumber:15},this),
 (0,x.jsxDEV)("label",{
   className:"theme-toggle-btn group",
   title: theme === "light" ? "Switch to Dark mode" : "Switch to Light mode",
@@ -2598,7 +3536,7 @@ function h(e){const next=p?p.id:`summary`;l(t=>({...t,[o]:e})),s(next);window.hi
       children:theme==="light"?"Light":"Dark"
     })
   ]
-},void 0,!0,{fileName:E,lineNumber:879,columnNumber:15},this)]},void 0,!0,{fileName:E,lineNumber:861,columnNumber:13},this)]},void 0,!0,{fileName:E,lineNumber:844,columnNumber:11},this),(0,x.jsxDEV)(`main`,{className:`max-w-[1280px] mx-auto px-8 py-10`,children:o===`switches`?(0,x.jsxDEV)(xe,{cart:c,onAdd:h,onAddOnly:g,onSkip:_},`switches`,!1,{fileName:E,lineNumber:886,columnNumber:15},this):o!==`summary`&&f?(0,x.jsxDEV)(Ce,{stepId:o,products:f.products,stepLabel:f.label,nextLabel:m,cart:c,onAdd:h,onAddOnly:g,onSkip:_,onCustomizeProduct:setCustomizingProduct},o,!1,{fileName:E,lineNumber:888,columnNumber:15},this):(0,x.jsxDEV)(D,{cart:c,onCheckout:handleCheckout,onReset:v},void 0,!1,{fileName:E,lineNumber:891,columnNumber:15},this)},void 0,!1,{fileName:E,lineNumber:884,columnNumber:11},this),(placedOrder&&(0,x.jsxDEV)("div",{className:"fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md",children:(0,x.jsxDEV)("div",{className:"bg-[#0d0d14] border border-[#CAFF00]/40 rounded-2xl max-w-lg w-full p-8 shadow-2xl text-center",children:[(0,x.jsxDEV)("div",{className:"w-16 h-16 bg-[#CAFF00]/10 border border-[#CAFF00] rounded-full flex items-center justify-center mx-auto mb-4 text-[#CAFF00] text-3xl font-bold",children:"✓"}),(0,x.jsxDEV)("h3",{className:"text-2xl font-black text-white mb-1",children:"Order Placed Successfully!"}),(0,x.jsxDEV)("p",{className:"text-sm text-[#999] mb-4",children:["Order Code: ",(0,x.jsxDEV)("span",{className:"text-[#CAFF00] font-bold font-mono text-base",children:placedOrder.orderCode})]}),(0,x.jsxDEV)("p",{className:"text-xs text-[#666] mb-6",children:"Your custom keyboard order has been saved directly to PostgreSQL on VPS (103.163.219.87)."}),
+},void 0,!0,{fileName:E,lineNumber:879,columnNumber:15},this)]},void 0,!0,{fileName:E,lineNumber:861,columnNumber:13},this)]},void 0,!0,{fileName:E,lineNumber:844,columnNumber:11},this),(0,x.jsxDEV)(`main`,{className:`max-w-[1280px] mx-auto px-8 py-10`,children:o===`switches`?(0,x.jsxDEV)(xe,{cart:c,onAdd:h,onAddOnly:g,onSkip:_},`switches`,!1,{fileName:E,lineNumber:886,columnNumber:15},this):o!==`summary`&&f?(0,x.jsxDEV)(Ce,{stepId:o,products:f.products,stepLabel:f.label,nextLabel:m,cart:c,onAdd:h,onAddOnly:g,onSkip:_,onCustomizeProduct:setCustomizingProduct},o,!1,{fileName:E,lineNumber:888,columnNumber:15},this):(0,x.jsxDEV)(D,{cart:c,onCheckout:()=>setIsCheckoutOpen(!0),onReset:v},void 0,!1,{fileName:E,lineNumber:891,columnNumber:15},this)},void 0,!1,{fileName:E,lineNumber:884,columnNumber:11},this),(placedOrder&&(0,x.jsxDEV)("div",{className:"fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md",children:(0,x.jsxDEV)("div",{className:"bg-[#0d0d14] border border-[#CAFF00]/40 rounded-2xl max-w-lg w-full p-8 shadow-2xl text-center",children:[(0,x.jsxDEV)("div",{className:"w-16 h-16 bg-[#CAFF00]/10 border border-[#CAFF00] rounded-full flex items-center justify-center mx-auto mb-4 text-[#CAFF00] text-3xl font-bold",children:"✓"}),(0,x.jsxDEV)("h3",{className:"text-2xl font-black text-white mb-1",children:"Order Placed Successfully!"}),(0,x.jsxDEV)("p",{className:"text-sm text-[#999] mb-4",children:["Order Code: ",(0,x.jsxDEV)("span",{className:"text-[#CAFF00] font-bold font-mono text-base",children:placedOrder.orderCode})]}),(0,x.jsxDEV)("p",{className:"text-xs text-[#666] mb-6",children:"Your custom keyboard order has been saved directly to PostgreSQL on VPS (103.163.219.87)."}),
 (placedOrder?.items?.qrDataUrl && (0,x.jsxDEV)("div",{
   className:"bg-[#080810] border border-[#1a1a2a] hover:border-[#CAFF00]/40 rounded-xl p-3 mb-6 flex items-center gap-3 text-left cursor-pointer group transition-colors",
   title:"Click to view 3D design QR code",
@@ -3073,6 +4011,89 @@ function h(e){const next=p?p.id:`summary`;l(t=>({...t,[o]:e})),s(next);window.hi
     ]
   }, void 0, !0, { fileName: E, lineNumber: 605, columnNumber: 5 }, this)
 }, void 0, !1, { fileName: E, lineNumber: 603, columnNumber: 3 }, this) : null),
+isCheckoutOpen && (0,x.jsxDEV)(CheckoutCustomerModal, {
+  cart: c,
+  subtotal: he(c),
+  discount: (() => {
+    const trans = e.translations || {};
+    const cType = trans.comboDiscountType === 'fixed' ? 'fixed' : 'percent';
+    const cValRaw = trans.comboDiscountValue;
+    const cVal = (cValRaw !== undefined && cValRaw !== null && cValRaw !== '') ? parseFloat(cValRaw) : 15;
+    const hasFlow1And2 = !!(c.switches && c.keycaps);
+    if (!hasFlow1And2 || cVal <= 0) return 0;
+    const sub = he(c);
+    return cType === 'percent' ? Math.round(sub * (cVal / 100)) : Math.min(sub, cVal);
+  })(),
+  total: (() => {
+    const sub = he(c);
+    const trans = e.translations || {};
+    const cType = trans.comboDiscountType === 'fixed' ? 'fixed' : 'percent';
+    const cValRaw = trans.comboDiscountValue;
+    const cVal = (cValRaw !== undefined && cValRaw !== null && cValRaw !== '') ? parseFloat(cValRaw) : 15;
+    const hasFlow1And2 = !!(c.switches && c.keycaps);
+    const disc = (!hasFlow1And2 || cVal <= 0) ? 0 : (cType === 'percent' ? Math.round(sub * (cVal / 100)) : Math.min(sub, cVal));
+    return sub - disc;
+  })(),
+  onClose: () => setIsCheckoutOpen(!1),
+  onConfirmOrder: (custInfo) => {
+    const sub = he(c);
+    const trans = e.translations || {};
+    const cType = trans.comboDiscountType === 'fixed' ? 'fixed' : 'percent';
+    const cValRaw = trans.comboDiscountValue;
+    const cVal = (cValRaw !== undefined && cValRaw !== null && cValRaw !== '') ? parseFloat(cValRaw) : 15;
+    const hasFlow1And2 = !!(c.switches && c.keycaps);
+    const disc = (!hasFlow1And2 || cVal <= 0) ? 0 : (cType === 'percent' ? Math.round(sub * (cVal / 100)) : Math.min(sub, cVal));
+    const tot = sub - disc;
+    const orderCode = "#KH-" + Math.floor(100000 + Math.random() * 900000);
+
+    const payload = {
+      orderCode: orderCode,
+      customerName: custInfo.customerName,
+      customerPhone: custInfo.customerPhone,
+      customerEmail: custInfo.customerEmail,
+      customerAddress: custInfo.customerAddress,
+      customerNote: custInfo.customerNote,
+      items: {
+        switches: c.switches || null,
+        keycaps: c.keycaps || null,
+        cable: c.cable || null,
+        cables: c.cables || (c.cable ? [c.cable] : []),
+        customerPhone: custInfo.customerPhone,
+        customerAddress: custInfo.customerAddress,
+        customerNote: custInfo.customerNote
+      },
+      subtotal: sub,
+      discount: disc,
+      total: tot,
+      status: "confirmed",
+      createdAt: new Date().toISOString()
+    };
+
+    try {
+      const curOrders = JSON.parse(localStorage.getItem("keyhaus_orders") || "[]");
+      curOrders.unshift(payload);
+      localStorage.setItem("keyhaus_orders", JSON.stringify(curOrders));
+    } catch(err) {}
+
+    fetch("/api/orders", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    }).catch(err => console.log("VPS order save error", err));
+
+    setIsCheckoutOpen(!1);
+    setConfirmedOrder(payload);
+    l({}); // clear cart
+  }
+}),
+confirmedOrder && (0,x.jsxDEV)(OrderBillModal, {
+  order: confirmedOrder,
+  onClose: () => {
+    setConfirmedOrder(null);
+    s("switches");
+    window.history.pushState(null, '', '/switches');
+  }
+}),
 (qrModalData && (0,x.jsxDEV)("div", {
   className: "keysim-qr-modal-backdrop",
   onClick: () => setQrModalData(null),
